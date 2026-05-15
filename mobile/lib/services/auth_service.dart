@@ -77,6 +77,21 @@ class AuthService {
 
     await _loadFromStorage();
 
+    // Wire auto-refresh BEFORE any network calls so the preemptive refresh
+    // below — and every subsequent authenticated request — can hit the
+    // refresh endpoint on 401.
+    _apiService.setRefreshCallback(refreshAccessToken);
+
+    // If the access token is already expired on launch but the refresh token
+    // is still alive (14-day lifetime), refresh in-place. Without this the
+    // user gets bounced to the login screen after every short app suspension
+    // longer than the 1-hour access lifetime, even though their session is
+    // still valid.
+    if (_accessToken != null && _isTokenExpired && _refreshToken != null) {
+      debugPrint('AuthService: Access token expired on launch — refreshing...');
+      await refreshAccessToken();
+    }
+
     // Sync token with ApiService
     if (_accessToken != null) {
       _apiService.setAccessToken(_accessToken);
@@ -293,8 +308,19 @@ class AuthService {
         return false;
       }
 
-      _accessToken = response.data!['access'] as String?;
-      _refreshToken = response.data!['refresh'] as String?;
+      final newAccess = response.data!['access'] as String?;
+      final newRefresh = response.data!['refresh'] as String?;
+      if (newAccess == null) {
+        debugPrint('AuthService: Refresh response missing access token');
+        return false;
+      }
+      _accessToken = newAccess;
+      // Backend rotates refresh tokens (ROTATE_REFRESH_TOKENS=True), so the
+      // old refresh is blacklisted on success. Only overwrite when the new
+      // one is present — never null out a valid refresh on a malformed reply.
+      if (newRefresh != null) {
+        _refreshToken = newRefresh;
+      }
 
       _apiService.setAccessToken(_accessToken);
       await _saveToStorage();
@@ -371,6 +397,7 @@ class AuthService {
     _selectedOrganization = null;
 
     _apiService.clearAuth();
+    _apiService.setRefreshCallback(null);
 
     await _clearStorage();
 
