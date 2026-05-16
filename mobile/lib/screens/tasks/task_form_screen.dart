@@ -3,9 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme/theme.dart';
+import '../../data/models/lookup_models.dart';
 import '../../data/models/models.dart';
+import '../../providers/deals_provider.dart';
+import '../../providers/leads_provider.dart';
+import '../../providers/lookup_provider.dart';
 import '../../providers/tasks_provider.dart';
+import '../../providers/tickets_provider.dart';
 import '../../widgets/common/common.dart';
+import '../../widgets/forms/custom_fields_form.dart';
+import '../../widgets/forms/multi_select_sheet.dart';
+
+/// One of the four parent entities a task can be linked to. The backend's
+/// `Task.clean()` invariant enforces at most one is set.
+enum _RelatedKind {
+  account('account', 'Account', LucideIcons.building2),
+  lead('lead', 'Lead', LucideIcons.user),
+  opportunity('opportunity', 'Opportunity', LucideIcons.trendingUp),
+  ticket('case', 'Ticket', LucideIcons.lifeBuoy);
+
+  final String apiValue;
+  final String label;
+  final IconData icon;
+  const _RelatedKind(this.apiValue, this.label, this.icon);
+}
 
 /// Task Form Screen - Reusable for both Create and Edit
 class TaskFormScreen extends ConsumerStatefulWidget {
@@ -28,6 +49,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   TaskStatus _status = TaskStatus.newTask;
   Priority _priority = Priority.medium;
   DateTime? _dueDate;
+  List<String> _assigneeIds = [];
+  _RelatedKind? _relatedKind;
+  String? _relatedId;
+  String? _relatedLabel;
+  Map<String, dynamic> _customFields = {};
   bool _isLoading = false;
   bool _isFetchingTask = false;
   String? _fetchError;
@@ -80,19 +106,63 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
     _status = task.status;
     _priority = task.priority;
     _dueDate = task.dueDate;
+    _assigneeIds = List<String>.from(task.assignedToIds);
+    _customFields = Map<String, dynamic>.from(task.customFields);
+    if (task.accountId != null) {
+      _relatedKind = _RelatedKind.account;
+      _relatedId = task.accountId;
+    } else if (task.leadId != null) {
+      _relatedKind = _RelatedKind.lead;
+      _relatedId = task.leadId;
+    } else if (task.opportunityId != null) {
+      _relatedKind = _RelatedKind.opportunity;
+      _relatedId = task.opportunityId;
+    } else if (task.caseId != null) {
+      _relatedKind = _RelatedKind.ticket;
+      _relatedId = task.caseId;
+    }
+    _relatedLabel = task.relatedTo?.title;
   }
 
   bool get _hasUnsavedChanges {
     if (_existingTask != null) {
-      return _titleController.text != _existingTask!.title ||
-          _descriptionController.text != (_existingTask!.description ?? '') ||
-          _status != _existingTask!.status ||
-          _priority != _existingTask!.priority ||
-          _dueDate != _existingTask!.dueDate;
+      final t = _existingTask!;
+      return _titleController.text != t.title ||
+          _descriptionController.text != (t.description ?? '') ||
+          _status != t.status ||
+          _priority != t.priority ||
+          _dueDate != t.dueDate ||
+          !_listEq(_assigneeIds, t.assignedToIds) ||
+          _relatedId != _existingRelatedId(t) ||
+          !_mapEq(_customFields, t.customFields);
     }
     return _titleController.text.isNotEmpty ||
         _descriptionController.text.isNotEmpty ||
-        _dueDate != null;
+        _dueDate != null ||
+        _assigneeIds.isNotEmpty ||
+        _relatedId != null ||
+        _customFields.isNotEmpty;
+  }
+
+  String? _existingRelatedId(Task t) =>
+      t.accountId ?? t.leadId ?? t.opportunityId ?? t.caseId;
+
+  bool _listEq(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    final sa = [...a]..sort();
+    final sb = [...b]..sort();
+    for (var i = 0; i < sa.length; i++) {
+      if (sa[i] != sb[i]) return false;
+    }
+    return true;
+  }
+
+  bool _mapEq(Map<String, dynamic> a, Map<String, dynamic> b) {
+    if (a.length != b.length) return false;
+    for (final k in a.keys) {
+      if (!b.containsKey(k) || a[k] != b[k]) return false;
+    }
+    return true;
   }
 
   Future<bool> _onWillPop() async {
@@ -125,7 +195,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   }
 
   Map<String, dynamic> _buildPayload() {
-    return {
+    final payload = <String, dynamic>{
       'title': _titleController.text.trim(),
       'description': _descriptionController.text.trim().isEmpty
           ? null
@@ -133,7 +203,16 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       'status': _status.value,
       'priority': _priority.label,
       'due_date': _dueDate?.toIso8601String().split('T').first,
+      'assigned_to': _assigneeIds,
+      'custom_fields': _customFields,
     };
+    // Send exactly one parent FK and clear the others — backend's
+    // `Task.clean()` rejects multi-parent. On PUT, sending `null` for an
+    // unset slot is how the view detects "clear this FK" (task_views.py).
+    for (final k in _RelatedKind.values) {
+      payload[k.apiValue] = (_relatedKind == k) ? _relatedId : null;
+    }
+    return payload;
   }
 
   Future<void> _handleSubmit() async {
@@ -266,6 +345,23 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
             _buildDueDatePicker(),
 
             const SizedBox(height: 24),
+
+            // People Section
+            _buildSectionTitle('People'),
+            const SizedBox(height: 16),
+            _buildAssigneesField(),
+
+            const SizedBox(height: 24),
+
+            // Linked Record Section
+            _buildSectionTitle('Linked Record'),
+            const SizedBox(height: 16),
+            _buildRelatedField(),
+
+            const SizedBox(height: 24),
+
+            // Custom Fields Section (renders nothing if the org has none)
+            _buildCustomFieldsSection(),
 
             // Description Section
             _buildSectionTitle('Description'),
@@ -629,5 +725,390 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       ];
       return '${months[date.month - 1]} ${date.day}, ${date.year}';
     }
+  }
+
+  Widget _buildAssigneesField() {
+    final users = ref.watch(usersProvider);
+    final selected = users.where((u) => _assigneeIds.contains(u.id)).toList();
+    return _PickerRow(
+      label: 'Assigned to',
+      icon: LucideIcons.users,
+      placeholder: 'No one assigned',
+      onTap: () => _pickAssignees(users),
+      child: selected.isEmpty
+          ? null
+          : Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                for (final u in selected) LabelPill(label: u.displayName),
+              ],
+            ),
+    );
+  }
+
+  Future<void> _pickAssignees(List<UserLookup> users) async {
+    final initial = users.where((u) => _assigneeIds.contains(u.id)).toList();
+    final result = await MultiSelectSheet.show<UserLookup>(
+      context: context,
+      title: 'Assigned to',
+      items: users,
+      initialSelection: initial,
+      labelOf: (u) => u.displayName,
+      searchText: (u) => '${u.email} ${u.displayName}',
+      leadingOf: (u) => UserAvatar(name: u.displayName, size: AvatarSize.xs),
+      emptyMessage: 'No users found',
+    );
+    if (result != null) {
+      setState(() => _assigneeIds = result.map((u) => u.id).toList());
+    }
+  }
+
+  Widget _buildRelatedField() {
+    final displayValue = _relatedKind == null
+        ? null
+        : '${_relatedKind!.label}: ${_relatedLabel ?? "Selected"}';
+    return _PickerRow(
+      label: 'Linked record',
+      icon: _relatedKind?.icon ?? LucideIcons.link2,
+      placeholder: 'Not linked',
+      onTap: _pickRelated,
+      onClear: _relatedKind == null
+          ? null
+          : () => setState(() {
+              _relatedKind = null;
+              _relatedId = null;
+              _relatedLabel = null;
+            }),
+      child: displayValue == null
+          ? null
+          : Text(
+              displayValue,
+              style: AppTypography.body.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+    );
+  }
+
+  Future<void> _pickRelated() async {
+    final picked = await showModalBottomSheet<_RelatedKind>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('Link to…', style: AppTypography.h3),
+            ),
+            for (final k in _RelatedKind.values)
+              InkWell(
+                onTap: () => Navigator.pop(ctx, k),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(k.icon, size: 20, color: AppColors.textSecondary),
+                      const SizedBox(width: 14),
+                      Text(k.label, style: AppTypography.body),
+                    ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    await _pickEntityForKind(picked);
+  }
+
+  Future<void> _pickEntityForKind(_RelatedKind kind) async {
+    switch (kind) {
+      case _RelatedKind.account:
+        final accounts = ref.read(accountsProvider);
+        final pick = await _pickFromList<AccountLookup>(
+          title: 'Select Account',
+          items: accounts,
+          labelOf: (a) => a.name,
+          icon: LucideIcons.building2,
+        );
+        if (pick != null) {
+          setState(() {
+            _relatedKind = kind;
+            _relatedId = pick.id;
+            _relatedLabel = pick.name;
+          });
+        }
+        break;
+      case _RelatedKind.lead:
+        final leads = ref.read(leadsListProvider);
+        final pick = await _pickFromList<Lead>(
+          title: 'Select Lead',
+          items: leads,
+          labelOf: (l) {
+            final n = '${l.firstName} ${l.lastName}'.trim();
+            return n.isEmpty ? l.email : n;
+          },
+          icon: LucideIcons.user,
+        );
+        if (pick != null) {
+          final n = '${pick.firstName} ${pick.lastName}'.trim();
+          setState(() {
+            _relatedKind = kind;
+            _relatedId = pick.id;
+            _relatedLabel = n.isEmpty ? pick.email : n;
+          });
+        }
+        break;
+      case _RelatedKind.opportunity:
+        final deals = ref.read(dealsListProvider);
+        final pick = await _pickFromList<Deal>(
+          title: 'Select Opportunity',
+          items: deals,
+          labelOf: (d) => d.title,
+          icon: LucideIcons.trendingUp,
+        );
+        if (pick != null) {
+          setState(() {
+            _relatedKind = kind;
+            _relatedId = pick.id;
+            _relatedLabel = pick.title;
+          });
+        }
+        break;
+      case _RelatedKind.ticket:
+        final tickets = ref.read(ticketsListProvider);
+        final pick = await _pickFromList<Ticket>(
+          title: 'Select Ticket',
+          items: tickets,
+          labelOf: (t) => t.name,
+          icon: LucideIcons.lifeBuoy,
+        );
+        if (pick != null) {
+          setState(() {
+            _relatedKind = kind;
+            _relatedId = pick.id;
+            _relatedLabel = pick.name;
+          });
+        }
+        break;
+    }
+  }
+
+  Future<T?> _pickFromList<T>({
+    required String title,
+    required List<T> items,
+    required String Function(T) labelOf,
+    required IconData icon,
+  }) {
+    return showModalBottomSheet<T>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.4,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, controller) => Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.gray300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(title, style: AppTypography.h3),
+            ),
+            Expanded(
+              child: items.isEmpty
+                  ? const Center(
+                      child: EmptyState(
+                        icon: LucideIcons.inbox,
+                        title: 'Nothing to pick',
+                        description:
+                            'Open this section on the web or create one first.',
+                      ),
+                    )
+                  : ListView.builder(
+                      controller: controller,
+                      itemCount: items.length,
+                      itemBuilder: (_, i) {
+                        final item = items[i];
+                        return InkWell(
+                          onTap: () => Navigator.pop(ctx, item),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  icon,
+                                  size: 18,
+                                  color: AppColors.textSecondary,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    labelOf(item),
+                                    style: AppTypography.body,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomFieldsSection() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final asyncDefs = ref.watch(customFieldDefinitionsProvider('Task'));
+        final defs = asyncDefs.value ?? const [];
+        if (defs.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionTitle('Custom Fields'),
+            const SizedBox(height: 16),
+            CustomFieldsForm(
+              targetModel: 'Task',
+              values: _customFields,
+              onChanged: (v) => setState(() => _customFields = v),
+            ),
+            const SizedBox(height: 24),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Shared "tap to open picker" tile used by Assigned-to and Linked-record.
+class _PickerRow extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final String placeholder;
+  final VoidCallback onTap;
+  final VoidCallback? onClear;
+  final Widget? child;
+
+  const _PickerRow({
+    required this.label,
+    required this.icon,
+    required this.placeholder,
+    required this.onTap,
+    this.onClear,
+    this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasValue = child != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: hasValue ? AppColors.primary50 : AppColors.gray50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: hasValue ? AppColors.primary300 : AppColors.border,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 20,
+                  color: hasValue
+                      ? AppColors.primary600
+                      : AppColors.textSecondary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child:
+                      child ??
+                      Text(
+                        placeholder,
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                ),
+                if (hasValue && onClear != null)
+                  GestureDetector(
+                    onTap: onClear,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.gray100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        LucideIcons.x,
+                        size: 14,
+                        color: AppColors.gray600,
+                      ),
+                    ),
+                  )
+                else
+                  Icon(
+                    LucideIcons.chevronRight,
+                    size: 20,
+                    color: AppColors.textTertiary,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

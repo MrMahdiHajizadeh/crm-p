@@ -253,8 +253,12 @@ class AuthService {
 
   /// Handle authentication response from backend
   Future<void> _handleAuthResponse(Map<String, dynamic> data) async {
-    // Backend returns JWTtoken (matching old app response format)
+    // Backend returns JWTtoken (matching old app response format) and a
+    // refresh_token alongside it — without the refresh token, the access
+    // token would die in 1 hour with no way to refresh until the user picks
+    // an org (which re-issues both via OrgSwitchView).
     _accessToken = data['JWTtoken'] as String?;
+    _refreshToken = data['refresh_token'] as String?;
 
     if (data['user'] != null) {
       final userData = data['user'] as Map<String, dynamic>;
@@ -397,8 +401,10 @@ class AuthService {
     _selectedOrganization = null;
 
     _apiService.clearAuth();
-    _apiService.setRefreshCallback(null);
-
+    // Leave the refresh callback wired — `refreshAccessToken` already bails
+    // when `_refreshToken == null`, so it's safe to keep registered. Nulling
+    // it here used to break refresh for any signOut → signIn cycle inside
+    // the same app session (no path re-registers it).
     await _clearStorage();
 
     debugPrint('AuthService: Signed out');

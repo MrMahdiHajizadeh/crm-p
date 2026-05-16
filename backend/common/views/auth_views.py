@@ -180,6 +180,7 @@ class GoogleIdTokenView(APIView):
                 name="GoogleIdTokenResponse",
                 fields={
                     "JWTtoken": serializers.CharField(),
+                    "refresh_token": serializers.CharField(),
                     "user": serializers.DictField(),
                     "organizations": serializers.ListField(),
                 },
@@ -256,6 +257,7 @@ class GoogleIdTokenView(APIView):
         return Response(
             {
                 "JWTtoken": str(token.access_token),
+                "refresh_token": str(token),
                 "user": {
                     "id": str(user.id),
                     "email": user.email,

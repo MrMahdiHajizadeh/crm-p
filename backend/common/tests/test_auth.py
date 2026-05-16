@@ -465,6 +465,11 @@ class TestGoogleIdTokenView:
         )
         assert response.status_code == status.HTTP_200_OK
         assert "JWTtoken" in response.data
+        # Refresh token must be present so the mobile client can refresh the
+        # 1-hour access token before the user picks an org (which is the only
+        # other place that would mint a refresh token via OrgSwitchView).
+        assert "refresh_token" in response.data
+        assert response.data["refresh_token"]
         assert response.data["user"]["email"] == "mobileuser@example.com"
         assert User.objects.filter(email="mobileuser@example.com").exists()
 

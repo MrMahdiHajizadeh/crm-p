@@ -72,135 +72,78 @@ class TicketsNotifier extends AsyncNotifier<TicketsListData> {
     required int offset,
     required TicketListFilters filters,
   }) async {
-    // Watching-only flips us to a different endpoint that returns the
-    // current profile's watched cases. It doesn't paginate the same way, so
-    // we ask for one page and treat the whole response as the result.
-    if (filters.watchingOnly) {
-      return _fetchWatching(filters);
-    }
+    // Watching-only flips us to a different endpoint scoped to the current
+    // profile's watched cases. Same filter params apply to both.
+    final endpoint = filters.watchingOnly
+        ? ApiConfig.ticketsWatching
+        : ApiConfig.tickets;
 
-    final queryParams = <String, String>{
+    final singleParams = <String, String>{
       'limit': _pageSize.toString(),
       'offset': offset.toString(),
     };
-    if (filters.search.isNotEmpty) queryParams['search'] = filters.search;
-    if (filters.status != null) queryParams['status'] = filters.status!;
-    if (filters.priority != null) queryParams['priority'] = filters.priority!;
-    if (filters.accountId != null) {
-      queryParams['account'] = filters.accountId!;
+    if (filters.search.isNotEmpty) singleParams['search'] = filters.search;
+    if (filters.statusList.isEmpty && filters.status != null) {
+      singleParams['status'] = filters.status!;
     }
+    if (filters.priority != null) singleParams['priority'] = filters.priority!;
+    if (filters.accountId != null) singleParams['account'] = filters.accountId!;
+    if (filters.caseType != null) singleParams['case_type'] = filters.caseType!;
+    if (filters.slaBreached) singleParams['sla_breached'] = 'true';
+    if (filters.createdAfter != null) {
+      singleParams['created_at__gte'] =
+          filters.createdAfter!.toUtc().toIso8601String();
+    }
+    if (filters.createdBefore != null) {
+      singleParams['created_at__lte'] =
+          filters.createdBefore!.toUtc().toIso8601String();
+    }
+
     // Multi-value params must be repeated. http's Uri only takes the last
     // value when keys collide in a Map, so we encode by hand.
     final extra = <String>[];
+    if (filters.statusList.isNotEmpty) {
+      for (final s in filters.statusList) {
+        extra.add('status=${Uri.encodeQueryComponent(s)}');
+      }
+    }
     for (final id in filters.assigneeIds) {
-      extra.add('assigned_to=$id');
+      extra.add('assigned_to=${Uri.encodeQueryComponent(id)}');
     }
     for (final id in filters.tagIds) {
-      extra.add('tags=$id');
+      extra.add('tags=${Uri.encodeQueryComponent(id)}');
     }
 
-    final base = Uri.parse(ApiConfig.tickets)
-        .replace(queryParameters: queryParams)
-        .toString();
+    final base =
+        Uri.parse(endpoint).replace(queryParameters: singleParams).toString();
     final url = extra.isEmpty ? base : '$base&${extra.join('&')}';
 
     final response = await _apiService.get(url);
-
     if (!response.success || response.data == null) {
       throw Exception(response.message ?? 'Failed to load tickets');
     }
 
     final data = response.data!;
     final ticketsList = data['cases'] as List<dynamic>? ?? [];
-    var newTickets = ticketsList
+    final newTickets = ticketsList
         .map((j) => Ticket.fromJson(j as Map<String, dynamic>))
         .toList();
-    final totalCount = data['cases_count'] as int? ?? newTickets.length;
-
-    // Date range is enforced client-side — the list endpoint doesn't expose
-    // a created_at filter. Acceptable because the user already paginates.
-    newTickets = _applyDateRange(newTickets, filters);
+    // CaseListView returns `cases_count` (total matching) and `offset` (next
+    // page offset, or null when this was the final page). The watching view
+    // returns `count` and no offset — treat its response as a single page.
+    final totalCount = (data['cases_count'] as int?) ??
+        (data['count'] as int?) ??
+        newTickets.length;
+    final nextOffset = data['offset'] as int?;
+    final hasMore =
+        filters.watchingOnly ? false : nextOffset != null;
 
     return TicketsListData(
       tickets: newTickets,
       totalCount: totalCount,
-      hasMore: newTickets.length >= _pageSize,
-      currentOffset: offset + ticketsList.length,
+      hasMore: hasMore,
+      currentOffset: nextOffset ?? (offset + ticketsList.length),
     );
-  }
-
-  Future<TicketsListData> _fetchWatching(TicketListFilters filters) async {
-    final response = await _apiService.get(ApiConfig.ticketsWatching);
-    if (!response.success || response.data == null) {
-      throw Exception(response.message ?? 'Failed to load watched tickets');
-    }
-    final list = response.data!['cases'] as List<dynamic>? ?? [];
-    var tickets = list
-        .map((j) => Ticket.fromJson(j as Map<String, dynamic>))
-        .toList();
-
-    // Apply the remaining filters client-side since /watching/ doesn't take
-    // query params yet.
-    if (filters.search.isNotEmpty) {
-      final q = filters.search.toLowerCase();
-      tickets = tickets
-          .where((t) =>
-              t.name.toLowerCase().contains(q) ||
-              (t.accountName?.toLowerCase().contains(q) ?? false))
-          .toList();
-    }
-    if (filters.status != null) {
-      tickets =
-          tickets.where((t) => t.status.value == filters.status).toList();
-    }
-    if (filters.priority != null) {
-      tickets =
-          tickets.where((t) => t.priority.value == filters.priority).toList();
-    }
-    if (filters.accountId != null) {
-      tickets =
-          tickets.where((t) => t.accountId == filters.accountId).toList();
-    }
-    if (filters.assigneeIds.isNotEmpty) {
-      tickets = tickets
-          .where((t) => t.assignedToIds
-              .any((aid) => filters.assigneeIds.contains(aid)))
-          .toList();
-    }
-    if (filters.tagIds.isNotEmpty) {
-      tickets = tickets
-          .where((t) =>
-              t.tagIds.any((tid) => filters.tagIds.contains(tid)))
-          .toList();
-    }
-    tickets = _applyDateRange(tickets, filters);
-
-    return TicketsListData(
-      tickets: tickets,
-      totalCount: tickets.length,
-      hasMore: false,
-      currentOffset: tickets.length,
-    );
-  }
-
-  List<Ticket> _applyDateRange(
-    List<Ticket> tickets,
-    TicketListFilters filters,
-  ) {
-    if (filters.createdAfter == null && filters.createdBefore == null) {
-      return tickets;
-    }
-    return tickets.where((t) {
-      if (filters.createdAfter != null &&
-          t.createdAt.isBefore(filters.createdAfter!)) {
-        return false;
-      }
-      if (filters.createdBefore != null &&
-          t.createdAt.isAfter(filters.createdBefore!)) {
-        return false;
-      }
-      return true;
-    }).toList();
   }
 
   /// Fetch a single ticket (just the Ticket object).
@@ -641,28 +584,35 @@ class MergedFromSummary {
 
 /// Bundle of filters applied to the tickets list.
 ///
-/// Server-supported (passed as query params): status, priority, accountId,
-/// assigneeIds, tagIds, search. Client-only: createdAfter/Before (the list
-/// endpoint has no date filter) and watchingOnly (separate endpoint).
+/// All filters are server-side now (backend accepts the same params on
+/// `/cases/` and `/cases/watching/`). `statusList` is the multi-status form
+/// used by the Open/Closed quick chips; if it's empty we fall back to the
+/// single-value `status` field.
 class TicketListFilters {
   final String search;
   final String? status;
+  final List<String> statusList;
   final String? priority;
   final String? accountId;
+  final String? caseType;
   final List<String> assigneeIds;
   final List<String> tagIds;
   final bool watchingOnly;
+  final bool slaBreached;
   final DateTime? createdAfter;
   final DateTime? createdBefore;
 
   const TicketListFilters({
     this.search = '',
     this.status,
+    this.statusList = const [],
     this.priority,
     this.accountId,
+    this.caseType,
     this.assigneeIds = const [],
     this.tagIds = const [],
     this.watchingOnly = false,
+    this.slaBreached = false,
     this.createdAfter,
     this.createdBefore,
   });
@@ -670,42 +620,99 @@ class TicketListFilters {
   bool get hasAny =>
       search.isNotEmpty ||
       status != null ||
+      statusList.isNotEmpty ||
       priority != null ||
       accountId != null ||
+      caseType != null ||
       assigneeIds.isNotEmpty ||
       tagIds.isNotEmpty ||
       watchingOnly ||
+      slaBreached ||
       createdAfter != null ||
       createdBefore != null;
 
   TicketListFilters copyWith({
     String? search,
     String? status,
+    List<String>? statusList,
     String? priority,
     String? accountId,
+    String? caseType,
     List<String>? assigneeIds,
     List<String>? tagIds,
     bool? watchingOnly,
+    bool? slaBreached,
     DateTime? createdAfter,
     DateTime? createdBefore,
     bool clearStatus = false,
+    bool clearStatusList = false,
     bool clearPriority = false,
     bool clearAccountId = false,
+    bool clearCaseType = false,
     bool clearCreatedAfter = false,
     bool clearCreatedBefore = false,
   }) {
     return TicketListFilters(
       search: search ?? this.search,
       status: clearStatus ? null : (status ?? this.status),
+      statusList: clearStatusList ? const [] : (statusList ?? this.statusList),
       priority: clearPriority ? null : (priority ?? this.priority),
       accountId: clearAccountId ? null : (accountId ?? this.accountId),
+      caseType: clearCaseType ? null : (caseType ?? this.caseType),
       assigneeIds: assigneeIds ?? this.assigneeIds,
       tagIds: tagIds ?? this.tagIds,
       watchingOnly: watchingOnly ?? this.watchingOnly,
+      slaBreached: slaBreached ?? this.slaBreached,
       createdAfter:
           clearCreatedAfter ? null : (createdAfter ?? this.createdAfter),
       createdBefore:
           clearCreatedBefore ? null : (createdBefore ?? this.createdBefore),
+    );
+  }
+
+  /// JSON-encode for SharedPreferences. ISO-8601 for dates; default field
+  /// values are not omitted so we get a stable round-trip on decode.
+  Map<String, dynamic> toJson() => {
+        'search': search,
+        if (status != null) 'status': status,
+        'statusList': statusList,
+        if (priority != null) 'priority': priority,
+        if (accountId != null) 'accountId': accountId,
+        if (caseType != null) 'caseType': caseType,
+        'assigneeIds': assigneeIds,
+        'tagIds': tagIds,
+        'watchingOnly': watchingOnly,
+        'slaBreached': slaBreached,
+        if (createdAfter != null)
+          'createdAfter': createdAfter!.toIso8601String(),
+        if (createdBefore != null)
+          'createdBefore': createdBefore!.toIso8601String(),
+      };
+
+  factory TicketListFilters.fromJson(Map<String, dynamic> json) {
+    return TicketListFilters(
+      search: json['search'] as String? ?? '',
+      status: json['status'] as String?,
+      statusList: ((json['statusList'] as List<dynamic>?) ?? const [])
+          .whereType<String>()
+          .toList(),
+      priority: json['priority'] as String?,
+      accountId: json['accountId'] as String?,
+      caseType: json['caseType'] as String?,
+      assigneeIds: ((json['assigneeIds'] as List<dynamic>?) ?? const [])
+          .whereType<String>()
+          .toList(),
+      tagIds: ((json['tagIds'] as List<dynamic>?) ?? const [])
+          .whereType<String>()
+          .toList(),
+      watchingOnly: json['watchingOnly'] as bool? ?? false,
+      slaBreached: json['slaBreached'] as bool? ?? false,
+      createdAfter: json['createdAfter'] != null
+          ? DateTime.tryParse(json['createdAfter'] as String)
+          : null,
+      createdBefore: json['createdBefore'] != null
+          ? DateTime.tryParse(json['createdBefore'] as String)
+          : null,
     );
   }
 }

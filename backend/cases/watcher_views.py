@@ -99,16 +99,18 @@ class WatchersListView(APIView):
 class WatchingListView(APIView):
     """GET /api/cases/watching/
 
-    Returns the list of cases the current profile watches. Lightweight
-    payload — the full case detail is fetched separately when the user opens
-    one. Reusing `Case.serializer.CaseSerializer` for parity with the main
-    list endpoint.
+    Returns the list of cases the current profile watches. Accepts the same
+    query-param filters as `CaseListView` (status, priority, account,
+    case_type, assigned_to[], tags[], search, created_at__gte/lte,
+    sla_breached, ordering) so the mobile filter chips work identically in
+    watching mode.
     """
 
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
         from cases.serializer import CaseSerializer
+        from cases.views import apply_case_list_filters
 
         cases = (
             Case.objects.filter(
@@ -117,6 +119,7 @@ class WatchingListView(APIView):
             .order_by("-created_at")
             .distinct()
         )
+        cases = apply_case_list_filters(cases, request.query_params)
         return Response(
             {
                 "cases": CaseSerializer(cases, many=True).data,

@@ -155,6 +155,17 @@ class Ticket {
     return DateTime.now().isAfter(deadline);
   }
 
+  /// Resolution SLA breach — same wall-clock approximation as
+  /// [isFirstResponseSlaBreached] (no business-hours adjustment) so the chip
+  /// matches what the user reads on the card.
+  bool get isResolutionSlaBreached {
+    if (isResolutionSlaBreachedFromApi) return true;
+    if (resolvedAt != null) return false;
+    if (slaResolutionHours == null) return false;
+    final deadline = createdAt.add(Duration(hours: slaResolutionHours!));
+    return DateTime.now().isAfter(deadline);
+  }
+
   /// Assigned-to display name (first assignee or "Unassigned").
   String get assignedToName {
     if (assignedTo.isEmpty) return 'Unassigned';

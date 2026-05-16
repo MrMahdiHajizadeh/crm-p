@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/ticket.dart';
+import '../common/avatar.dart';
 
 /// Ticket Card — list item for the tickets list.
 /// Flat card aesthetic per mobile/DESIGN_SYSTEM.md (no shadow, grey-200 border).
@@ -34,6 +35,11 @@ class TicketCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(),
+                  if (ticketItem.tags.isNotEmpty || _hasRelationshipPill())
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: _buildTagAndRelationshipRow(),
+                    ),
                   const SizedBox(height: 8),
                   _buildFooter(),
                 ],
@@ -44,6 +50,11 @@ class TicketCard extends StatelessWidget {
       ),
     );
   }
+
+  bool _hasRelationshipPill() =>
+      ticketItem.parentSummary != null ||
+      ticketItem.childCount > 0 ||
+      ticketItem.isProblem;
 
   Widget _buildHeader() {
     return Row(
@@ -107,6 +118,86 @@ class TicketCard extends StatelessWidget {
     );
   }
 
+  /// Tag chips (first 2, "+N" overflow) and relationship pills on the same
+  /// horizontal line so a card with both doesn't grow tall.
+  Widget _buildTagAndRelationshipRow() {
+    final pills = <Widget>[];
+
+    if (ticketItem.isProblem) {
+      pills.add(_pill(
+        icon: LucideIcons.alertOctagon,
+        label: 'Problem',
+        bg: AppColors.warning100,
+        fg: AppColors.warning700,
+      ));
+    }
+    if (ticketItem.parentSummary != null) {
+      pills.add(_pill(
+        icon: LucideIcons.cornerDownRight,
+        label: 'Sub-ticket',
+        bg: AppColors.primary100,
+        fg: AppColors.primary700,
+      ));
+    }
+    if (ticketItem.childCount > 0) {
+      pills.add(_pill(
+        icon: LucideIcons.gitBranch,
+        label: '${ticketItem.childCount} '
+            'child${ticketItem.childCount == 1 ? '' : 'ren'}',
+        bg: AppColors.gray100,
+        fg: AppColors.gray700,
+      ));
+    }
+
+    const maxTags = 2;
+    final shownTags = ticketItem.tags.take(maxTags).toList();
+    final overflow = ticketItem.tags.length - shownTags.length;
+    for (final tag in shownTags) {
+      pills.add(_pill(label: tag, bg: AppColors.gray100, fg: AppColors.gray700));
+    }
+    if (overflow > 0) {
+      pills.add(_pill(
+        label: '+$overflow',
+        bg: AppColors.gray100,
+        fg: AppColors.gray600,
+      ));
+    }
+
+    return Wrap(spacing: 4, runSpacing: 4, children: pills);
+  }
+
+  Widget _pill({
+    IconData? icon,
+    required String label,
+    required Color bg,
+    required Color fg,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 10, color: fg),
+            const SizedBox(width: 3),
+          ],
+          Text(
+            label,
+            style: AppTypography.caption.copyWith(
+              color: fg,
+              fontWeight: FontWeight.w500,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFooter() {
     return Row(
       children: [
@@ -120,18 +211,77 @@ class TicketCard extends StatelessWidget {
           ticketItem.ticketType.label,
           style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
         ),
+        const SizedBox(width: 8),
+        Text(
+          '·',
+          style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          ticketItem.priority.label,
+          style: AppTypography.caption.copyWith(
+            color: ticketItem.priority.color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(width: 10),
         Text(
           _formatTimeAgo(ticketItem.createdAt),
           style: AppTypography.caption.copyWith(color: AppColors.textTertiary),
         ),
         const Spacer(),
-        if (ticketItem.isFirstResponseSlaBreached) _buildSlaChip(),
+        _buildAssignees(),
+        if (ticketItem.isFirstResponseSlaBreached ||
+            ticketItem.isResolutionSlaBreached) ...[
+          const SizedBox(width: 6),
+          _buildSlaChip(),
+        ],
+      ],
+    );
+  }
+
+  /// First assignee avatar plus a "+N" overflow circle. Empty if unassigned.
+  Widget _buildAssignees() {
+    if (ticketItem.assignedTo.isEmpty) return const SizedBox.shrink();
+    final first = ticketItem.assignedTo.first;
+    final email = (first['user_details']?['email'] as String?) ??
+        (first['email'] as String?) ??
+        '';
+    final name = email.isNotEmpty ? email.split('@').first : 'User';
+    final extra = ticketItem.assignedTo.length - 1;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        UserAvatar(name: name, size: AvatarSize.xs),
+        if (extra > 0) ...[
+          const SizedBox(width: 4),
+          Container(
+            height: 20,
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            decoration: BoxDecoration(
+              color: AppColors.gray100,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '+$extra',
+              style: AppTypography.caption.copyWith(
+                color: AppColors.gray700,
+                fontWeight: FontWeight.w600,
+                fontSize: 10,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 
   Widget _buildSlaChip() {
+    // Distinguish first-response vs resolution breaches with a tooltip-y
+    // label rather than a separate chip — keeps the card compact.
+    final isResolution = ticketItem.isResolutionSlaBreached &&
+        !ticketItem.isFirstResponseSlaBreached;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -144,7 +294,7 @@ class TicketCard extends StatelessWidget {
           Icon(LucideIcons.alertTriangle, size: 11, color: AppColors.danger600),
           const SizedBox(width: 3),
           Text(
-            'SLA',
+            isResolution ? 'SLA · Resolve' : 'SLA',
             style: AppTypography.caption.copyWith(
               color: AppColors.danger600,
               fontWeight: FontWeight.w600,
