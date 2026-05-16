@@ -52,7 +52,6 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   List<String> _assigneeIds = [];
   _RelatedKind? _relatedKind;
   String? _relatedId;
-  String? _relatedLabel;
   Map<String, dynamic> _customFields = {};
   bool _isLoading = false;
   bool _isFetchingTask = false;
@@ -121,7 +120,43 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       _relatedKind = _RelatedKind.ticket;
       _relatedId = task.caseId;
     }
-    _relatedLabel = task.relatedTo?.title;
+  }
+
+  // Resolve the label for the currently-linked entity from cached lookup
+  // providers. The TaskSerializer returns FKs as plain UUIDs (not nested
+  // objects), so we have no embedded name on the edit fetch — we look it up
+  // in the same provider used by the picker. Returns null if the cache
+  // doesn't have it yet (provider not loaded); the UI falls back to a
+  // generic "Selected" hint until the provider warms up.
+  String? _resolveRelatedLabel() {
+    final id = _relatedId;
+    final kind = _relatedKind;
+    if (id == null || kind == null) return null;
+    switch (kind) {
+      case _RelatedKind.account:
+        for (final a in ref.watch(accountsProvider)) {
+          if (a.id == id) return a.name;
+        }
+        return null;
+      case _RelatedKind.lead:
+        for (final l in ref.watch(leadsListProvider)) {
+          if (l.id == id) {
+            final n = '${l.firstName} ${l.lastName}'.trim();
+            return n.isEmpty ? l.email : n;
+          }
+        }
+        return null;
+      case _RelatedKind.opportunity:
+        for (final d in ref.watch(dealsListProvider)) {
+          if (d.id == id) return d.title;
+        }
+        return null;
+      case _RelatedKind.ticket:
+        for (final t in ref.watch(ticketsListProvider)) {
+          if (t.id == id) return t.name;
+        }
+        return null;
+    }
   }
 
   bool get _hasUnsavedChanges {
@@ -432,6 +467,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       prefixIcon: LucideIcons.checkSquare,
       textInputAction: TextInputAction.next,
       textCapitalization: TextCapitalization.sentences,
+      maxLength: 200,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Task title is required';
@@ -765,9 +801,10 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
   }
 
   Widget _buildRelatedField() {
+    final label = _resolveRelatedLabel();
     final displayValue = _relatedKind == null
         ? null
-        : '${_relatedKind!.label}: ${_relatedLabel ?? "Selected"}';
+        : '${_relatedKind!.label}: ${label ?? "Selected"}';
     return _PickerRow(
       label: 'Linked record',
       icon: _relatedKind?.icon ?? LucideIcons.link2,
@@ -778,7 +815,6 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           : () => setState(() {
               _relatedKind = null;
               _relatedId = null;
-              _relatedLabel = null;
             }),
       child: displayValue == null
           ? null
@@ -856,7 +892,6 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           setState(() {
             _relatedKind = kind;
             _relatedId = pick.id;
-            _relatedLabel = pick.name;
           });
         }
         break;
@@ -872,11 +907,9 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           icon: LucideIcons.user,
         );
         if (pick != null) {
-          final n = '${pick.firstName} ${pick.lastName}'.trim();
           setState(() {
             _relatedKind = kind;
             _relatedId = pick.id;
-            _relatedLabel = n.isEmpty ? pick.email : n;
           });
         }
         break;
@@ -892,7 +925,6 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           setState(() {
             _relatedKind = kind;
             _relatedId = pick.id;
-            _relatedLabel = pick.title;
           });
         }
         break;
@@ -908,7 +940,6 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           setState(() {
             _relatedKind = kind;
             _relatedId = pick.id;
-            _relatedLabel = pick.name;
           });
         }
         break;

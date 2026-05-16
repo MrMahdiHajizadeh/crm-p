@@ -1092,31 +1092,48 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
         .read(leadsProvider.notifier)
         .addComment(widget.leadId, text);
 
-    if (mounted) {
-      setState(() => _isAddingNote = false);
+    if (!mounted) return;
+    setState(() => _isAddingNote = false);
 
-      if (response.success) {
-        _noteController.clear();
-        // Refresh lead to get updated comments
-        await _fetchLead();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Note added'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message ?? 'Failed to add note'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.danger600,
-          ),
-        );
-      }
+    if (!response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response.message ?? 'Failed to add note'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.danger600,
+        ),
+      );
+      return;
     }
+
+    _noteController.clear();
+
+    // The POST returns the updated comments list — use it directly instead
+    // of refetching. The previous refetch path could silently fail (provider
+    // catches and returns null on any parse error), leaving the new comment
+    // invisible even though the server saved it.
+    final commentsData = response.data?['comments'];
+    if (_lead != null && commentsData is List) {
+      final newComments = commentsData
+          .whereType<Map<String, dynamic>>()
+          .map(Comment.fromJson)
+          .toList();
+      setState(() {
+        _lead = _lead!.copyWith(comments: newComments);
+      });
+    } else {
+      // Response missing comments (shouldn't happen) — fall back to refetch
+      // so the user doesn't end up staring at stale data.
+      await _fetchLead();
+    }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Note added'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _editComment(String commentId, String currentText) async {
@@ -1134,16 +1151,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
         .updateComment(commentId, newText);
 
     if (!mounted) return;
-    if (response.success) {
-      await _fetchLead();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Note updated'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
+    if (!response.success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(response.message ?? 'Failed to update note'),
@@ -1151,7 +1159,34 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
           backgroundColor: AppColors.danger600,
         ),
       );
+      return;
     }
+
+    // PATCH returns only {error, message} — patch the comment locally.
+    if (_lead != null) {
+      final updated = _lead!.comments.map((c) {
+        return c.id == commentId
+            ? Comment(
+                id: c.id,
+                comment: newText,
+                commentedOn: c.commentedOn,
+                commentedById: c.commentedById,
+                commentedByName: c.commentedByName,
+                commentedByEmail: c.commentedByEmail,
+              )
+            : c;
+      }).toList();
+      setState(() {
+        _lead = _lead!.copyWith(comments: updated);
+      });
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Note updated'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Future<void> _deleteComment(String commentId) async {
@@ -1159,28 +1194,34 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
         .read(leadsProvider.notifier)
         .deleteComment(commentId);
 
-    if (mounted) {
-      if (response.success) {
-        // Refresh lead to get updated comments
-        await _fetchLead();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Note deleted'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.message ?? 'Failed to delete note'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.danger600,
-          ),
-        );
-      }
+    if (!mounted) return;
+    if (!response.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response.message ?? 'Failed to delete note'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.danger600,
+        ),
+      );
+      return;
     }
+
+    // DELETE returns only {error, message} — remove locally.
+    if (_lead != null) {
+      final filtered = _lead!.comments
+          .where((c) => c.id != commentId)
+          .toList();
+      setState(() {
+        _lead = _lead!.copyWith(comments: filtered);
+      });
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Note deleted'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Widget _buildCard({

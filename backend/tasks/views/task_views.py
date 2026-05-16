@@ -10,8 +10,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from accounts.models import Account
-from accounts.serializer import AccountSerializer
 from common.custom_fields import validate_payload as validate_custom_fields_payload
 from common.models import Attachments, Comment, CustomFieldDefinition, Profile, Tags, Teams
 from common.permissions import HasOrgContext
@@ -24,7 +22,6 @@ from common.serializer import (
 )
 from contacts.models import Contact
 from cases.models import Case
-from contacts.serializer import ContactSerializer
 from leads.models import Lead
 from opportunity.models import Opportunity
 from tasks import swagger_params
@@ -34,9 +31,9 @@ from tasks.serializer import (
     TaskCreateSerializer,
     TaskCreateSwaggerSerializer,
     TaskDetailEditSwaggerSerializer,
+    TaskListSerializer,
     TaskSerializer,
 )
-from tasks.utils import PRIORITY_CHOICES, STATUS_CHOICES
 
 
 class TaskListView(APIView, LimitOffsetPagination):
@@ -45,24 +42,17 @@ class TaskListView(APIView, LimitOffsetPagination):
 
     def get_context_data(self, **kwargs):
         params = self.request.query_params
-        queryset = self.model.objects.filter(org=self.request.profile.org).order_by(
-            "-id"
+        queryset = (
+            self.model.objects.filter(org=self.request.profile.org)
+            .select_related("account", "opportunity", "case", "lead")
+            .prefetch_related("assigned_to__user", "tags")
+            .order_by("-id")
         )
-        accounts = Account.objects.filter(org=self.request.profile.org)
-        contacts = Contact.objects.filter(org=self.request.profile.org)
         if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
             queryset = queryset.filter(
                 Q(assigned_to__in=[self.request.profile])
                 | Q(created_by=self.request.profile.user)
             )
-            accounts = accounts.filter(
-                Q(created_by=self.request.profile.user)
-                | Q(assigned_to=self.request.profile)
-            ).distinct()
-            contacts = contacts.filter(
-                Q(created_by=self.request.profile.user)
-                | Q(assigned_to=self.request.profile)
-            ).distinct()
 
         if params:
             if params.get("title"):
@@ -112,7 +102,10 @@ class TaskListView(APIView, LimitOffsetPagination):
         results_tasks = self.paginate_queryset(
             queryset.distinct(), self.request, view=self
         )
-        tasks = TaskSerializer(results_tasks, many=True).data
+        # Slim serializer: drops comments/attachments/contacts/teams from list
+        # rows and renders FKs as {id, name}. Detail view still uses
+        # TaskSerializer for the full nested payload.
+        tasks = TaskListSerializer(results_tasks, many=True).data
         if results_tasks:
             offset = queryset.filter(id__gte=results_tasks[-1].id).count()
             if offset == queryset.count():
@@ -123,13 +116,9 @@ class TaskListView(APIView, LimitOffsetPagination):
             {
                 "tasks_count": self.count,
                 "offset": offset,
+                "tasks": tasks,
             }
         )
-        context["tasks"] = tasks
-        context["status"] = STATUS_CHOICES
-        context["priority"] = PRIORITY_CHOICES
-        context["accounts_list"] = AccountSerializer(accounts, many=True).data
-        context["contacts_list"] = ContactSerializer(contacts, many=True).data
         return context
 
     @extend_schema(
@@ -142,11 +131,7 @@ class TaskListView(APIView, LimitOffsetPagination):
                 fields={
                     "tasks_count": serializers.IntegerField(),
                     "offset": serializers.IntegerField(allow_null=True),
-                    "tasks": TaskSerializer(many=True),
-                    "status": serializers.ListField(),
-                    "priority": serializers.ListField(),
-                    "accounts_list": AccountSerializer(many=True),
-                    "contacts_list": ContactSerializer(many=True),
+                    "tasks": TaskListSerializer(many=True),
                 },
             )
         },
@@ -340,17 +325,6 @@ class TaskDetailView(APIView):
                 role="ADMIN", org=self.request.profile.org
             ).order_by("user__email")
 
-        if self.request.profile == self.task_obj.created_by:
-            user_assgn_list.append(self.request.profile.id)
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            if self.request.profile.id not in user_assgn_list:
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You don't have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
         team_ids = [user.id for user in self.task_obj.get_team_users]
         all_user_ids = users.values_list("id", flat=True)
         users_excluding_team_id = set(all_user_ids) - set(team_ids)
@@ -438,13 +412,21 @@ class TaskDetailView(APIView):
                     },
                     status=status.HTTP_403_FORBIDDEN,
                 )
-        comment_serializer = CommentSerializer(data=params)
-        if comment_serializer.is_valid():
-            if params.get("comment"):
-                comment_serializer.save(
-                    task_id=self.task_obj.id,
-                    commented_by_id=self.request.profile.id,
-                )
+        task_content_type = ContentType.objects.get_for_model(Task)
+        comment_text = params.get("comment")
+        if comment_text:
+            # Use the generic ContentType-based create directly. Validating
+            # through CommentSerializer fails silently here because that
+            # serializer requires object_id and org, neither of which the
+            # client sends — is_valid() returns False and the save is skipped,
+            # leaving the user with a 200 and no comment.
+            Comment.objects.create(
+                content_type=task_content_type,
+                object_id=self.task_obj.id,
+                comment=comment_text,
+                commented_by=self.request.profile,
+                org=self.request.profile.org,
+            )
 
         if self.request.FILES.get("task_attachment"):
             attachment = Attachments()
@@ -455,7 +437,6 @@ class TaskDetailView(APIView):
             attachment.org = self.request.profile.org
             attachment.save()
 
-        task_content_type = ContentType.objects.get_for_model(Task)
         comments = Comment.objects.filter(
             content_type=task_content_type,
             object_id=self.task_obj.id,
@@ -493,6 +474,21 @@ class TaskDetailView(APIView):
     def put(self, request, pk, **kwargs):
         params = request.data
         self.task_obj = self.get_object(pk)
+        # Match the role gate used by GET/POST/PATCH/DELETE — without this,
+        # any authenticated user in the org could PUT to any task UUID even
+        # though they can't read it.
+        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
+            if not (
+                (self.request.profile == self.task_obj.created_by)
+                or (self.request.profile in self.task_obj.assigned_to.all())
+            ):
+                return Response(
+                    {
+                        "error": True,
+                        "errors": "You don't have Permission to perform this action",
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
         serializer = TaskCreateSerializer(
             data=params,
             instance=self.task_obj,

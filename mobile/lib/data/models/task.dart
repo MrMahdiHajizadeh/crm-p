@@ -104,7 +104,15 @@ class Task {
   final String? caseId;
   final String? leadId;
   final List<String> tags;
+  // Resolved team names attached to the task (TaskSerializer returns nested
+  // Team objects, but only the display name is used in the UI today).
+  final List<String> teamNames;
   final Map<String, dynamic> customFields;
+  // Task creator — backend serializes via UserSerializer, exposing at least
+  // an email. We surface both first/last name (joined) and email so the UI
+  // can pick whichever is non-empty.
+  final String? createdByName;
+  final String? createdByEmail;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -123,7 +131,10 @@ class Task {
     this.caseId,
     this.leadId,
     this.tags = const [],
+    this.teamNames = const [],
     this.customFields = const {},
+    this.createdByName,
+    this.createdByEmail,
     required this.createdAt,
     this.updatedAt,
   });
@@ -265,6 +276,32 @@ class Task {
         ? Map<String, dynamic>.from(rawCustomFields)
         : const {};
 
+    // Teams — TaskSerializer returns nested objects. Fall back to a string
+    // if the API ever switches to plain values.
+    final List<String> parsedTeamNames = [];
+    if (json['teams'] is List) {
+      for (final t in json['teams'] as List<dynamic>) {
+        if (t is Map<String, dynamic>) {
+          final name = t['name'] as String?;
+          if (name != null && name.isNotEmpty) parsedTeamNames.add(name);
+        } else if (t is String && t.isNotEmpty) {
+          parsedTeamNames.add(t);
+        }
+      }
+    }
+
+    // created_by — UserSerializer shape: {id, email, name, profile_pic}.
+    // Be defensive: backend serializers sometimes return null or a plain id,
+    // and `name` may be an empty string for users who never set it.
+    String? createdByName;
+    String? createdByEmail;
+    final cb = json['created_by'];
+    if (cb is Map<String, dynamic>) {
+      createdByEmail = cb['email'] as String?;
+      final name = (cb['name'] as String?)?.trim();
+      if (name != null && name.isNotEmpty) createdByName = name;
+    }
+
     return Task(
       id: json['id']?.toString() ?? '',
       title: json['title'] as String? ?? '',
@@ -282,7 +319,10 @@ class Task {
       caseId: caseId,
       leadId: leadId,
       tags: parsedTags,
+      teamNames: parsedTeamNames,
       customFields: parsedCustomFields,
+      createdByName: createdByName,
+      createdByEmail: createdByEmail,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),
@@ -319,7 +359,10 @@ class Task {
     String? caseId,
     String? leadId,
     List<String>? tags,
+    List<String>? teamNames,
     Map<String, dynamic>? customFields,
+    String? createdByName,
+    String? createdByEmail,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -338,7 +381,10 @@ class Task {
       caseId: caseId ?? this.caseId,
       leadId: leadId ?? this.leadId,
       tags: tags ?? this.tags,
+      teamNames: teamNames ?? this.teamNames,
       customFields: customFields ?? this.customFields,
+      createdByName: createdByName ?? this.createdByName,
+      createdByEmail: createdByEmail ?? this.createdByEmail,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

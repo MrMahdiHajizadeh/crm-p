@@ -6,6 +6,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import '../config/api_config.dart';
 import '../data/models/auth_response.dart';
 import 'api_service.dart';
+import 'crash_reporting.dart';
 
 /// Authentication service for BottleCRM
 ///
@@ -243,6 +244,7 @@ class AuthService {
       }
 
       debugPrint('AuthService: Magic code sign-in successful');
+      await CrashReporting.applyFromAuth(this);
       return true;
     } catch (e, stack) {
       debugPrint('AuthService: signInWithMagicCode error: $e');
@@ -291,6 +293,8 @@ class AuthService {
       'AuthService: Auth response handled, user: ${_currentUser?.email}',
     );
     debugPrint('AuthService: Organizations: ${_organizations?.length ?? 0}');
+
+    await CrashReporting.applyFromAuth(this);
   }
 
   /// Refresh the access token
@@ -368,6 +372,7 @@ class AuthService {
       await _saveSelectedOrganization();
 
       debugPrint('AuthService: Switched to organization: ${org.name}');
+      await CrashReporting.applyFromAuth(this);
       return true;
     } catch (e) {
       debugPrint('AuthService: Switch org error: $e');
@@ -406,6 +411,7 @@ class AuthService {
     // it here used to break refresh for any signOut → signIn cycle inside
     // the same app session (no path re-registers it).
     await _clearStorage();
+    await CrashReporting.clear();
 
     debugPrint('AuthService: Signed out');
   }

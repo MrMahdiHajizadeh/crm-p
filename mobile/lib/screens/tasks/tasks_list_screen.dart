@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
+import '../../providers/profile_provider.dart';
 import '../../providers/tasks_provider.dart';
 import '../../widgets/cards/task_row.dart';
 import '../../widgets/common/common.dart';
@@ -26,6 +29,63 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
   DateTime _selectedDay = DateTime.now();
   CalendarFormat _calendarFormat = CalendarFormat.month;
 
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+  TaskFilters _filters = const TaskFilters();
+
+  static const _searchDebounceMs = 350;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// Trigger paginated fetch when the user scrolls near the bottom. Without
+  /// this, the provider's loadMore() never runs and users silently see only
+  /// the first page (20 tasks).
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      ref.read(tasksProvider.notifier).loadMore();
+    }
+  }
+
+  void _applyFilters(TaskFilters next) {
+    setState(() => _filters = next);
+    ref.read(tasksProvider.notifier).setFilters(next);
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {}); // refresh clear-button visibility
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(
+      const Duration(milliseconds: _searchDebounceMs),
+      () => _applyFilters(_filters.copyWith(search: value.trim())),
+    );
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _searchDebounce?.cancel();
+    _applyFilters(_filters.cleared(search: true));
+  }
+
+  void _clearAllFilters() {
+    _searchController.clear();
+    _searchDebounce?.cancel();
+    _applyFilters(const TaskFilters());
+  }
 
   // Get task dates for calendar markers
   Set<String> _getTaskDates(List<Task> tasks) {
@@ -47,9 +107,39 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
       });
   }
 
+  /// Set due-date range to the visible month so calendar markers cover every
+  /// task in that month — not just the 20 currently paged in.
+  void _fetchMonthForCalendar(DateTime focusedDay) {
+    final first = DateTime(focusedDay.year, focusedDay.month, 1);
+    final last = DateTime(focusedDay.year, focusedDay.month + 1, 0);
+    final next = _filters.copyWith(
+      dueDateGte: _formatDateKey(first),
+      dueDateLte: _formatDateKey(last),
+    );
+    _applyFilters(next);
+  }
+
+  void _toggleViewMode() {
+    setState(() {
+      _viewMode = _viewMode == TaskViewMode.calendar
+          ? TaskViewMode.list
+          : TaskViewMode.calendar;
+    });
+    if (_viewMode == TaskViewMode.calendar) {
+      _fetchMonthForCalendar(_focusedDay);
+    } else if (_filters.dueDateGte != null || _filters.dueDateLte != null) {
+      // Drop the month window when returning to list view so the user sees
+      // all their tasks again.
+      _applyFilters(_filters.cleared(dueDate: true));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tasksAsync = ref.watch(tasksProvider);
+    // Eagerly subscribe so the "My tasks" toggle can read profile.id without
+    // waiting for a separate fetch when the user taps it.
+    ref.watch(profileProvider);
     final allTasks = tasksAsync.value?.tasks ?? const <Task>[];
     final isLoading = tasksAsync.isLoading;
     final error = tasksAsync.error?.toString();
@@ -62,7 +152,6 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
         elevation: 0,
         scrolledUnderElevation: 1,
         actions: [
-          // View toggle
           IconButton(
             icon: Icon(
               _viewMode == TaskViewMode.calendar
@@ -70,33 +159,31 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                   : LucideIcons.calendar,
               size: 22,
             ),
-            onPressed: () {
-              setState(() {
-                _viewMode = _viewMode == TaskViewMode.calendar
-                    ? TaskViewMode.list
-                    : TaskViewMode.calendar;
-              });
-            },
+            onPressed: _toggleViewMode,
           ),
-
-          // Add task
           IconButton(
             icon: const Icon(LucideIcons.plus, size: 22),
             onPressed: () => _navigateToCreateTask(),
           ),
         ],
       ),
-      body: _buildBody(allTasks, isLoading, error),
+      body: Column(
+        children: [
+          if (_viewMode == TaskViewMode.list) ...[
+            _buildSearchBar(),
+            _buildFilterBar(),
+          ],
+          Expanded(child: _buildBody(allTasks, isLoading, error)),
+        ],
+      ),
     );
   }
 
   Widget _buildBody(List<Task> allTasks, bool isLoading, String? error) {
-    // Show loading spinner for initial load
     if (isLoading && allTasks.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Show error state
     if (error != null && allTasks.isEmpty) {
       return Center(
         child: Padding(
@@ -141,6 +228,143 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
     );
   }
 
+  Widget _buildSearchBar() {
+    final hasQuery = _searchController.text.isNotEmpty;
+    return Container(
+      color: AppColors.surfaceDim,
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+      child: TextField(
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+        style: AppTypography.body,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Search task title',
+          hintStyle: AppTypography.body.copyWith(color: AppColors.textTertiary),
+          prefixIcon: Icon(
+            LucideIcons.search,
+            color: AppColors.textTertiary,
+            size: 18,
+          ),
+          suffixIcon: hasQuery
+              ? IconButton(
+                  icon: Icon(
+                    LucideIcons.x,
+                    color: AppColors.textTertiary,
+                    size: 16,
+                  ),
+                  onPressed: _clearSearch,
+                )
+              : null,
+          filled: true,
+          fillColor: AppColors.gray100,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: AppColors.primary500, width: 1),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar() {
+    return Container(
+      color: AppColors.surface,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+        child: Row(
+          children: [
+            _TaskFilterChip(
+              label: _filters.assignedToLabel ?? 'Anyone',
+              isActive: _filters.assignedToId != null,
+              icon: LucideIcons.user,
+              onTap: _showAssigneeFilter,
+            ),
+            const SizedBox(width: 6),
+            _TaskFilterChip(
+              label: _filters.status?.label ?? 'Status',
+              isActive: _filters.status != null,
+              onTap: _showStatusFilter,
+            ),
+            const SizedBox(width: 6),
+            _TaskFilterChip(
+              label: _filters.priority?.label ?? 'Priority',
+              isActive: _filters.priority != null,
+              onTap: _showPriorityFilter,
+            ),
+            if (_filters.isActive) ...[
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: _clearAllFilters,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger100,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(LucideIcons.x, size: 12, color: AppColors.danger600),
+                      const SizedBox(width: 3),
+                      Text(
+                        'Clear',
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.danger600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Compact summary line so overdue/today counts are visible without scrolling
+  /// past the Completed accordion.
+  Widget _buildHeaderSummary(int overdue, int today, int upcoming, int total) {
+    final parts = <String>[];
+    if (overdue > 0) parts.add('$overdue overdue');
+    if (today > 0) parts.add('$today today');
+    if (upcoming > 0) parts.add('$upcoming upcoming');
+    final summary = parts.isEmpty
+        ? '$total task${total == 1 ? '' : 's'}'
+        : parts.join(' · ');
+    return Container(
+      width: double.infinity,
+      color: AppColors.surfaceDim,
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+      child: Text(
+        summary,
+        style: AppTypography.caption.copyWith(
+          color: overdue > 0 ? AppColors.danger600 : AppColors.textSecondary,
+          fontWeight: overdue > 0 ? FontWeight.w600 : null,
+        ),
+      ),
+    );
+  }
+
   Widget _buildCalendarView(List<Task> allTasks) {
     final taskDates = _getTaskDates(allTasks);
     final tasksForSelectedDate = _getTasksForSelectedDate(allTasks);
@@ -170,9 +394,12 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
             },
             onPageChanged: (focusedDay) {
               _focusedDay = focusedDay;
+              // Refetch the new month so markers reflect what's actually due.
+              // Without this, navigating past page 1 looks empty even when
+              // tasks exist in that month.
+              _fetchMonthForCalendar(focusedDay);
             },
             calendarStyle: CalendarStyle(
-              // Today
               todayDecoration: BoxDecoration(
                 color: AppColors.primary100,
                 shape: BoxShape.circle,
@@ -181,7 +408,6 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 color: AppColors.primary700,
                 fontWeight: FontWeight.w600,
               ),
-              // Selected
               selectedDecoration: BoxDecoration(
                 color: AppColors.primary600,
                 shape: BoxShape.circle,
@@ -190,13 +416,11 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
               ),
-              // Default
               defaultTextStyle: AppTypography.body,
               weekendTextStyle: AppTypography.body,
               outsideTextStyle: AppTypography.body.copyWith(
                 color: AppColors.gray300,
               ),
-              // Markers
               markerDecoration: BoxDecoration(
                 color: AppColors.primary500,
                 shape: BoxShape.circle,
@@ -307,6 +531,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                       onToggle: () => _toggleTask(task),
                       onTap: () => _showTaskDetail(task),
                       onDelete: () => _deleteTask(task),
+                      onComplete: task.completed ? null : () => _toggleTask(task),
                     );
                   },
                 ),
@@ -332,15 +557,24 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
       return _buildAllCaughtUpState();
     }
 
+    final hasMore = ref.watch(tasksProvider).value?.hasMore ?? false;
+
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(tasksProvider.notifier).refresh();
       },
       child: SingleChildScrollView(
+        controller: _scrollController,
         padding: const EdgeInsets.only(bottom: 100),
         child: Column(
           children: [
-            // Overdue
+            _buildHeaderSummary(
+              overdueTasks.length,
+              todayTasks.length,
+              upcomingTasks.length,
+              allTasks.length,
+            ),
+
             if (overdueTasks.isNotEmpty)
               TaskGroup(
                 title: 'Overdue',
@@ -349,9 +583,9 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 onToggle: _toggleTask,
                 onTap: _showTaskDetail,
                 onDelete: _deleteTask,
+                onComplete: (t) => _toggleTask(t),
               ),
 
-            // Today
             if (todayTasks.isNotEmpty)
               TaskGroup(
                 title: 'Today',
@@ -360,9 +594,9 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 onToggle: _toggleTask,
                 onTap: _showTaskDetail,
                 onDelete: _deleteTask,
+                onComplete: (t) => _toggleTask(t),
               ),
 
-            // Upcoming
             if (upcomingTasks.isNotEmpty)
               TaskGroup(
                 title: 'Upcoming',
@@ -371,9 +605,9 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 onToggle: _toggleTask,
                 onTap: _showTaskDetail,
                 onDelete: _deleteTask,
+                onComplete: (t) => _toggleTask(t),
               ),
 
-            // No Due Date
             if (noDueDateTasks.isNotEmpty)
               TaskGroup(
                 title: 'No Due Date',
@@ -382,9 +616,9 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 onToggle: _toggleTask,
                 onTap: _showTaskDetail,
                 onDelete: _deleteTask,
+                onComplete: (t) => _toggleTask(t),
               ),
 
-            // Completed (collapsed by default)
             if (completedTasks.isNotEmpty)
               TaskGroup(
                 title: 'Completed',
@@ -394,10 +628,10 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 onToggle: _toggleTask,
                 onTap: _showTaskDetail,
                 onDelete: _deleteTask,
+                onComplete: (t) => _toggleTask(t),
               ),
 
-            // Loading indicator at bottom
-            if (isLoading && allTasks.isNotEmpty)
+            if (hasMore && isLoading)
               const Padding(
                 padding: EdgeInsets.all(16),
                 child: Center(child: CircularProgressIndicator()),
@@ -452,6 +686,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
   }
 
   Widget _buildAllCaughtUpState() {
+    final isFiltered = _filters.isActive;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -466,19 +701,21 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                LucideIcons.checkCircle2,
+                isFiltered ? LucideIcons.search : LucideIcons.checkCircle2,
                 size: 40,
                 color: AppColors.success600,
               ),
             ),
             const SizedBox(height: 20),
             Text(
-              'All caught up!',
+              isFiltered ? 'No matching tasks' : 'All caught up!',
               style: AppTypography.h2.copyWith(color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
             Text(
-              'No pending tasks. Create a new task to get started.',
+              isFiltered
+                  ? 'Try adjusting your search or filters.'
+                  : 'No pending tasks. Create a new task to get started.',
               style: AppTypography.body.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -486,9 +723,9 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
             ),
             const SizedBox(height: 24),
             PrimaryButton(
-              label: 'Add Task',
-              icon: LucideIcons.plus,
-              onPressed: () => _navigateToCreateTask(),
+              label: isFiltered ? 'Clear filters' : 'Add Task',
+              icon: isFiltered ? LucideIcons.x : LucideIcons.plus,
+              onPressed: isFiltered ? _clearAllFilters : _navigateToCreateTask,
             ),
           ],
         ),
@@ -530,7 +767,6 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
   Future<void> _navigateToCreateTask() async {
     final result = await context.push('/tasks/create');
     if (result == true && mounted) {
-      // Refresh after creating a task
       ref.read(tasksProvider.notifier).refresh();
     }
   }
@@ -563,7 +799,6 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
   }
 
   void _showTaskDetail(Task task) {
-    // Navigate to full detail screen
     context.push('/tasks/${task.id}');
   }
 
@@ -618,5 +853,225 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
 
   String _formatDateKey(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  // ─── Filter sheets ────────────────────────────────────────────────────────
+
+  void _showAssigneeFilter() {
+    final profileId = ref.read(profileProvider).value?.id;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _TaskFilterSheet(
+        title: 'Filter by Owner',
+        options: [
+          _TaskFilterOption(
+            label: 'Anyone',
+            isSelected: _filters.assignedToId == null,
+            onTap: () {
+              _applyFilters(_filters.cleared(assignedTo: true));
+              Navigator.pop(context);
+            },
+          ),
+          if (profileId != null)
+            _TaskFilterOption(
+              label: 'My tasks',
+              isSelected: _filters.assignedToId == profileId,
+              onTap: () {
+                _applyFilters(
+                  _filters.copyWith(
+                    assignedToId: profileId,
+                    assignedToLabel: 'Me',
+                  ),
+                );
+                Navigator.pop(context);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showStatusFilter() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _TaskFilterSheet(
+        title: 'Filter by Status',
+        options: [
+          _TaskFilterOption(
+            label: 'All statuses',
+            isSelected: _filters.status == null,
+            onTap: () {
+              _applyFilters(_filters.cleared(status: true));
+              Navigator.pop(context);
+            },
+          ),
+          ...TaskStatus.values.map(
+            (s) => _TaskFilterOption(
+              label: s.label,
+              isSelected: _filters.status == s,
+              onTap: () {
+                _applyFilters(_filters.copyWith(status: s));
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPriorityFilter() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _TaskFilterSheet(
+        title: 'Filter by Priority',
+        options: [
+          _TaskFilterOption(
+            label: 'All priorities',
+            isSelected: _filters.priority == null,
+            onTap: () {
+              _applyFilters(_filters.cleared(priority: true));
+              Navigator.pop(context);
+            },
+          ),
+          // Task model only supports Low/Medium/High at the backend level.
+          ...Priority.values.where((p) => p != Priority.urgent).map(
+                (p) => _TaskFilterOption(
+                  label: p.label,
+                  isSelected: _filters.priority == p,
+                  onTap: () {
+                    _applyFilters(_filters.copyWith(priority: p));
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TaskFilterChip extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final IconData? icon;
+  final VoidCallback onTap;
+
+  const _TaskFilterChip({
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+    this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary100 : AppColors.gray100,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isActive ? AppColors.primary400 : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 13,
+                color: isActive ? AppColors.primary700 : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 5),
+            ],
+            Text(
+              label,
+              style: AppTypography.caption.copyWith(
+                color: isActive ? AppColors.primary700 : AppColors.textSecondary,
+                fontWeight: isActive ? FontWeight.w600 : null,
+              ),
+            ),
+            const SizedBox(width: 3),
+            Icon(
+              LucideIcons.chevronDown,
+              size: 13,
+              color: isActive ? AppColors.primary700 : AppColors.textTertiary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TaskFilterOption {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TaskFilterOption({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+}
+
+class _TaskFilterSheet extends StatelessWidget {
+  final String title;
+  final List<_TaskFilterOption> options;
+
+  const _TaskFilterSheet({required this.title, required this.options});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+              child: Row(
+                children: [
+                  Text(title, style: AppTypography.h3),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(LucideIcons.x, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            ...options.map(
+              (opt) => ListTile(
+                title: Text(opt.label),
+                trailing: opt.isSelected
+                    ? Icon(LucideIcons.check, color: AppColors.primary600)
+                    : null,
+                onTap: opt.onTap,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
