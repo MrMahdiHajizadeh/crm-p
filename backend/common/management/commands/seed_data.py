@@ -1,6 +1,13 @@
 """
 Management command to seed test data for the CRM application.
 
+All identifying values (person names, company names, emails, websites, phone
+numbers, street addresses) are drawn from curated fictional pools and use
+IANA-reserved demo domains (`example.com` / `.example`) and the NANP fictional
+phone range (`+1 555-555-01XX`). Seeded data is safe to show in demos,
+marketing screenshots, and recorded walk-throughs without risk of resembling
+a real person or business.
+
 Usage:
     python manage.py seed_data --email admin@example.com
     python manage.py seed_data --email admin@example.com --orgs 2 --leads 100 --seed 42
@@ -11,24 +18,16 @@ Usage:
 import random
 from decimal import Decimal
 
+from crum import impersonate
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 from django.utils import timezone
-
-from crum import impersonate
 from faker import Faker
 
 from common.models import Org, Profile, Tags, Teams, User
 from common.rls import get_set_context_sql
-from common.utils import (
-    CASE_TYPE,
-    CURRENCY_CODES,
-    INDCHOICES,
-    LEAD_SOURCE,
-    OPPORTUNITY_TYPES,
-    PRIORITY_CHOICE,
-    SOURCES,
-)
+from common.utils import (CASE_TYPE, CURRENCY_CODES, INDCHOICES, LEAD_SOURCE,
+                          OPPORTUNITY_TYPES, PRIORITY_CHOICE, SOURCES)
 from invoices.seed import InvoiceSeeder
 
 
@@ -109,6 +108,233 @@ class Command(BaseCommand):
         ("Customer Success", "Post-sales customer success team"),
         ("Support Team", "Technical support and case management"),
         ("Marketing Ops", "Marketing operations and campaign management"),
+    ]
+
+    # Curated demo person first names. Common given names spanning multiple
+    # regions; deliberately exclude well-known public figures so a chance
+    # pairing in seed output never reads as a real notable person.
+    DEMO_FIRST_NAMES = [
+        "Aaron",
+        "Alex",
+        "Amelia",
+        "Anya",
+        "Avery",
+        "Beatrice",
+        "Cameron",
+        "Carlos",
+        "Casey",
+        "Chloe",
+        "Daniel",
+        "Dara",
+        "Diana",
+        "Eden",
+        "Eleanor",
+        "Elena",
+        "Felix",
+        "Gabriel",
+        "Gabriella",
+        "Grace",
+        "Hannah",
+        "Henry",
+        "Ines",
+        "Iris",
+        "Ivan",
+        "Jamie",
+        "Jordan",
+        "Julia",
+        "Kai",
+        "Kira",
+        "Lara",
+        "Liam",
+        "Maya",
+        "Miguel",
+        "Mira",
+        "Nadia",
+        "Nina",
+        "Noah",
+        "Olivia",
+        "Owen",
+        "Patricia",
+        "Priya",
+        "Quinn",
+        "Rachel",
+        "Ravi",
+        "Riley",
+        "Rosa",
+        "Samira",
+        "Sebastian",
+        "Sofia",
+        "Theo",
+        "Uma",
+        "Victor",
+        "Vivian",
+        "Wesley",
+        "Yara",
+        "Zoe",
+    ]
+
+    # Curated demo person last names. Common surnames across multiple
+    # cultures; deliberately exclude major political and celebrity surnames.
+    DEMO_LAST_NAMES = [
+        "Anderson",
+        "Bennett",
+        "Brooks",
+        "Carter",
+        "Chen",
+        "Cohen",
+        "Davis",
+        "Diaz",
+        "Edwards",
+        "Foster",
+        "Garcia",
+        "Gupta",
+        "Harper",
+        "Hughes",
+        "Iyer",
+        "James",
+        "Jensen",
+        "Kim",
+        "Larsen",
+        "Lewis",
+        "Martin",
+        "Mitchell",
+        "Nakamura",
+        "Nguyen",
+        "Okafor",
+        "Patel",
+        "Phillips",
+        "Reyes",
+        "Rivera",
+        "Rodriguez",
+        "Russell",
+        "Sato",
+        "Singh",
+        "Stewart",
+        "Tan",
+        "Tanaka",
+        "Thompson",
+        "Turner",
+        "Walker",
+        "Wright",
+    ]
+
+    # Fictional company names. Hand-crafted compound names that read as
+    # plausible businesses but match no real-world company; spread across
+    # industries (software, finance, retail, healthcare, energy, services)
+    # so seeded accounts and leads look varied.
+    DEMO_COMPANIES = [
+        "Lumen Stack",
+        "Nebula Compute",
+        "Brightforge Labs",
+        "Cardinal Software",
+        "Beacon Systems",
+        "Drift Cartography",
+        "Northwind Cloud",
+        "Stonehill Analytics",
+        "Verdant Logic",
+        "Quill & Cipher Consulting",
+        "Inkwell Studios",
+        "Highwater Capital",
+        "Foundry Financial",
+        "Quayside Holdings",
+        "Meridian Equity",
+        "Slate & Pine Advisors",
+        "Citrine Brokerage",
+        "Bridgepoint Finance",
+        "Mosswood Accountancy",
+        "Sundial Manufacturing",
+        "Ironvale Forge",
+        "Pinecrest Materials",
+        "Granite Peak Industries",
+        "Auriga Engineering",
+        "Helix Hardware",
+        "Ridgeline Mechanical",
+        "Driftwood Apparel",
+        "Tidepool Cosmetics",
+        "Sumac Outfitters",
+        "Linden & Co.",
+        "Foxglove Home",
+        "Reedmark Furniture",
+        "Aster Health",
+        "Pinegrove Clinic Group",
+        "Solace Therapeutics",
+        "Veridian Bioworks",
+        "Compass Wellness",
+        "Belltower Logistics",
+        "Driftway Couriers",
+        "Cobblestone Hospitality",
+        "Lakebridge Hotels",
+        "Greenline Travel",
+        "Solis Renewables",
+        "Hightide Energy",
+        "Mosaic Solar",
+        "Birchgrove Utilities",
+        "Currentline Power",
+        "Tessellate Design",
+        "Brackish Marketing",
+        "Plumeline Media",
+        "Sapling Academy",
+        "Echelon Learning",
+        "Lighthouse Foundation",
+    ]
+
+    # Fictional street names (paired with a Faker-generated city/state and a
+    # random number, so the resulting address can't land on a real residence).
+    DEMO_STREET_NAMES = [
+        "Maple Avenue",
+        "Cedar Lane",
+        "Elm Street",
+        "Sycamore Drive",
+        "Birchwood Court",
+        "Aspen Way",
+        "Linden Road",
+        "Willow Bend",
+        "Magnolia Place",
+        "Juniper Trail",
+        "Hawthorn Circle",
+        "Chestnut Boulevard",
+        "Sequoia Drive",
+        "Tamarack Pass",
+        "Cypress Court",
+        "Olive Branch Lane",
+        "Beech Tree Road",
+        "Hemlock Hollow",
+        "Larkspur Lane",
+        "Riverbend Drive",
+    ]
+
+    # Common job titles for seeded contacts / leads.
+    DEMO_JOB_TITLES = [
+        "Account Manager",
+        "Operations Director",
+        "Sales Representative",
+        "Product Manager",
+        "Engineering Lead",
+        "Marketing Specialist",
+        "Customer Success Manager",
+        "Chief Technology Officer",
+        "Chief Executive Officer",
+        "Chief Financial Officer",
+        "Vice President of Sales",
+        "VP of Operations",
+        "Director of Marketing",
+        "Director of Engineering",
+        "Senior Software Engineer",
+        "Software Engineer",
+        "Solutions Architect",
+        "Data Scientist",
+        "Business Analyst",
+        "Project Manager",
+        "Procurement Manager",
+        "HR Manager",
+        "Office Administrator",
+        "Field Sales Manager",
+        "Regional Director",
+        "Inside Sales Representative",
+        "Customer Support Lead",
+        "Implementation Specialist",
+        "Partner Manager",
+        "Channel Manager",
     ]
 
     def __init__(self, *args, **kwargs):
@@ -461,7 +687,7 @@ class Command(BaseCommand):
         than piling up duplicates — duplicate names break `devlogin --org NAME`
         because it can't disambiguate.
         """
-        name = "MicroPyramid" if index == 0 else self.fake.company()
+        name = "MicroPyramid" if index == 0 else self._demo_company()
         org, created = Org.objects.get_or_create(
             name=name,
             defaults={
@@ -502,7 +728,7 @@ class Command(BaseCommand):
 
         # Create additional users for this org
         for i in range(user_count):
-            email = f"user{i + 1}_{org.id.hex[:8]}@{self.fake.domain_name()}"
+            email = f"user{i + 1}_{org.id.hex[:8]}@example.com"
             user, user_created = User.objects.get_or_create(
                 email=email,
                 defaults={"is_active": True},
@@ -520,7 +746,7 @@ class Command(BaseCommand):
                     "has_sales_access": random.choice([True, False]),
                     "has_marketing_access": random.choice([True, False]),
                     "is_active": True,
-                    "phone": self.fake.phone_number()[:20],
+                    "phone": self._demo_phone(),
                 },
             )
             profiles.append(profile)
@@ -573,17 +799,19 @@ class Command(BaseCommand):
 
         contacts = []
         for _ in range(count):
+            first = self._demo_first_name()
+            last = self._demo_last_name()
             contact = Contact.objects.create(
-                first_name=self.fake.first_name(),
-                last_name=self.fake.last_name(),
-                email=self.fake.company_email(),
-                phone=self.fake.phone_number()[:20],
-                organization=self.fake.company(),
-                title=self.fake.job(),
+                first_name=first,
+                last_name=last,
+                email=self._demo_person_email(first, last),
+                phone=self._demo_phone(),
+                organization=self._demo_company(),
+                title=self._demo_job_title(),
                 department=random.choice(
                     ["Sales", "Marketing", "Engineering", "Finance", "Operations", "HR"]
                 ),
-                address_line=self.fake.street_address(),
+                address_line=self._demo_street_address(),
                 city=self.fake.city(),
                 state=self.fake.state_abbr(),
                 postcode=self.fake.postcode(),
@@ -606,20 +834,23 @@ class Command(BaseCommand):
 
         accounts = []
         industries = [c[0] for c in INDCHOICES]
+        # Reserve a unique demo company name per account in this org so the
+        # account list never shows duplicate names.
+        account_names = self._demo_unique_companies(count)
 
-        for _ in range(count):
+        for account_name in account_names:
             account = Account.objects.create(
-                name=self.fake.company(),
-                email=self.fake.company_email(),
-                phone=self.fake.phone_number()[:20],
-                website=self.fake.url(),
+                name=account_name,
+                email=self._demo_company_email(account_name),
+                phone=self._demo_phone(),
+                website=self._demo_website(account_name),
                 industry=random.choice(industries),
                 number_of_employees=random.choice(
                     [10, 50, 100, 250, 500, 1000, 5000, 10000]
                 ),
                 annual_revenue=Decimal(str(random.randint(100000, 10000000))),
                 currency=org.default_currency,
-                address_line=self.fake.street_address(),
+                address_line=self._demo_street_address(),
                 city=self.fake.city(),
                 state=self.fake.state_abbr(),
                 postcode=self.fake.postcode(),
@@ -674,15 +905,20 @@ class Command(BaseCommand):
             else:
                 title = f"{self.fake.catch_phrase()} Opportunity"
 
+            first = self._demo_first_name()
+            last = self._demo_last_name()
+            company_name = self._demo_company()
             lead = Lead.objects.create(
                 title=title,
-                first_name=self.fake.first_name(),
-                last_name=self.fake.last_name(),
-                email=self.fake.company_email(),
-                phone=self.fake.phone_number()[:20],
-                company_name=self.fake.company(),
-                job_title=self.fake.job(),
-                website=self.fake.url() if random.random() > 0.5 else None,
+                first_name=first,
+                last_name=last,
+                email=self._demo_person_email(first, last),
+                phone=self._demo_phone(),
+                company_name=company_name,
+                job_title=self._demo_job_title(),
+                website=(
+                    self._demo_website(company_name) if random.random() > 0.5 else None
+                ),
                 status=status,
                 source=random.choice(sources),
                 industry=random.choice(industries),
@@ -690,10 +926,12 @@ class Command(BaseCommand):
                 opportunity_amount=Decimal(str(random.randint(5000, 500000))),
                 currency=org.default_currency,
                 probability=random.randint(10, 90),
-                close_date=self.fake.date_between(start_date="today", end_date="+90d")
-                if random.random() > 0.3
-                else None,
-                address_line=self.fake.street_address(),
+                close_date=(
+                    self.fake.date_between(start_date="today", end_date="+90d")
+                    if random.random() > 0.3
+                    else None
+                ),
+                address_line=self._demo_street_address(),
                 city=self.fake.city(),
                 state=self.fake.state_abbr(),
                 postcode=self.fake.postcode(),
@@ -737,9 +975,11 @@ class Command(BaseCommand):
                 amount=Decimal(str(random.randint(10000, 1000000))),
                 currency=org.default_currency,
                 probability=self._stage_to_probability(stage),
-                closed_on=self.fake.date_between(start_date="today", end_date="+120d")
-                if stage not in ["CLOSED_WON", "CLOSED_LOST"]
-                else self.fake.date_between(start_date="-30d", end_date="today"),
+                closed_on=(
+                    self.fake.date_between(start_date="today", end_date="+120d")
+                    if stage not in ["CLOSED_WON", "CLOSED_LOST"]
+                    else self.fake.date_between(start_date="-30d", end_date="today")
+                ),
                 lead_source=random.choice(sources),
                 description=self.fake.paragraph() if random.random() > 0.5 else None,
                 org=org,
@@ -781,9 +1021,11 @@ class Command(BaseCommand):
                 priority=random.choice(priorities),
                 case_type=random.choice(case_types),
                 account=account,
-                closed_on=self.fake.date_between(start_date="-30d", end_date="today")
-                if status == "Closed"
-                else None,
+                closed_on=(
+                    self.fake.date_between(start_date="-30d", end_date="today")
+                    if status == "Closed"
+                    else None
+                ),
                 description=self.fake.paragraph(),
                 org=org,
             )
@@ -818,8 +1060,18 @@ class Command(BaseCommand):
         today = date.today()
         year, month = today.year, today.month
         month_names = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December",
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
         ]
         quarter = (month - 1) // 3 + 1
         q_first_month = (quarter - 1) * 3 + 1
@@ -829,10 +1081,18 @@ class Command(BaseCommand):
 
         # (period_type, start, end, label-for-name)
         period_specs = [
-            ("MONTHLY", date(year, month, 1), date(year, month, month_last),
-             f"{month_names[month - 1]} {year}"),
-            ("QUARTERLY", date(year, q_first_month, 1),
-             date(year, q_first_month + 2, q_last), f"Q{quarter} {year}"),
+            (
+                "MONTHLY",
+                date(year, month, 1),
+                date(year, month, month_last),
+                f"{month_names[month - 1]} {year}",
+            ),
+            (
+                "QUARTERLY",
+                date(year, q_first_month, 1),
+                date(year, q_first_month + 2, q_last),
+                f"Q{quarter} {year}",
+            ),
             ("YEARLY", date(year, 1, 1), date(year, 12, 31), f"{year} Annual"),
         ]
         revenue_name_tpl = {
@@ -935,9 +1195,11 @@ class Command(BaseCommand):
                 "title": self.fake.sentence(nb_words=5)[:200],
                 "status": status,
                 "priority": random.choice(priorities),
-                "due_date": self.fake.date_between(start_date="today", end_date="+30d")
-                if status != "Completed"
-                else self.fake.date_between(start_date="-14d", end_date="today"),
+                "due_date": (
+                    self.fake.date_between(start_date="today", end_date="+30d")
+                    if status != "Completed"
+                    else self.fake.date_between(start_date="-14d", end_date="today")
+                ),
                 "description": self.fake.paragraph() if random.random() > 0.5 else None,
                 "org": org,
             }
@@ -966,6 +1228,92 @@ class Command(BaseCommand):
 
         self.stdout.write(f"  Created {len(tasks)} tasks")
         return tasks
+
+    # ------------------------------------------------------------------
+    # Demo-safe value generators
+    # All identifying values flow through these helpers so seeded data
+    # stays unmistakably fictional: names from curated pools, emails on
+    # the reserved example.com / .example TLDs, phone numbers in the NANP
+    # fictional 555-555-01XX range, and synthesized street addresses.
+    # ------------------------------------------------------------------
+    def _demo_first_name(self):
+        return random.choice(self.DEMO_FIRST_NAMES)
+
+    def _demo_last_name(self):
+        return random.choice(self.DEMO_LAST_NAMES)
+
+    def _demo_company(self):
+        return random.choice(self.DEMO_COMPANIES)
+
+    def _demo_unique_companies(self, count):
+        """Return `count` distinct demo company names.
+
+        With ``count <= len(pool)``, returns a random sample without
+        replacement so a single org's accounts never collide on name.
+        Beyond the pool size, falls back to regional/structural suffixes
+        ("Northwind Cloud Holdings", "Northwind Cloud North") so any
+        duplicates still read as separate entities.
+        """
+        pool = list(self.DEMO_COMPANIES)
+        if count <= len(pool):
+            return random.sample(pool, count)
+        base = random.sample(pool, len(pool))
+        suffixes = [
+            "Group",
+            "Holdings",
+            "International",
+            "North",
+            "South",
+            "East",
+            "West",
+            "Central",
+            "Pacific",
+            "Atlantic",
+        ]
+        extras = []
+        for i in range(count - len(pool)):
+            extras.append(f"{random.choice(pool)} {suffixes[i % len(suffixes)]}")
+        return base + extras
+
+    def _demo_job_title(self):
+        return random.choice(self.DEMO_JOB_TITLES)
+
+    def _company_slug(self, name):
+        """Reduce a company name to a URL/email-safe slug."""
+        slug = "".join(ch.lower() for ch in name if ch.isalnum())
+        return slug or "demo"
+
+    def _demo_person_email(self, first, last):
+        """Build a person email on the reserved example.com demo domain.
+
+        A 4-digit numeric suffix keeps collisions rare across large seeds
+        without forcing strict uniqueness tracking.
+        """
+        return f"{first.lower()}.{last.lower()}{random.randint(1, 9999)}@example.com"
+
+    def _demo_company_email(self, company_name):
+        """Build a generic contact email on the reserved .example TLD."""
+        slug = self._company_slug(company_name)
+        prefix = random.choice(["info", "contact", "sales", "hello", "team"])
+        return f"{prefix}@{slug}.example"
+
+    def _demo_website(self, company_name=None):
+        """Build a company website URL on the reserved .example TLD."""
+        if company_name is None:
+            company_name = self._demo_company()
+        return f"https://www.{self._company_slug(company_name)}.example"
+
+    def _demo_phone(self):
+        """Return a NANP fictional-range phone number (555-555-0100..0199)."""
+        return f"+1 555-555-01{random.randint(0, 99):02d}"
+
+    def _demo_street_address(self):
+        """Synthesize a street address from a curated street-name pool."""
+        number = random.randint(100, 9999)
+        street = random.choice(self.DEMO_STREET_NAMES)
+        if random.random() > 0.6:
+            return f"{number} {street}, Suite {random.randint(100, 999)}"
+        return f"{number} {street}"
 
     def _add_assignments(self, instance, profiles, teams, tags):
         """Add common M2M assignments to an entity."""
