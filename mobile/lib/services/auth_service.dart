@@ -6,6 +6,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import '../config/api_config.dart';
 import '../data/models/auth_response.dart';
 import 'api_service.dart';
+import 'crash_reporting.dart';
 
 /// Authentication service for BottleCRM
 ///
@@ -76,6 +77,21 @@ class AuthService {
     }
 
     await _loadFromStorage();
+
+    // Wire auto-refresh BEFORE any network calls so the preemptive refresh
+    // below — and every subsequent authenticated request — can hit the
+    // refresh endpoint on 401.
+    _apiService.setRefreshCallback(refreshAccessToken);
+
+    // If the access token is already expired on launch but the refresh token
+    // is still alive (14-day lifetime), refresh in-place. Without this the
+    // user gets bounced to the login screen after every short app suspension
+    // longer than the 1-hour access lifetime, even though their session is
+    // still valid.
+    if (_accessToken != null && _isTokenExpired && _refreshToken != null) {
+      debugPrint('AuthService: Access token expired on launch — refreshing...');
+      await refreshAccessToken();
+    }
 
     // Sync token with ApiService
     if (_accessToken != null) {
@@ -228,6 +244,7 @@ class AuthService {
       }
 
       debugPrint('AuthService: Magic code sign-in successful');
+      await CrashReporting.applyFromAuth(this);
       return true;
     } catch (e, stack) {
       debugPrint('AuthService: signInWithMagicCode error: $e');
@@ -238,8 +255,12 @@ class AuthService {
 
   /// Handle authentication response from backend
   Future<void> _handleAuthResponse(Map<String, dynamic> data) async {
-    // Backend returns JWTtoken (matching old app response format)
+    // Backend returns JWTtoken (matching old app response format) and a
+    // refresh_token alongside it — without the refresh token, the access
+    // token would die in 1 hour with no way to refresh until the user picks
+    // an org (which re-issues both via OrgSwitchView).
     _accessToken = data['JWTtoken'] as String?;
+    _refreshToken = data['refresh_token'] as String?;
 
     if (data['user'] != null) {
       final userData = data['user'] as Map<String, dynamic>;
@@ -272,6 +293,8 @@ class AuthService {
       'AuthService: Auth response handled, user: ${_currentUser?.email}',
     );
     debugPrint('AuthService: Organizations: ${_organizations?.length ?? 0}');
+
+    await CrashReporting.applyFromAuth(this);
   }
 
   /// Refresh the access token
@@ -293,8 +316,19 @@ class AuthService {
         return false;
       }
 
-      _accessToken = response.data!['access'] as String?;
-      _refreshToken = response.data!['refresh'] as String?;
+      final newAccess = response.data!['access'] as String?;
+      final newRefresh = response.data!['refresh'] as String?;
+      if (newAccess == null) {
+        debugPrint('AuthService: Refresh response missing access token');
+        return false;
+      }
+      _accessToken = newAccess;
+      // Backend rotates refresh tokens (ROTATE_REFRESH_TOKENS=True), so the
+      // old refresh is blacklisted on success. Only overwrite when the new
+      // one is present — never null out a valid refresh on a malformed reply.
+      if (newRefresh != null) {
+        _refreshToken = newRefresh;
+      }
 
       _apiService.setAccessToken(_accessToken);
       await _saveToStorage();
@@ -338,11 +372,27 @@ class AuthService {
       await _saveSelectedOrganization();
 
       debugPrint('AuthService: Switched to organization: ${org.name}');
+      await CrashReporting.applyFromAuth(this);
       return true;
     } catch (e) {
       debugPrint('AuthService: Switch org error: $e');
       return false;
     }
+  }
+
+  /// Update the cached user's name after a successful profile PATCH so the
+  /// rest of the app (greeting, More sheet header) reflects the new value
+  /// without forcing a sign-out / sign-in.
+  Future<void> updateCachedUserName(String name) async {
+    final u = _currentUser;
+    if (u == null) return;
+    _currentUser = AuthUser(
+      id: u.id,
+      email: u.email,
+      name: name,
+      profilePic: u.profilePic,
+    );
+    await _saveToStorage();
   }
 
   /// Sign out and clear all stored data
@@ -356,8 +406,12 @@ class AuthService {
     _selectedOrganization = null;
 
     _apiService.clearAuth();
-
+    // Leave the refresh callback wired — `refreshAccessToken` already bails
+    // when `_refreshToken == null`, so it's safe to keep registered. Nulling
+    // it here used to break refresh for any signOut → signIn cycle inside
+    // the same app session (no path re-registers it).
     await _clearStorage();
+    await CrashReporting.clear();
 
     debugPrint('AuthService: Signed out');
   }

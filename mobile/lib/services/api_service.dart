@@ -3,6 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
+/// Callback invoked when an authenticated request gets a 401 — should hit the
+/// refresh endpoint and update the ApiService's access token, returning true
+/// if the new token is ready and the original request can be retried.
+typedef RefreshTokenCallback = Future<bool> Function();
+
 /// API response wrapper
 class ApiResponse<T> {
   final bool success;
@@ -37,6 +42,13 @@ class ApiService {
   String? _accessToken;
   String? _organizationId;
 
+  // Refresh wiring. AuthService registers `refreshAccessToken` here during
+  // initialize(); `_refreshInFlight` coalesces concurrent refresh attempts so
+  // a burst of expired-token requests only fires one network call to the
+  // refresh endpoint.
+  RefreshTokenCallback? _refreshCallback;
+  Future<bool>? _refreshInFlight;
+
   /// Set the access token (called by AuthService)
   void setAccessToken(String? token) {
     _accessToken = token;
@@ -47,10 +59,56 @@ class ApiService {
     _organizationId = orgId;
   }
 
+  /// Register the refresh-token callback (called once by AuthService.initialize).
+  /// Passing null disables auto-refresh.
+  void setRefreshCallback(RefreshTokenCallback? callback) {
+    _refreshCallback = callback;
+  }
+
   /// Clear authentication state
   void clearAuth() {
     _accessToken = null;
     _organizationId = null;
+  }
+
+  /// Run the registered refresh callback at most once per concurrent burst.
+  /// Returns true if the access token was refreshed and the caller should
+  /// retry the original request.
+  Future<bool> _refreshAccessToken() async {
+    final cb = _refreshCallback;
+    if (cb == null) return false;
+    final existing = _refreshInFlight;
+    if (existing != null) return existing;
+    final fut = cb();
+    _refreshInFlight = fut;
+    try {
+      return await fut;
+    } finally {
+      _refreshInFlight = null;
+    }
+  }
+
+  /// Send an HTTP request and transparently retry once on 401 after refreshing
+  /// the access token. The `send` closure must be safe to invoke twice — every
+  /// caller below builds a fresh request inside it.
+  Future<http.Response> _sendWithRetry({
+    required bool requiresAuth,
+    required Future<http.Response> Function(Map<String, String> headers) send,
+  }) async {
+    var response = await send(_buildHeaders(requiresAuth: requiresAuth))
+        .timeout(ApiConfig.connectTimeout);
+
+    if (requiresAuth &&
+        response.statusCode == 401 &&
+        _accessToken != null &&
+        _refreshCallback != null) {
+      final refreshed = await _refreshAccessToken();
+      if (refreshed) {
+        response = await send(_buildHeaders(requiresAuth: requiresAuth))
+            .timeout(ApiConfig.connectTimeout);
+      }
+    }
+    return response;
   }
 
   /// Build request headers
@@ -145,9 +203,10 @@ class ApiService {
 
       debugPrint('GET $uri');
 
-      final response = await _client
-          .get(uri, headers: _buildHeaders(requiresAuth: requiresAuth))
-          .timeout(ApiConfig.connectTimeout);
+      final response = await _sendWithRetry(
+        requiresAuth: requiresAuth,
+        send: (headers) => _client.get(uri, headers: headers),
+      );
 
       final data = _parseResponse(response);
       final success = _isSuccess(response.statusCode);
@@ -179,9 +238,10 @@ class ApiService {
 
       debugPrint('GET (list) $uri');
 
-      final response = await _client
-          .get(uri, headers: _buildHeaders(requiresAuth: requiresAuth))
-          .timeout(ApiConfig.connectTimeout);
+      final response = await _sendWithRetry(
+        requiresAuth: requiresAuth,
+        send: (headers) => _client.get(uri, headers: headers),
+      );
 
       final data = _parseResponse(response);
       final success = _isSuccess(response.statusCode);
@@ -210,13 +270,12 @@ class ApiService {
       debugPrint('POST $url');
       debugPrint('Body: ${jsonEncode(body)}');
 
-      final response = await _client
-          .post(
-            Uri.parse(url),
-            headers: _buildHeaders(requiresAuth: requiresAuth),
-            body: jsonEncode(body),
-          )
-          .timeout(ApiConfig.connectTimeout);
+      final uri = Uri.parse(url);
+      final encoded = jsonEncode(body);
+      final response = await _sendWithRetry(
+        requiresAuth: requiresAuth,
+        send: (headers) => _client.post(uri, headers: headers, body: encoded),
+      );
 
       final data = _parseResponse(response);
       final success = _isSuccess(response.statusCode);
@@ -253,13 +312,12 @@ class ApiService {
     try {
       debugPrint('PUT $url');
 
-      final response = await _client
-          .put(
-            Uri.parse(url),
-            headers: _buildHeaders(requiresAuth: requiresAuth),
-            body: jsonEncode(body),
-          )
-          .timeout(ApiConfig.connectTimeout);
+      final uri = Uri.parse(url);
+      final encoded = jsonEncode(body);
+      final response = await _sendWithRetry(
+        requiresAuth: requiresAuth,
+        send: (headers) => _client.put(uri, headers: headers, body: encoded),
+      );
 
       final data = _parseResponse(response);
       final success = _isSuccess(response.statusCode);
@@ -288,13 +346,12 @@ class ApiService {
     try {
       debugPrint('PATCH $url');
 
-      final response = await _client
-          .patch(
-            Uri.parse(url),
-            headers: _buildHeaders(requiresAuth: requiresAuth),
-            body: jsonEncode(body),
-          )
-          .timeout(ApiConfig.connectTimeout);
+      final uri = Uri.parse(url);
+      final encoded = jsonEncode(body);
+      final response = await _sendWithRetry(
+        requiresAuth: requiresAuth,
+        send: (headers) => _client.patch(uri, headers: headers, body: encoded),
+      );
 
       final data = _parseResponse(response);
       final success = _isSuccess(response.statusCode);
@@ -321,12 +378,11 @@ class ApiService {
     try {
       debugPrint('DELETE $url');
 
-      final response = await _client
-          .delete(
-            Uri.parse(url),
-            headers: _buildHeaders(requiresAuth: requiresAuth),
-          )
-          .timeout(ApiConfig.connectTimeout);
+      final uri = Uri.parse(url);
+      final response = await _sendWithRetry(
+        requiresAuth: requiresAuth,
+        send: (headers) => _client.delete(uri, headers: headers),
+      );
 
       final data = _parseResponse(response);
       final success = _isSuccess(response.statusCode);

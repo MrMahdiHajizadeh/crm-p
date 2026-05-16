@@ -91,8 +91,28 @@ class Task {
   final TaskStatus status;
   final Priority priority;
   final List<Map<String, dynamic>>? assignedTo;
+  // Profile UUIDs of assignees, extracted from `assigned_to[].id`. Forms need
+  // the IDs to round-trip through the API; the detail view uses `assignedTo`.
+  final List<String> assignedToIds;
   final RelatedEntity? relatedTo;
+  // Raw parent FK IDs from the API — exposed separately because the backend
+  // serializes FKs as plain UUID strings (not nested objects), which the
+  // `relatedTo` parser misses. Exactly one of these can be non-null per the
+  // backend's `Task.clean()` invariant.
+  final String? accountId;
+  final String? opportunityId;
+  final String? caseId;
+  final String? leadId;
   final List<String> tags;
+  // Resolved team names attached to the task (TaskSerializer returns nested
+  // Team objects, but only the display name is used in the UI today).
+  final List<String> teamNames;
+  final Map<String, dynamic> customFields;
+  // Task creator — backend serializes via UserSerializer, exposing at least
+  // an email. We surface both first/last name (joined) and email so the UI
+  // can pick whichever is non-empty.
+  final String? createdByName;
+  final String? createdByEmail;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -104,8 +124,17 @@ class Task {
     required this.status,
     required this.priority,
     this.assignedTo,
+    this.assignedToIds = const [],
     this.relatedTo,
+    this.accountId,
+    this.opportunityId,
+    this.caseId,
+    this.leadId,
     this.tags = const [],
+    this.teamNames = const [],
+    this.customFields = const {},
+    this.createdByName,
+    this.createdByEmail,
     required this.createdAt,
     this.updatedAt,
   });
@@ -190,37 +219,87 @@ class Task {
 
     // Parse assigned_to
     List<Map<String, dynamic>>? parsedAssignedTo;
+    List<String> parsedAssignedToIds = const [];
     if (json['assigned_to'] != null) {
       final assignedList = json['assigned_to'] as List<dynamic>;
       parsedAssignedTo = assignedList
           .map((a) => a is Map<String, dynamic> ? a : <String, dynamic>{})
           .toList();
+      parsedAssignedToIds = parsedAssignedTo
+          .map((a) => a['id']?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
 
-    // Parse related entity (account, lead, opportunity, ticket)
-    // Handle both full objects and ID references
+    // Parse related entity (account, lead, opportunity, ticket).
+    // Backend serializes FKs as plain UUID strings, so prefer the *Id capture
+    // path below for round-tripping; the nested-object branch is kept for any
+    // endpoint that does enrich (e.g. dashboard activity).
+    String? extractId(dynamic raw) {
+      if (raw == null) return null;
+      if (raw is String && raw.isNotEmpty) return raw;
+      if (raw is Map<String, dynamic>) return raw['id']?.toString();
+      return null;
+    }
+
+    final accountId = extractId(json['account']);
+    final opportunityId = extractId(json['opportunity']);
+    final caseId = extractId(json['case']);
+    final leadId = extractId(json['lead']);
+
     RelatedEntity? relatedEntity;
-    if (json['account'] != null && json['account'] is Map<String, dynamic>) {
+    if (json['account'] is Map<String, dynamic>) {
       relatedEntity = RelatedEntity.fromJson(
         json['account'] as Map<String, dynamic>,
         RelatedEntityType.account,
       );
-    } else if (json['lead'] != null && json['lead'] is Map<String, dynamic>) {
+    } else if (json['lead'] is Map<String, dynamic>) {
       relatedEntity = RelatedEntity.fromJson(
         json['lead'] as Map<String, dynamic>,
         RelatedEntityType.lead,
       );
-    } else if (json['opportunity'] != null &&
-        json['opportunity'] is Map<String, dynamic>) {
+    } else if (json['opportunity'] is Map<String, dynamic>) {
       relatedEntity = RelatedEntity.fromJson(
         json['opportunity'] as Map<String, dynamic>,
         RelatedEntityType.opportunity,
       );
-    } else if (json['case'] != null && json['case'] is Map<String, dynamic>) {
+    } else if (json['case'] is Map<String, dynamic>) {
       relatedEntity = RelatedEntity.fromJson(
         json['case'] as Map<String, dynamic>,
         RelatedEntityType.ticket_,
       );
+    }
+
+    final rawCustomFields = json['custom_fields'];
+    final Map<String, dynamic> parsedCustomFields =
+        rawCustomFields is Map<String, dynamic>
+        ? Map<String, dynamic>.from(rawCustomFields)
+        : const {};
+
+    // Teams — TaskSerializer returns nested objects. Fall back to a string
+    // if the API ever switches to plain values.
+    final List<String> parsedTeamNames = [];
+    if (json['teams'] is List) {
+      for (final t in json['teams'] as List<dynamic>) {
+        if (t is Map<String, dynamic>) {
+          final name = t['name'] as String?;
+          if (name != null && name.isNotEmpty) parsedTeamNames.add(name);
+        } else if (t is String && t.isNotEmpty) {
+          parsedTeamNames.add(t);
+        }
+      }
+    }
+
+    // created_by — UserSerializer shape: {id, email, name, profile_pic}.
+    // Be defensive: backend serializers sometimes return null or a plain id,
+    // and `name` may be an empty string for users who never set it.
+    String? createdByName;
+    String? createdByEmail;
+    final cb = json['created_by'];
+    if (cb is Map<String, dynamic>) {
+      createdByEmail = cb['email'] as String?;
+      final name = (cb['name'] as String?)?.trim();
+      if (name != null && name.isNotEmpty) createdByName = name;
     }
 
     return Task(
@@ -233,8 +312,17 @@ class Task {
       status: TaskStatus.fromString(json['status'] as String?),
       priority: Priority.fromString(json['priority'] as String?),
       assignedTo: parsedAssignedTo,
+      assignedToIds: parsedAssignedToIds,
       relatedTo: relatedEntity,
+      accountId: accountId,
+      opportunityId: opportunityId,
+      caseId: caseId,
+      leadId: leadId,
       tags: parsedTags,
+      teamNames: parsedTeamNames,
+      customFields: parsedCustomFields,
+      createdByName: createdByName,
+      createdByEmail: createdByEmail,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),
@@ -264,8 +352,17 @@ class Task {
     TaskStatus? status,
     Priority? priority,
     List<Map<String, dynamic>>? assignedTo,
+    List<String>? assignedToIds,
     RelatedEntity? relatedTo,
+    String? accountId,
+    String? opportunityId,
+    String? caseId,
+    String? leadId,
     List<String>? tags,
+    List<String>? teamNames,
+    Map<String, dynamic>? customFields,
+    String? createdByName,
+    String? createdByEmail,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -277,8 +374,17 @@ class Task {
       status: status ?? this.status,
       priority: priority ?? this.priority,
       assignedTo: assignedTo ?? this.assignedTo,
+      assignedToIds: assignedToIds ?? this.assignedToIds,
       relatedTo: relatedTo ?? this.relatedTo,
+      accountId: accountId ?? this.accountId,
+      opportunityId: opportunityId ?? this.opportunityId,
+      caseId: caseId ?? this.caseId,
+      leadId: leadId ?? this.leadId,
       tags: tags ?? this.tags,
+      teamNames: teamNames ?? this.teamNames,
+      customFields: customFields ?? this.customFields,
+      createdByName: createdByName ?? this.createdByName,
+      createdByEmail: createdByEmail ?? this.createdByEmail,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

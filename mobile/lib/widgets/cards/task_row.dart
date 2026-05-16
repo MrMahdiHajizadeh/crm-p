@@ -5,12 +5,17 @@ import '../../data/models/models.dart';
 import '../common/common.dart';
 
 /// Task Row Widget
-/// Displays task in list with checkbox, info, and swipe actions
+/// Displays task in list with checkbox, info, status/priority badges, and
+/// horizontal swipe actions (right → complete, left → delete).
 class TaskRow extends StatelessWidget {
   final Task task;
   final VoidCallback? onToggle;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
+  // Optional fast-path for swipe-right (mark complete). Falls back to
+  // [onToggle] when omitted. Kept separate so callers can disable it for
+  // already-completed tasks where "complete again" makes no sense.
+  final VoidCallback? onComplete;
 
   const TaskRow({
     super.key,
@@ -18,22 +23,45 @@ class TaskRow extends StatelessWidget {
     this.onToggle,
     this.onTap,
     this.onDelete,
+    this.onComplete,
   });
 
   @override
   Widget build(BuildContext context) {
+    final canComplete = !task.completed && (onComplete != null || onToggle != null);
     return Dismissible(
       key: Key(task.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
+      direction: canComplete
+          ? DismissDirection.horizontal
+          : DismissDirection.endToStart,
+      background: canComplete
+          ? Container(
+              color: AppColors.success500,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 20),
+              child: const Icon(
+                LucideIcons.check,
+                color: Colors.white,
+                size: 22,
+              ),
+            )
+          : null,
+      secondaryBackground: Container(
         color: AppColors.danger500,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(LucideIcons.trash2, color: Colors.white, size: 22),
       ),
       confirmDismiss: (direction) async {
-        onDelete?.call();
-        return false; // Handle deletion in callback
+        if (direction == DismissDirection.startToEnd) {
+          (onComplete ?? onToggle)?.call();
+        } else if (direction == DismissDirection.endToStart) {
+          onDelete?.call();
+        }
+        // Both actions are handled by the callback (which may show a
+        // confirmation dialog); never let the Dismissible self-remove the row
+        // so the provider stays the source of truth for the visible list.
+        return false;
       },
       child: InkWell(
         onTap: onTap,
@@ -45,7 +73,6 @@ class TaskRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Checkbox
               GestureDetector(
                 onTap: onToggle,
                 child: AnimatedContainer(
@@ -79,7 +106,6 @@ class TaskRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
                     Text(
                       task.title,
                       style: AppTypography.label.copyWith(
@@ -135,24 +161,46 @@ class TaskRow extends StatelessWidget {
                         ],
                       ],
                     ),
+
+                    // Status chip + tag chips, only rendered when there's
+                    // something to show. Keeps the row visually unchanged for
+                    // tasks that have nothing tagged.
+                    if (_shouldShowMetaRow()) ...[
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          if (!task.completed && task.status != TaskStatus.newTask)
+                            _StatusChip(status: task.status),
+                          ...task.tags.take(3).map((t) => _TagChip(label: t)),
+                          if (task.tags.length > 3)
+                            _TagChip(label: '+${task.tags.length - 3}'),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
 
               const SizedBox(width: 10),
 
-              // Priority Badge
               PriorityBadge.fromPriority(task.priority, compact: true),
 
               const SizedBox(width: 10),
 
-              // Assignee Avatar
               UserAvatar(name: task.assignedToName, size: AvatarSize.xs),
             ],
           ),
         ),
       ),
     );
+  }
+
+  bool _shouldShowMetaRow() {
+    final hasStatusToShow =
+        !task.completed && task.status != TaskStatus.newTask;
+    return hasStatusToShow || task.tags.isNotEmpty;
   }
 
   bool _isUrgent() {
@@ -248,6 +296,56 @@ class TaskRow extends StatelessWidget {
   }
 }
 
+class _StatusChip extends StatelessWidget {
+  final TaskStatus status;
+
+  const _StatusChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: status.color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: status.color.withValues(alpha: 0.4)),
+      ),
+      child: Text(
+        status.label,
+        style: AppTypography.caption.copyWith(
+          color: status.color,
+          fontWeight: FontWeight.w600,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
+
+class _TagChip extends StatelessWidget {
+  final String label;
+
+  const _TagChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.gray100,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          color: AppColors.textSecondary,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+}
+
 /// Task Group Widget
 /// Collapsible section for grouping tasks (Overdue, Today, Upcoming)
 class TaskGroup extends StatefulWidget {
@@ -257,6 +355,7 @@ class TaskGroup extends StatefulWidget {
   final Function(Task)? onToggle;
   final Function(Task)? onTap;
   final Function(Task)? onDelete;
+  final Function(Task)? onComplete;
   final bool initiallyExpanded;
 
   const TaskGroup({
@@ -267,6 +366,7 @@ class TaskGroup extends StatefulWidget {
     this.onToggle,
     this.onTap,
     this.onDelete,
+    this.onComplete,
     this.initiallyExpanded = true,
   });
 
@@ -300,7 +400,6 @@ class _TaskGroupState extends State<TaskGroup> {
 
     return Column(
       children: [
-        // Group Header
         InkWell(
           onTap: () => setState(() => _expanded = !_expanded),
           child: Container(
@@ -354,7 +453,6 @@ class _TaskGroupState extends State<TaskGroup> {
           ),
         ),
 
-        // Group Content
         AnimatedCrossFade(
           firstChild: Column(
             children: widget.tasks.map((task) {
@@ -363,6 +461,9 @@ class _TaskGroupState extends State<TaskGroup> {
                 onToggle: () => widget.onToggle?.call(task),
                 onTap: () => widget.onTap?.call(task),
                 onDelete: () => widget.onDelete?.call(task),
+                onComplete: task.completed
+                    ? null
+                    : () => (widget.onComplete ?? widget.onToggle)?.call(task),
               );
             }).toList(),
           ),

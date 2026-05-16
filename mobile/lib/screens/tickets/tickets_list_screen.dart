@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/lookup_models.dart';
 import '../../data/models/ticket.dart';
@@ -13,6 +15,8 @@ import '../../routes/app_router.dart';
 import '../../widgets/cards/ticket_card.dart';
 import '../../widgets/common/common.dart';
 import '../../widgets/forms/multi_select_sheet.dart';
+
+const String _filtersPrefsKey = 'tickets_filters_v1';
 
 /// Tickets List Screen — paginated list with server- and client-side filters.
 class TicketsListScreen extends ConsumerStatefulWidget {
@@ -33,6 +37,45 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    // Restore previously-applied filters in the background. If anything is
+    // restored, kick the provider with the saved filters; the default first
+    // fetch (no filters) is still in flight at this point, but `refresh`
+    // replaces it.
+    _restoreFilters();
+  }
+
+  Future<void> _restoreFilters() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_filtersPrefsKey);
+      if (raw == null || raw.isEmpty) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return;
+      final restored = TicketListFilters.fromJson(decoded);
+      if (!mounted) return;
+      if (!restored.hasAny) return;
+      setState(() {
+        _filters = restored;
+        _searchController.text = restored.search;
+      });
+      ref.read(ticketsProvider.notifier).refresh(filters: restored);
+    } catch (_) {
+      // Persisted shape mismatch from an older version — ignore and use the
+      // default empty filter.
+    }
+  }
+
+  Future<void> _persistFilters(TicketListFilters filters) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!filters.hasAny) {
+        await prefs.remove(_filtersPrefsKey);
+        return;
+      }
+      await prefs.setString(_filtersPrefsKey, jsonEncode(filters.toJson()));
+    } catch (_) {
+      // Persistence is best-effort; failing to save shouldn't block the UI.
+    }
   }
 
   @override
@@ -53,6 +96,7 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
   void _applyFilters(TicketListFilters next) {
     setState(() => _filters = next);
     ref.read(ticketsProvider.notifier).refresh(filters: next);
+    _persistFilters(next);
   }
 
   void _onSearchChanged(String value) {
@@ -106,10 +150,96 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
       body: Column(
         children: [
           _buildSearchBar(),
+          _buildQuickStatusChips(),
           _buildFilterBar(),
           _buildResultsCount(tickets.length, data?.totalCount ?? 0),
           Expanded(child: _buildList(ticketsAsync, tickets)),
         ],
+      ),
+    );
+  }
+
+  // Quick status chips: All / Open / Closed. Backend supports multi-status,
+  // so "Open" expands to a single request with `?status=New&status=Assigned
+  // &status=Pending` rather than three round-trips.
+  static const List<String> _openStatuses = ['New', 'Assigned', 'Pending'];
+
+  String _quickStatusMode() {
+    if (_filters.statusList.isEmpty && _filters.status == null) return 'all';
+    if (_filters.statusList.isNotEmpty) {
+      final s = _filters.statusList.toSet();
+      if (s.length == _openStatuses.length &&
+          s.containsAll(_openStatuses)) {
+        return 'open';
+      }
+      if (s.length == 1 && s.first == 'Closed') return 'closed';
+    } else if (_filters.status == 'Closed') {
+      return 'closed';
+    }
+    return 'custom';
+  }
+
+  Widget _buildQuickStatusChips() {
+    final mode = _quickStatusMode();
+    return Container(
+      color: AppColors.surfaceDim,
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+      child: Row(
+        children: [
+          _quickChip(
+            label: 'All',
+            isActive: mode == 'all',
+            onTap: () => _applyFilters(_filters.copyWith(
+              clearStatus: true,
+              clearStatusList: true,
+            )),
+          ),
+          const SizedBox(width: 6),
+          _quickChip(
+            label: 'Open',
+            isActive: mode == 'open',
+            onTap: () => _applyFilters(_filters.copyWith(
+              clearStatus: true,
+              statusList: _openStatuses,
+            )),
+          ),
+          const SizedBox(width: 6),
+          _quickChip(
+            label: 'Closed',
+            isActive: mode == 'closed',
+            onTap: () => _applyFilters(_filters.copyWith(
+              clearStatus: true,
+              statusList: const ['Closed'],
+            )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quickChip({
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary500 : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive ? AppColors.primary500 : AppColors.border,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: isActive ? Colors.white : AppColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
@@ -251,19 +381,19 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
         child: Row(
           children: [
             _FilterChip(
-              label: _filters.status != null
-                  ? TicketStatus.fromString(_filters.status).label
-                  : 'Status',
-              isActive: _filters.status != null,
-              onTap: _pickStatus,
-            ),
-            const SizedBox(width: 6),
-            _FilterChip(
               label: _filters.priority != null
                   ? TicketPriority.fromString(_filters.priority).label
                   : 'Priority',
               isActive: _filters.priority != null,
               onTap: _pickPriority,
+            ),
+            const SizedBox(width: 6),
+            _FilterChip(
+              label: _filters.caseType != null
+                  ? TicketType.fromString(_filters.caseType).label
+                  : 'Type',
+              isActive: _filters.caseType != null,
+              onTap: _pickCaseType,
             ),
             const SizedBox(width: 6),
             _FilterChip(
@@ -299,6 +429,15 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
               isActive: _filters.watchingOnly,
               onTap: () => _applyFilters(
                 _filters.copyWith(watchingOnly: !_filters.watchingOnly),
+              ),
+            ),
+            const SizedBox(width: 6),
+            _ToggleChip(
+              label: 'Breaching SLA',
+              icon: LucideIcons.alertTriangle,
+              isActive: _filters.slaBreached,
+              onTap: () => _applyFilters(
+                _filters.copyWith(slaBreached: !_filters.slaBreached),
               ),
             ),
             if (_filters.hasAny) ...[
@@ -348,14 +487,17 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
     return 'Before ${fmt(before!)}';
   }
 
-  Widget _buildResultsCount(int filteredCount, int totalCount) {
+  Widget _buildResultsCount(int loadedCount, int totalCount) {
+    final unit = totalCount == 1 ? 'ticket' : 'tickets';
+    final text = totalCount > 0 && loadedCount < totalCount
+        ? '$loadedCount of $totalCount $unit'
+        : '$totalCount $unit';
     return Container(
       width: double.infinity,
       color: AppColors.surfaceDim,
       padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
       child: Text(
-        '$filteredCount ticket${filteredCount == 1 ? '' : 's'}'
-        '${_filters.hasAny ? ' (filtered)' : ''}',
+        _filters.hasAny ? '$text (filtered)' : text,
         style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
       ),
     );
@@ -375,7 +517,7 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
     );
   }
 
-  void _pickStatus() {
+  void _pickCaseType() {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
@@ -383,24 +525,23 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => _SimpleFilterSheet(
-        title: 'Filter by Status',
+        title: 'Filter by Type',
         rows: [
           _FilterRow(
-            label: 'All Statuses',
-            isSelected: _filters.status == null,
+            label: 'All Types',
+            isSelected: _filters.caseType == null,
             onTap: () {
               Navigator.pop(context);
-              _applyFilters(_filters.copyWith(clearStatus: true));
+              _applyFilters(_filters.copyWith(clearCaseType: true));
             },
           ),
-          ...TicketStatus.values.map(
-            (s) => _FilterRow(
-              label: s.label,
-              isSelected: _filters.status == s.value,
-              color: s.color,
+          ...TicketType.values.map(
+            (t) => _FilterRow(
+              label: t.label,
+              isSelected: _filters.caseType == t.value,
               onTap: () {
                 Navigator.pop(context);
-                _applyFilters(_filters.copyWith(status: s.value));
+                _applyFilters(_filters.copyWith(caseType: t.value));
               },
             ),
           ),

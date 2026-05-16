@@ -51,6 +51,93 @@ from contacts.models import Contact
 from contacts.serializer import ContactSerializer
 
 
+_ALLOWED_CASE_ORDERINGS = frozenset(
+    {
+        "-created_at",
+        "created_at",
+        "-priority",
+        "priority",
+        "-id",
+        "id",
+        "-name",
+        "name",
+    }
+)
+
+
+def apply_case_list_filters(queryset, params):
+    """Apply the case-list query-param filters to ``queryset``.
+
+    Shared between CaseListView and WatchingListView so both endpoints accept
+    the same filter chips from the mobile client. Caller is responsible for
+    the base scope (org membership, watcher allowance, etc.) — this only
+    layers in user-supplied filters.
+    """
+    if not params:
+        return queryset
+
+    if params.get("name"):
+        queryset = queryset.filter(name__icontains=params.get("name"))
+    # Status can be a single value or a list. Mobile uses the list form for
+    # its Open/Closed quick chips (Open = New, Assigned, Pending).
+    status_values = [s for s in params.getlist("status") if s]
+    if len(status_values) > 1:
+        queryset = queryset.filter(status__in=status_values)
+    elif status_values:
+        queryset = queryset.filter(status=status_values[0])
+    if params.get("priority"):
+        queryset = queryset.filter(priority=params.get("priority"))
+    if params.get("account"):
+        queryset = queryset.filter(account=params.get("account"))
+    if params.get("case_type"):
+        queryset = queryset.filter(case_type=params.get("case_type"))
+    if params.getlist("assigned_to"):
+        queryset = queryset.filter(
+            assigned_to__id__in=params.getlist("assigned_to")
+        ).distinct()
+    if params.get("tags"):
+        queryset = queryset.filter(tags__id__in=params.getlist("tags")).distinct()
+    if params.get("search"):
+        search = params.get("search")
+        queryset = queryset.filter(
+            Q(name__icontains=search) | Q(description__icontains=search)
+        )
+    if params.get("created_at__gte"):
+        queryset = queryset.filter(created_at__gte=params.get("created_at__gte"))
+    if params.get("created_at__lte"):
+        queryset = queryset.filter(created_at__lte=params.get("created_at__lte"))
+    if params.get("sla_breached") == "true":
+        # Wall-clock approximation matching the mobile card's
+        # `isFirstResponseSlaBreached` getter — `Case.is_sla_*_breached` uses
+        # business hours, but the badges on both clients compute from
+        # created_at + hours, so this filter mirrors what the user actually
+        # sees on the row. Postgres-specific (INTERVAL).
+        queryset = queryset.extra(
+            where=[
+                "(first_response_at IS NULL "
+                "AND sla_first_response_hours IS NOT NULL "
+                "AND created_at + sla_first_response_hours "
+                "* INTERVAL '1 hour' < NOW()) "
+                "OR (resolved_at IS NULL "
+                "AND sla_resolution_hours IS NOT NULL "
+                "AND created_at + sla_resolution_hours "
+                "* INTERVAL '1 hour' < NOW())"
+            ]
+        )
+    # Custom-field filters: ?cf_<key>=<value> -> custom_fields contains pair.
+    for raw_key, raw_value in params.items():
+        if raw_key.startswith("cf_") and raw_value:
+            cf_key = raw_key[3:]
+            if cf_key:
+                queryset = queryset.filter(custom_fields__contains={cf_key: raw_value})
+    # Ordering — whitelisted so callers can't sort on arbitrary cols.
+    ordering = params.get("ordering")
+    if ordering in _ALLOWED_CASE_ORDERINGS:
+        queryset = queryset.order_by(ordering, "-id")
+
+    return queryset
+
+
 class CaseListView(APIView, LimitOffsetPagination):
     permission_classes = (IsAuthenticated, HasOrgContext)
     model = Case
@@ -98,43 +185,7 @@ class CaseListView(APIView, LimitOffsetPagination):
             ).distinct()
             profiles = profiles.filter(role="ADMIN")
 
-        if params:
-            if params.get("name"):
-                queryset = queryset.filter(name__icontains=params.get("name"))
-            if params.get("status"):
-                queryset = queryset.filter(status=params.get("status"))
-            if params.get("priority"):
-                queryset = queryset.filter(priority=params.get("priority"))
-            if params.get("account"):
-                queryset = queryset.filter(account=params.get("account"))
-            if params.get("case_type"):
-                queryset = queryset.filter(case_type=params.get("case_type"))
-            if params.getlist("assigned_to"):
-                queryset = queryset.filter(
-                    assigned_to__id__in=params.getlist("assigned_to")
-                ).distinct()
-            if params.get("tags"):
-                queryset = queryset.filter(
-                    tags__id__in=params.getlist("tags")
-                ).distinct()
-            if params.get("search"):
-                queryset = queryset.filter(name__icontains=params.get("search"))
-            if params.get("created_at__gte"):
-                queryset = queryset.filter(
-                    created_at__gte=params.get("created_at__gte")
-                )
-            if params.get("created_at__lte"):
-                queryset = queryset.filter(
-                    created_at__lte=params.get("created_at__lte")
-                )
-            # Custom-field filters: ?cf_<key>=<value> -> custom_fields contains pair.
-            for raw_key, raw_value in params.items():
-                if raw_key.startswith("cf_") and raw_value:
-                    cf_key = raw_key[3:]
-                    if cf_key:
-                        queryset = queryset.filter(
-                            custom_fields__contains={cf_key: raw_value}
-                        )
+        queryset = apply_case_list_filters(queryset, params)
 
         context = {}
 

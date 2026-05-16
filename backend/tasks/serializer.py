@@ -146,6 +146,63 @@ class BoardListSerializer(serializers.ModelSerializer):
         return BoardTask.objects.filter(column__board=obj).count()
 
 
+class _MinimalAccountField(serializers.RelatedField):
+    """Account FK rendered as `{id, name}` so list rows can show the parent
+    entity without an extra round-trip. Falls back to id-only when the related
+    object is missing a name."""
+
+    def to_representation(self, value):
+        return {"id": str(value.pk), "name": getattr(value, "name", "") or ""}
+
+
+class _MinimalOpportunityField(serializers.RelatedField):
+    def to_representation(self, value):
+        return {"id": str(value.pk), "name": getattr(value, "name", "") or ""}
+
+
+class _MinimalCaseField(serializers.RelatedField):
+    def to_representation(self, value):
+        return {"id": str(value.pk), "name": getattr(value, "name", "") or ""}
+
+
+class _MinimalLeadField(serializers.RelatedField):
+    def to_representation(self, value):
+        first = getattr(value, "first_name", "") or ""
+        last = getattr(value, "last_name", "") or ""
+        name = f"{first} {last}".strip() or (getattr(value, "email", "") or "")
+        return {"id": str(value.pk), "name": name}
+
+
+class TaskListSerializer(serializers.ModelSerializer):
+    """Slim payload for /api/tasks/ list pages — drops the comment/attachment
+    bodies (sometimes hundreds of rows per task) and the contacts/teams M2Ms
+    that the list UI doesn't render. Use TaskSerializer for the detail view."""
+
+    assigned_to = ProfileSerializer(read_only=True, many=True)
+    tags = TagsSerializer(read_only=True, many=True)
+    account = _MinimalAccountField(read_only=True)
+    opportunity = _MinimalOpportunityField(read_only=True)
+    case = _MinimalCaseField(read_only=True)
+    lead = _MinimalLeadField(read_only=True)
+
+    class Meta:
+        model = Task
+        fields = (
+            "id",
+            "title",
+            "status",
+            "priority",
+            "due_date",
+            "account",
+            "opportunity",
+            "case",
+            "lead",
+            "assigned_to",
+            "tags",
+            "created_at",
+        )
+
+
 class TaskSerializer(serializers.ModelSerializer):
     created_by = UserSerializer()
     assigned_to = ProfileSerializer(read_only=True, many=True)
@@ -154,6 +211,10 @@ class TaskSerializer(serializers.ModelSerializer):
     tags = TagsSerializer(read_only=True, many=True)
     task_attachment = AttachmentsSerializer(read_only=True, many=True)
     task_comments = CommentSerializer(read_only=True, many=True)
+    account = _MinimalAccountField(read_only=True)
+    opportunity = _MinimalOpportunityField(read_only=True)
+    case = _MinimalCaseField(read_only=True)
+    lead = _MinimalLeadField(read_only=True)
 
     class Meta:
         model = Task
@@ -187,19 +248,6 @@ class TaskCreateSerializer(serializers.ModelSerializer):
         self.org = request_obj.profile.org
 
         self.fields["title"].required = True
-
-    def validate_title(self, title):
-        if self.instance:
-            if (
-                Task.objects.filter(title__iexact=title, org=self.org)
-                .exclude(id=self.instance.id)
-                .exists()
-            ):
-                raise serializers.ValidationError("Task already exists with this title")
-        else:
-            if Task.objects.filter(title__iexact=title, org=self.org).exists():
-                raise serializers.ValidationError("Task already exists with this title")
-        return title
 
     def validate(self, attrs):
         """Validate that task has at most one parent entity."""

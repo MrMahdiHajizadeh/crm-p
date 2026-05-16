@@ -145,6 +145,25 @@ class DashboardTask {
   String? get relatedTo => accountName ?? leadName;
 
   factory DashboardTask.fromJson(Map<String, dynamic> json) {
+    // Backend's TaskSerializer returns `account`/`lead` as plain FK UUIDs
+    // (strings), not nested {id, name} objects. Only extract a display name
+    // when the field is a Map — otherwise we have a UUID with no name and
+    // skip the related-entity badge rather than crashing on String indexing.
+    String? accountName;
+    final account = json['account'];
+    if (account is Map<String, dynamic>) {
+      accountName = account['name'] as String?;
+    }
+
+    String? leadName;
+    final lead = json['lead'];
+    if (lead is Map<String, dynamic>) {
+      final first = (lead['first_name'] as String?) ?? '';
+      final last = (lead['last_name'] as String?) ?? '';
+      final joined = '$first $last'.trim();
+      if (joined.isNotEmpty) leadName = joined;
+    }
+
     return DashboardTask(
       id: json['id']?.toString() ?? '',
       title: json['title'] as String? ?? 'Untitled',
@@ -154,11 +173,8 @@ class DashboardTask {
       dueDate: json['due_date'] != null
           ? DateTime.tryParse(json['due_date'] as String)
           : null,
-      accountName: json['account']?['name'] as String?,
-      leadName: json['lead'] != null
-          ? '${json['lead']['first_name'] ?? ''} ${json['lead']['last_name'] ?? ''}'
-                .trim()
-          : null,
+      accountName: accountName,
+      leadName: leadName,
     );
   }
 }

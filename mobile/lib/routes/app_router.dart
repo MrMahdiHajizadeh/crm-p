@@ -28,6 +28,7 @@ import '../screens/tasks/tasks_list_screen.dart';
 import '../screens/tasks/task_detail_screen.dart';
 import '../screens/tasks/task_form_screen.dart';
 import '../screens/settings/more_screen.dart';
+import '../screens/settings/profile_screen.dart';
 import '../screens/solutions/solutions_list_screen.dart';
 import '../screens/solutions/solution_detail_screen.dart';
 import '../screens/tickets/approvals_inbox_screen.dart';
@@ -203,6 +204,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const TicketAnalyticsScreen(),
       ),
       GoRoute(
+        path: AppRoutes.profile,
+        name: 'profile',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.orgSelection,
         name: 'orgSelection',
         pageBuilder: (context, state) => CustomTransitionPage(
@@ -284,7 +291,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'create',
                     name: 'dealCreate',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const DealFormScreen(),
+                    builder: (context, state) => DealFormScreen(
+                      accountId: state.uri.queryParameters['accountId'],
+                    ),
                   ),
                   GoRoute(
                     path: ':id',
