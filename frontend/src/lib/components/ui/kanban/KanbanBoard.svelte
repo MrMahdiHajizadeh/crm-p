@@ -2,7 +2,7 @@
   import { untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
   import KanbanColumn from './KanbanColumn.svelte';
-  import { Loader2, TrendingUp, Users, Flame, Zap } from '@lucide/svelte';
+  import { TrendingUp, Users, Flame, Zap } from '@lucide/svelte';
 
   /**
    * @typedef {Object} Column
@@ -13,8 +13,8 @@
    * @property {string} stage_type
    * @property {boolean} is_status_column
    * @property {number|null} wip_limit
-   * @property {number} [item_count] - Generic count field (lead_count or task_count)
-   * @property {Array<any>} items - Generic items array (leads or tasks)
+   * @property {number} [item_count]
+   * @property {Array<any>} items
    */
 
   /**
@@ -36,7 +36,8 @@
    *   onItemMove: (itemId: string, newStatus: string, columnId: string) => Promise<void>,
    *   onCardClick: (item: any) => void,
    *   CardComponent: any,
-   *   emptyMessage?: string
+   *   emptyMessage?: string,
+   *   onAddItem?: (columnId: string) => void
    * }}
    */
   let {
@@ -47,16 +48,15 @@
     onItemMove,
     onCardClick,
     CardComponent,
-    emptyMessage = 'No data available'
+    emptyMessage = 'No data available',
+    onAddItem
   } = $props();
 
   // Local mutable copy of columns for optimistic updates.
   // Initialize synchronously from props so SSR renders the actual kanban
   // instead of flashing the empty state before $effect runs on hydration.
   /** @type {Column[]} */
-  let localColumns = $state(
-    untrack(() => (data?.columns ? structuredClone(data.columns) : []))
-  );
+  let localColumns = $state(untrack(() => (data?.columns ? structuredClone(data.columns) : [])));
 
   // Sync local columns when data changes from server (filter/refresh/navigation)
   $effect(() => {
@@ -70,54 +70,39 @@
   let dragSourceColumn = $state(null);
   let dragOverColumn = $state(null);
 
-  // Mobile: Selected column for single-column view
+  // Mobile: selected column for single-column view
   let mobileActiveColumn = $state('');
 
-  // Set initial mobile column when data loads
   $effect(() => {
     if (localColumns.length > 0 && !mobileActiveColumn) {
       mobileActiveColumn = localColumns[0].id;
     }
   });
 
-  // Calculate pipeline statistics
-  const pipelineStats = $derived(() => {
+  // Pipeline statistics (only show stats bar if there's monetary value)
+  const pipelineStats = $derived.by(() => {
     if (!localColumns || localColumns.length === 0) {
-      return { totalValue: 0, hotCount: 0, avgValue: 0 };
+      return { totalValue: 0, hotCount: 0 };
     }
-
     let totalValue = 0;
     let hotCount = 0;
-    let itemCount = 0;
-
     localColumns.forEach((col) => {
       col.items?.forEach((item) => {
         const amount = parseFloat(String(item.opportunity_amount || item.opportunityAmount || 0));
         if (!isNaN(amount)) totalValue += amount;
         if (item.rating === 'HOT') hotCount++;
-        itemCount++;
       });
     });
-
-    return {
-      totalValue,
-      hotCount,
-      avgValue: itemCount > 0 ? totalValue / itemCount : 0
-    };
+    return { totalValue, hotCount };
   });
 
-  // Format large numbers
   function formatValue(value) {
-    if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M`;
-    } else if (value >= 1000) {
-      return `${(value / 1000).toFixed(0)}K`;
-    }
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
     return value.toFixed(0);
   }
 
   /**
-   * Handle drag start
    * @param {DragEvent} e
    * @param {any} item
    * @param {string} columnId
@@ -127,8 +112,6 @@
     dragSourceColumn = columnId;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', item.id);
-
-    // Add dragging class after a small delay to allow the drag image to be set
     requestAnimationFrame(() => {
       if (e.target instanceof HTMLElement) {
         e.target.style.opacity = '0.5';
@@ -137,7 +120,6 @@
   }
 
   /**
-   * Handle drag over a column
    * @param {DragEvent} e
    * @param {string} columnId
    */
@@ -148,18 +130,13 @@
     }
   }
 
-  /**
-   * Handle drag leave
-   */
   function handleDragLeave() {
-    // Small delay to prevent flicker when moving between cards
     setTimeout(() => {
       dragOverColumn = null;
     }, 50);
   }
 
   /**
-   * Handle drop on column
    * @param {DragEvent} e
    * @param {string} targetColumnId
    */
@@ -176,60 +153,42 @@
     const item = draggedItem;
     const sourceColumnId = dragSourceColumn;
 
-    // Reset drag state
     draggedItem = null;
     dragSourceColumn = null;
 
-    // Optimistic update: move item in local state immediately
     const sourceCol = localColumns.find((c) => c.id === sourceColumnId);
     const targetCol = localColumns.find((c) => c.id === targetColumnId);
 
     if (sourceCol && targetCol) {
-      // Remove from source column
       const itemIndex = sourceCol.items.findIndex((i) => i.id === item.id);
       if (itemIndex !== -1) {
         sourceCol.items.splice(itemIndex, 1);
         sourceCol.item_count--;
       }
-
-      // Add to target column (at the top)
       targetCol.items.unshift({ ...item, status: targetColumnId });
       targetCol.item_count++;
-
-      // Trigger reactivity by reassigning
       localColumns = [...localColumns];
     }
 
     try {
-      // Call the move handler
       await onItemMove(item.id, targetColumnId, targetColumnId);
     } catch (error) {
       console.error(`Failed to move ${itemName}:`, error);
       toast.error(`Failed to move ${itemName}`);
-
-      // Revert optimistic update on error
       if (sourceCol && targetCol) {
-        // Remove from target column
         const itemIndex = targetCol.items.findIndex((i) => i.id === item.id);
         if (itemIndex !== -1) {
           targetCol.items.splice(itemIndex, 1);
           targetCol.item_count--;
         }
-
-        // Add back to source column
         sourceCol.items.unshift(item);
         sourceCol.item_count++;
-
-        // Trigger reactivity
         localColumns = [...localColumns];
       }
     }
   }
 
-  /**
-   * Handle drag end
-   * @param {DragEvent} [e]
-   */
+  /** @param {DragEvent} [e] */
   function handleDragEnd(e) {
     if (e?.target instanceof HTMLElement) {
       e.target.style.opacity = '1';
@@ -239,31 +198,51 @@
     dragOverColumn = null;
   }
 
-  // Get columns sorted by order (use localColumns for optimistic updates)
   const sortedColumns = $derived(
     localColumns.length > 0 ? [...localColumns].sort((a, b) => a.order - b.order) : []
   );
 
-  // Get active column for mobile view
   const activeMobileColumn = $derived(sortedColumns.find((c) => c.id === mobileActiveColumn));
 
-  // Get total count (support both total_items and legacy total_leads/total_tasks)
   const totalCount = $derived(data?.total_items ?? data?.total_leads ?? data?.total_tasks ?? 0);
 </script>
 
 {#if loading}
-  <div class="flex h-96 flex-col items-center justify-center gap-4">
-    <div class="relative">
-      <div class="absolute inset-0 animate-ping rounded-full bg-cyan-400/30"></div>
-      <div class="relative rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 p-3">
-        <Loader2 class="h-6 w-6 animate-spin text-white" />
-      </div>
+  <div class="flex h-full flex-col">
+    <div class="columns-container flex min-h-0 flex-1 gap-3 overflow-x-auto pb-3">
+      {#each Array.from({ length: 4 }) as _, i (i)}
+        <div
+          class="flex h-full max-h-full w-[272px] shrink-0 flex-col rounded-xl bg-[var(--surface-sunken,#f1f2f4)] dark:bg-white/[0.04]"
+        >
+          <div class="flex items-center justify-between px-3 pt-3 pb-2">
+            <div class="skeleton h-3.5 w-24 rounded"></div>
+            <div class="skeleton h-3.5 w-6 rounded"></div>
+          </div>
+          <div class="flex flex-col gap-2 px-2 pb-2">
+            {#each Array.from({ length: 3 }) as _, j (j)}
+              <div
+                class="rounded-lg border border-black/[0.04] bg-white p-2.5 shadow-[0_1px_0_rgba(9,30,66,0.12)] dark:border-white/[0.06] dark:bg-white/[0.05]"
+              >
+                <div class="skeleton mb-1.5 h-1.5 w-10 rounded-sm"></div>
+                <div class="skeleton h-3.5 w-[85%] rounded"></div>
+                <div class="skeleton mt-1.5 h-3 w-[60%] rounded"></div>
+                <div class="mt-2 flex items-center justify-between">
+                  <div class="skeleton h-3 w-12 rounded"></div>
+                  <div class="flex -space-x-1.5">
+                    <div class="skeleton h-6 w-6 rounded-full ring-2 ring-white dark:ring-[#262626]"></div>
+                    <div class="skeleton h-6 w-6 rounded-full ring-2 ring-white dark:ring-[#262626]"></div>
+                  </div>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/each}
     </div>
-    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Loading pipeline...</p>
   </div>
 {:else if !data || sortedColumns.length === 0}
   <div class="flex h-96 flex-col items-center justify-center gap-4 text-center">
-    <div class="rounded-2xl bg-gray-100 p-6 dark:bg-white/5">
+    <div class="rounded-xl bg-gray-100 p-6 dark:bg-white/5">
       <Zap class="h-12 w-12 text-gray-300 dark:text-gray-600" />
     </div>
     <div>
@@ -275,77 +254,52 @@
   </div>
 {:else}
   <div class="flex h-full flex-col">
-  <!-- Desktop: Horizontal scroll container with all columns -->
-  <div class="kanban-board hidden md:flex md:flex-1 md:flex-col md:min-h-0">
-    <!-- Pipeline Stats Bar -->
-    {#if pipelineStats().totalValue > 0}
-      <div
-        class="mb-5 flex items-center gap-6 rounded-xl border border-white/10 bg-white/60 px-5 py-3 backdrop-blur-sm dark:border-white/[0.04] dark:bg-white/[0.02]"
-      >
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/20"
-          >
-            <TrendingUp class="h-4 w-4 text-white" />
+    <!-- Desktop -->
+    <div class="hidden md:flex md:flex-1 md:flex-col md:min-h-0">
+      <!-- Pipeline stats bar (only when monetary value > 0) -->
+      {#if pipelineStats.totalValue > 0}
+        <div
+          class="mb-3 flex items-center gap-5 rounded-lg border border-[var(--border-default)] bg-white px-4 py-2.5 dark:border-white/[0.06] dark:bg-white/[0.02]"
+        >
+          <div class="flex items-center gap-2">
+            <TrendingUp class="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span class="text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Pipeline
+            </span>
+            <span class="text-sm font-semibold text-gray-800 dark:text-white">
+              {formatValue(pipelineStats.totalValue)}
+            </span>
           </div>
-          <div>
-            <p
-              class="text-[0.65rem] font-medium tracking-wider text-gray-400 uppercase dark:text-gray-500"
-            >
-              Pipeline Value
-            </p>
-            <p class="text-lg font-bold tracking-tight text-gray-800 dark:text-white">
-              AED {formatValue(pipelineStats().totalValue)}
-            </p>
-          </div>
-        </div>
 
-        <div class="h-8 w-px bg-gray-200 dark:bg-white/10"></div>
+          <div class="h-4 w-px bg-gray-200 dark:bg-white/10"></div>
 
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-orange-500 shadow-lg shadow-rose-500/20"
-          >
-            <Flame class="h-4 w-4 text-white" />
+          <div class="flex items-center gap-2">
+            <Flame class="h-4 w-4 text-rose-500 dark:text-rose-400" />
+            <span class="text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Hot
+            </span>
+            <span class="text-sm font-semibold text-gray-800 dark:text-white">
+              {pipelineStats.hotCount}
+            </span>
           </div>
-          <div>
-            <p
-              class="text-[0.65rem] font-medium tracking-wider text-gray-400 uppercase dark:text-gray-500"
-            >
-              Hot Leads
-            </p>
-            <p class="text-lg font-bold tracking-tight text-gray-800 dark:text-white">
-              {pipelineStats().hotCount}
-            </p>
-          </div>
-        </div>
 
-        <div class="h-8 w-px bg-gray-200 dark:bg-white/10"></div>
+          <div class="h-4 w-px bg-gray-200 dark:bg-white/10"></div>
 
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 shadow-lg shadow-violet-500/20"
-          >
-            <Users class="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <p
-              class="text-[0.65rem] font-medium tracking-wider text-gray-400 uppercase dark:text-gray-500"
-            >
+          <div class="flex items-center gap-2">
+            <Users class="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <span class="text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Total {itemNamePlural}
-            </p>
-            <p class="text-lg font-bold tracking-tight text-gray-800 dark:text-white">
+            </span>
+            <span class="text-sm font-semibold text-gray-800 dark:text-white">
               {totalCount}
-            </p>
+            </span>
           </div>
         </div>
-      </div>
-    {/if}
+      {/if}
 
-    <!-- Kanban Columns -->
-    <div class="columns-container flex min-h-0 flex-1 gap-4 overflow-x-auto pb-4">
-      {#each sortedColumns as column, index (column.id)}
-        <div class="column-animate flex" style="animation-delay: {index * 80}ms">
+      <!-- Columns -->
+      <div class="columns-container flex min-h-0 flex-1 gap-3 overflow-x-auto pb-3">
+        {#each sortedColumns as column (column.id)}
           <KanbanColumn
             {column}
             {itemName}
@@ -357,131 +311,122 @@
             {onCardClick}
             onCardDragStart={(e, item) => handleDragStart(e, item, column.id)}
             onCardDragEnd={handleDragEnd}
+            {onAddItem}
           />
-        </div>
-      {/each}
-    </div>
-  </div>
-
-  <!-- Mobile: Tab-based single column view -->
-  <div class="flex min-h-0 flex-1 flex-col md:hidden">
-    <!-- Column selector - Pill style -->
-    <div class="mb-4 overflow-x-auto">
-      <div class="flex gap-2 pb-2">
-        {#each sortedColumns as col (col.id)}
-          <button
-            class="shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all
-              {mobileActiveColumn === col.id
-              ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25'
-              : 'bg-white/60 text-gray-600 hover:bg-white dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10'}"
-            onclick={() => (mobileActiveColumn = col.id)}
-          >
-            {col.name}
-            <span class="ml-1.5 rounded-full bg-white/20 px-1.5 py-0.5 text-xs">
-              {col.item_count}
-            </span>
-          </button>
         {/each}
       </div>
     </div>
 
-    <!-- Active column cards -->
-    {#if activeMobileColumn}
-      <div class="space-y-3">
-        {#each activeMobileColumn.items as item (item.id)}
-          {#if CardComponent}
-            <CardComponent {item} onclick={() => onCardClick(item)} />
-          {:else}
-            <div
-              class="rounded-xl border border-white/10 bg-white/80 p-4 backdrop-blur-sm dark:border-white/[0.06] dark:bg-white/[0.03]"
-              onclick={() => onCardClick(item)}
-              onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && onCardClick(item)}
-              role="button"
-              tabindex="0"
+    <!-- Mobile: tab-based single-column view -->
+    <div class="flex min-h-0 flex-1 flex-col md:hidden">
+      <div class="mb-3 overflow-x-auto">
+        <div class="flex gap-2 pb-2">
+          {#each sortedColumns as col (col.id)}
+            <button
+              class="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors
+                {mobileActiveColumn === col.id
+                ? 'bg-gray-800 text-white dark:bg-white dark:text-gray-900'
+                : 'bg-[var(--surface-sunken,#f1f2f4)] text-gray-700 hover:bg-gray-200 dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/[0.1]'}"
+              onclick={() => (mobileActiveColumn = col.id)}
             >
-              <div class="font-medium text-gray-900 dark:text-gray-100">
-                {item.title || item.name || 'Untitled'}
-              </div>
-            </div>
-          {/if}
-        {/each}
-
-        {#if activeMobileColumn.items.length === 0}
-          <div
-            class="flex h-32 flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200/60 text-center dark:border-white/[0.06]"
-          >
-            <div class="text-3xl opacity-30">📭</div>
-            <span class="text-sm font-medium text-gray-400 dark:text-gray-500">
-              No {itemNamePlural} in this stage
-            </span>
-          </div>
-        {/if}
+              {col.name}
+              <span
+                class="ml-1.5 rounded px-1.5 py-px text-[11px] {mobileActiveColumn === col.id
+                  ? 'bg-white/20'
+                  : 'bg-gray-200/70 dark:bg-white/[0.08]'}"
+              >
+                {col.item_count}
+              </span>
+            </button>
+          {/each}
+        </div>
       </div>
-    {/if}
-  </div>
 
-  <!-- Total count footer -->
-  <div class="mt-6 flex items-center justify-center gap-2 text-sm text-gray-400 dark:text-gray-500">
-    <div
-      class="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent dark:via-white/10"
-    ></div>
-    <span class="px-4 font-medium">
-      {totalCount}
-      {totalCount !== 1 ? itemNamePlural : itemName} across {sortedColumns.length} stages
-    </span>
-    <div
-      class="h-px flex-1 bg-gradient-to-r from-transparent via-gray-200 to-transparent dark:via-white/10"
-    ></div>
-  </div>
+      {#if activeMobileColumn}
+        <div class="space-y-2">
+          {#each activeMobileColumn.items as item (item.id)}
+            {#if CardComponent}
+              <CardComponent {item} onclick={() => onCardClick(item)} />
+            {:else}
+              <div
+                class="rounded-lg border border-black/[0.04] bg-white p-2.5 shadow-[0_1px_0_rgba(9,30,66,0.12)] dark:border-white/[0.06] dark:bg-white/[0.05]"
+                onclick={() => onCardClick(item)}
+                onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && onCardClick(item)}
+                role="button"
+                tabindex="0"
+              >
+                <div class="font-medium text-gray-900 dark:text-gray-100">
+                  {item.title || item.name || 'Untitled'}
+                </div>
+              </div>
+            {/if}
+          {/each}
+
+          {#if onAddItem}
+            <button
+              type="button"
+              onclick={() => onAddItem(activeMobileColumn.id)}
+              class="flex w-full items-center justify-center gap-2 rounded-md px-2 py-2 text-[13px] font-medium text-gray-500 hover:bg-gray-200/70 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
+            >
+              Add a card
+            </button>
+          {/if}
+        </div>
+      {/if}
+    </div>
   </div>
 {/if}
 
 <style>
-  /* Column entrance animation */
-  .column-animate {
-    opacity: 0;
-    animation: column-slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  @keyframes column-slide-in {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* Horizontal scroll with fade indicators */
   .columns-container {
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
   }
-
   .columns-container::-webkit-scrollbar {
     height: 6px;
   }
-
   .columns-container::-webkit-scrollbar-track {
     background: transparent;
   }
-
   .columns-container::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 100px;
   }
-
   :global(.dark) .columns-container::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
   }
-
   .columns-container::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.2);
   }
-
   :global(.dark) .columns-container::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
+  }
+
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.06) 0%,
+      rgba(0, 0, 0, 0.1) 50%,
+      rgba(0, 0, 0, 0.06) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  :global(.dark) .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    background-size: 200% 100%;
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
   }
 </style>

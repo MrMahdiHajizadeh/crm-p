@@ -28,10 +28,11 @@
    *   data: KanbanData | null,
    *   loading?: boolean,
    *   onStatusChange: (taskId: string, newStatus: string, columnId: string) => Promise<void>,
-   *   onCardClick: (task: any) => void
+   *   onCardClick: (task: any) => void,
+   *   onAddItem?: (columnId: string) => void
    * }}
    */
-  let { data = null, loading = false, onStatusChange, onCardClick } = $props();
+  let { data = null, loading = false, onStatusChange, onCardClick, onAddItem } = $props();
 
   // Transform data to use generic field names
   const transformedData = $derived(() => {
@@ -57,6 +58,7 @@
   itemNamePlural="tasks"
   onItemMove={onStatusChange}
   {onCardClick}
+  {onAddItem}
   CardComponent={TaskCard}
   emptyMessage="No kanban data available"
 />

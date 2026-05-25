@@ -1664,6 +1664,7 @@
     <div class="flex min-h-0 flex-1 flex-col">
       <LeadKanban
         data={kanbanData}
+        loading={!kanbanData}
         onStatusChange={handleKanbanStatusChange}
         onCardClick={(lead) => openLead(lead, true)}
       />

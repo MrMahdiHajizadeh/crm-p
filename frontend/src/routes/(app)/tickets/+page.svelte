@@ -880,7 +880,7 @@
   {:else}
     <TicketKanban
       data={kanbanData}
-      loading={false}
+      loading={!kanbanData}
       onStatusChange={handleKanbanStatusChange}
       onCardClick={handleKanbanCardClick}
     />

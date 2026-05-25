@@ -581,7 +581,10 @@
     return option?.label ?? value;
   }
 
-  async function addNewTask() {
+  /**
+   * @param {string} [initialStatus]
+   */
+  async function addNewTask(initialStatus) {
     // Check for account pre-fill from URL params
     const accountIdParam = $page.url.searchParams.get('accountId');
     if (accountIdParam && !accountFromUrl) {
@@ -596,7 +599,7 @@
       taskId: '',
       subject: '',
       description: '',
-      status: 'New',
+      status: initialStatus || 'New',
       priority: 'Medium',
       dueDate: '',
       accountId: accountIdFromUrl || '',
@@ -613,6 +616,15 @@
       tags: []
     };
     sheetOpen = true;
+  }
+
+  /**
+   * Add a card from a kanban column (status column id matches status name)
+   * @param {string} columnId
+   */
+  function handleAddCardFromColumn(columnId) {
+    // For status-mode kanban the column id is the status name (e.g. "New")
+    addNewTask(columnId);
   }
 
   // URL sync for action param (quick action from account page)
@@ -1292,9 +1304,10 @@
   {:else if viewMode === 'kanban'}
     <TaskKanban
       data={kanbanData}
-      loading={false}
+      loading={!kanbanData}
       onStatusChange={handleKanbanStatusChange}
       onCardClick={handleKanbanCardClick}
+      onAddItem={handleAddCardFromColumn}
     />
   {:else}
     <!-- Calendar View -->
