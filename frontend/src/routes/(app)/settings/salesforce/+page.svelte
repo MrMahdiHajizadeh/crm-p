@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { toast } from 'svelte-sonner';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -47,10 +48,10 @@
 </script>
 
 <svelte:head>
-  <title>Salesforce Integration - BottleCRM</title>
+  <title>{$_('settings.salesforce')} - {$_('app.name')}</title>
 </svelte:head>
 
-<PageHeader title="Salesforce Integration" subtitle="Connect and import data from Salesforce" />
+<PageHeader title={$_('settings.salesforce')} subtitle={$_('settings.salesforce_subtitle')} />
 
 <div class="mx-auto max-w-3xl space-y-6 p-6 md:p-8">
   {#if sfStatus.connected}
@@ -67,10 +68,10 @@
           </div>
           <div>
             <h3 class="text-[16px] font-medium leading-[1.3] text-[color:var(--text-primary)]">
-              Salesforce Connection
+              {$_('settings.salesforce_connection')}
             </h3>
             <p class="text-[12px] text-[color:var(--text-muted)]">
-              Your Salesforce org is connected
+              {$_('settings.salesforce_connected_status')}
             </p>
           </div>
         </div>
@@ -79,7 +80,7 @@
         <Badge
           class="border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-400"
         >
-          Connected
+          {$_('common.connected')}
         </Badge>
       {/snippet}
         <div class="space-y-4">
@@ -87,7 +88,7 @@
             <dl class="grid gap-3 sm:grid-cols-2">
               {#if sfStatus.connection?.instance_url}
                 <div>
-                  <dt class="text-muted-foreground text-sm font-medium">Instance URL</dt>
+                    <dt class="text-muted-foreground text-sm font-medium">{$_('settings.instance_url')}</dt>
                   <dd class="text-foreground mt-1 text-sm">
                     <a
                       href={sfStatus.connection.instance_url}
@@ -103,13 +104,13 @@
               {/if}
               {#if sfStatus.connection?.connected_by_email}
                 <div>
-                  <dt class="text-muted-foreground text-sm font-medium">Connected By</dt>
+                    <dt class="text-muted-foreground text-sm font-medium">{$_('settings.connected_by')}</dt>
                   <dd class="text-foreground mt-1 text-sm">{sfStatus.connection.connected_by_email}</dd>
                 </div>
               {/if}
               {#if sfStatus.connection?.created_at}
                 <div>
-                  <dt class="text-muted-foreground text-sm font-medium">Connected On</dt>
+                    <dt class="text-muted-foreground text-sm font-medium">{$_('settings.connected_on')}</dt>
                   <dd class="text-foreground mt-1 text-sm">{formatDate(sfStatus.connection.created_at)}</dd>
                 </div>
               {/if}
@@ -121,7 +122,7 @@
           <div class="flex items-center justify-between">
             <Button variant="outline" href="/settings/salesforce/import" class="gap-2">
               <Download class="size-4" />
-              Import Data
+              {$_('settings.import_data')}
             </Button>
             <Button
               variant="outline"
@@ -130,7 +131,7 @@
               type="button"
             >
               <Trash2 class="size-4" />
-              Disconnect
+              {$_('settings.disconnect')}
             </Button>
           </div>
         </div>
@@ -148,10 +149,10 @@
             <Key class="size-8 text-blue-600 dark:text-blue-400" />
           </div>
           <h3 class="text-xl font-medium leading-[1.3] text-[color:var(--text-primary)]">
-            Connect to Salesforce
+            {$_('settings.connect_salesforce')}
           </h3>
           <p class="mx-auto mt-1 max-w-md text-[13px] text-[color:var(--text-muted)]">
-            Create a Connected App in your Salesforce org and enter the credentials below to connect.
+            {$_('settings.connect_salesforce_hint')}
           </p>
         </div>
       {/snippet}
@@ -203,7 +204,7 @@
           }}>
             <div class="space-y-4">
               <div class="space-y-2">
-                <Label for="login_url">Salesforce My Domain URL</Label>
+                <Label for="login_url">{$_('settings.salesforce_domain_url')}</Label>
                 <Input
                   id="login_url"
                   name="login_url"
@@ -217,7 +218,7 @@
                 </p>
               </div>
               <div class="space-y-2">
-                <Label for="client_id">Client ID (Consumer Key)</Label>
+                <Label for="client_id">{$_('settings.client_id')}</Label>
                 <Input
                   id="client_id"
                   name="client_id"
@@ -228,7 +229,7 @@
                 />
               </div>
               <div class="space-y-2">
-                <Label for="client_secret">Client Secret (Consumer Secret)</Label>
+                <Label for="client_secret">{$_('settings.client_secret')}</Label>
                 <Input
                   id="client_secret"
                   name="client_secret"
@@ -244,14 +245,14 @@
                 class="w-full gap-2 border-0 bg-[var(--color-primary-default)] text-white hover:bg-[var(--color-primary-hover)]"
               >
                 <Cloud class="size-4" />
-                {isConnecting ? 'Connecting to Salesforce...' : 'Connect to Salesforce'}
+                {isConnecting ? $_('common.connecting') : $_('settings.connect_salesforce')}
               </Button>
             </div>
           </form>
         </div>
     </SectionCard>
 
-    <SectionCard title="What gets imported?">
+    <SectionCard title={$_('settings.what_gets_imported')}>
         <ul class="text-muted-foreground space-y-2 text-sm">
           <li class="flex items-start gap-2">
             <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-blue-500"></span>
@@ -293,9 +294,9 @@
 <Dialog.Root bind:open={disconnectDialogOpen}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>Disconnect Salesforce</Dialog.Title>
+      <Dialog.Title>{$_('settings.disconnect_salesforce')}</Dialog.Title>
       <Dialog.Description>
-        Are you sure you want to disconnect from Salesforce? Previously imported data will not be deleted.
+        {$_('settings.disconnect_salesforce_confirm')}
       </Dialog.Description>
     </Dialog.Header>
     <form method="POST" action="?/disconnect" use:enhance={() => {
@@ -307,9 +308,9 @@
       };
     }}>
       <div class="flex justify-end gap-2 pt-4">
-        <Button variant="outline" type="button" onclick={() => (disconnectDialogOpen = false)}>Cancel</Button>
+        <Button variant="outline" type="button" onclick={() => (disconnectDialogOpen = false)}>{$_('common.cancel')}</Button>
         <Button variant="destructive" type="submit" disabled={isDisconnecting}>
-          {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+          {isDisconnecting ? $_('common.disconnecting') : $_('settings.disconnect')}
         </Button>
       </div>
     </form>

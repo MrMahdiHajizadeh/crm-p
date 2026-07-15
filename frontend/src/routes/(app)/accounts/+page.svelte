@@ -46,6 +46,7 @@
   import { COUNTRIES } from '$lib/constants/countries.js';
   import { CURRENCY_CODES } from '$lib/constants/filters.js';
   import { orgSettings } from '$lib/stores/org.js';
+  import { _ } from '$lib/i18n';
 
   // Column visibility configuration
   const STORAGE_KEY = 'accounts-column-config';
@@ -101,10 +102,10 @@
 
   // Base drawer columns (using $derived for dynamic currency symbol)
   const baseDrawerColumns = $derived([
-    { key: 'name', label: 'Name', type: 'text' },
+    { key: 'name', label: $_('common.name'), type: 'text' },
     {
       key: 'industry',
-      label: 'Industry',
+      label: $_('accounts.industry'),
       type: 'select',
       icon: Briefcase,
       options: industryOptions,
@@ -112,15 +113,15 @@
     },
     {
       key: 'website',
-      label: 'Website',
+      label: $_('accounts.website'),
       type: 'text',
       icon: Globe,
       placeholder: 'https://example.com'
     },
-    { key: 'phone', label: 'Phone', type: 'text', icon: Phone, placeholder: '+1 (555) 000-0000' },
+    { key: 'phone', label: $_('common.phone'), type: 'text', icon: Phone, placeholder: '+1 (555) 000-0000' },
     {
       key: 'email',
-      label: 'Email',
+      label: $_('common.email'),
       type: 'email',
       icon: Mail,
       placeholder: 'contact@company.com'
@@ -149,7 +150,7 @@
     },
     {
       key: 'addressLine',
-      label: 'Address',
+      label: $_('accounts.billing_address'),
       type: 'text',
       icon: MapPin,
       placeholder: 'Street address'
@@ -166,7 +167,7 @@
     },
     {
       key: 'description',
-      label: 'Notes',
+      label: $_('common.description'),
       type: 'textarea',
       icon: FileText,
       placeholder: 'Add notes about this account...'
@@ -183,7 +184,7 @@
       canHide: false,
       emptyText: 'Untitled'
     },
-    { key: 'industry', label: 'Industry', type: 'text', width: 'w-40', emptyText: '' },
+    { key: 'industry', label: $_('accounts.industry'), type: 'text', width: 'w-40', emptyText: '' },
     {
       key: 'annualRevenue',
       label: 'Revenue',
@@ -191,16 +192,16 @@
       width: 'w-32',
       format: (value, row) => formatCurrency(value, row?.currency || 'USD', true)
     },
-    { key: 'phone', label: 'Phone', type: 'text', width: 'w-36', emptyText: '' },
+    { key: 'phone', label: $_('common.phone'), type: 'text', width: 'w-36', emptyText: '' },
     {
       key: 'createdAt',
-      label: 'Created',
+      label: $_('common.created_at'),
       type: 'date',
       width: 'w-36',
       editable: false
     },
     // Hidden by default
-    { key: 'website', label: 'Website', type: 'text', width: 'w-44', canHide: true, emptyText: '' }
+    { key: 'website', label: $_('accounts.website'), type: 'text', width: 'w-44', canHide: true, emptyText: '' }
   ];
 
   // Default visible columns (excludes website; status removed - using tabs instead)
@@ -270,7 +271,7 @@
     ...baseDrawerColumns,
     {
       key: 'assignedTo',
-      label: 'Assigned To',
+      label: $_('common.assigned_to'),
       type: 'multiselect',
       icon: UserPlus,
       options: userOptions,
@@ -288,7 +289,7 @@
     },
     {
       key: 'tags',
-      label: 'Tags',
+      label: $_('common.tags'),
       type: 'multiselect',
       icon: Tag,
       options: tagOptions,
@@ -750,11 +751,11 @@
 </script>
 
 <svelte:head>
-  <title>Accounts - BottleCRM</title>
+  <title>{$_('accounts.title')} - {$_('app.name')}</title>
 </svelte:head>
 
 <div class="flex flex-col">
-<PageHeader title="Accounts" subtitle="{filteredAccounts.length} of {accounts.length} accounts">
+<PageHeader title={$_('accounts.title')} subtitle="{filteredAccounts.length} of {accounts.length} accounts">
   {#snippet actions()}
     <div class="flex items-center gap-2">
       <!-- Status Filter Chips -->

@@ -32,6 +32,7 @@ class GetProfileAndOrg:
             "/api/auth/refresh-token/",
             "/api/auth/me/",
             "/api/auth/switch-org/",
+            "/api/auth/phone-login/",
             "/api/auth/magic-link/request/",
             "/api/auth/magic-link/verify/",
         ]

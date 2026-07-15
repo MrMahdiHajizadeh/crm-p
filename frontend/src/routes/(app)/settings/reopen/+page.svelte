@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -34,21 +35,21 @@
 </script>
 
 <svelte:head>
-  <title>Reopen Policy - Settings - BottleCRM</title>
+  <title>{$_('settings.reopen_policy')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="Ticket Reopen Policy"
-  subtitle="Auto-reopen closed tickets when the customer replies"
+  title={$_('settings.reopen_policy')}
+  subtitle={$_('settings.reopen_subtitle')}
 >
   {#snippet actions()}
     <Button type="submit" form="reopen-policy-form" disabled={saving} class="gap-2">
       {#if saving}
         <Loader2 class="h-4 w-4 animate-spin" />
-        Saving…
+        {$_('common.saving')}
       {:else}
         <Check class="h-4 w-4" />
-        Save changes
+        {$_('common.save_changes')}
       {/if}
     </Button>
   {/snippet}
@@ -85,7 +86,7 @@
         </div>
         <div>
           <h2 class="text-base font-medium text-[var(--text-primary)]">
-            Auto-reopen on customer reply
+            {$_('settings.auto_reopen')}
           </h2>
           <p class="text-sm text-[var(--text-secondary)]">
             When enabled, a closed ticket is automatically reopened if the customer
@@ -104,7 +105,7 @@
           class="h-4 w-4 rounded border-[var(--border-default)] text-[var(--color-primary-default)] focus:ring-2 focus:ring-[var(--color-primary-default)]"
         />
         <Label for="is_enabled" class="cursor-pointer text-sm">
-          Enable automatic reopen
+          {$_('settings.enable_auto_reopen')}
         </Label>
       </div>
       <input type="hidden" name="is_enabled" value={isEnabled ? 'true' : 'false'} />
@@ -112,7 +113,7 @@
       <!-- Window days -->
       <div class="space-y-2">
         <Label for="reopen_window_days" class="text-sm">
-          Reopen window (days)
+          {$_('settings.reopen_window')}
         </Label>
         <Input
           id="reopen_window_days"
@@ -133,7 +134,7 @@
       <!-- Reopen-to status -->
       <div class="space-y-2">
         <Label for="reopen_to_status" class="text-sm">
-          Reopen to status
+          {$_('settings.reopen_to_status')}
         </Label>
         <select
           id="reopen_to_status"
@@ -162,7 +163,7 @@
           class="h-4 w-4 rounded border-[var(--border-default)] text-[var(--color-primary-default)] focus:ring-2 focus:ring-[var(--color-primary-default)] disabled:opacity-50"
         />
         <Label for="notify_assigned" class="cursor-pointer text-sm">
-          Notify previously assigned agents on reopen
+          {$_('settings.notify_on_reopen')}
         </Label>
       </div>
       <input

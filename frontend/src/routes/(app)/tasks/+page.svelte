@@ -44,6 +44,7 @@
   import { TASK_STATUSES as statuses, PRIORITIES as priorities } from '$lib/constants/filters.js';
   import { CrmTable } from '$lib/components/ui/crm-table';
   import { formatRelativeDate } from '$lib/utils/formatting.js';
+  import { _ } from '$lib/i18n';
 
   // Account from URL param (for quick action from account page)
   let accountFromUrl = $state(false);
@@ -142,7 +143,7 @@
   const taskColumns = [
     {
       key: 'subject',
-      label: 'Task',
+      label: 'tasks.subject',
       type: 'text',
       width: 'w-64',
       canHide: false,
@@ -157,12 +158,12 @@
       editable: false,
       getValue: getRelatedEntity
     },
-    { key: 'dueDate', label: 'Due Date', type: 'date', width: 'w-36', editable: false },
-    { key: 'priority', label: 'Priority', type: 'select', options: priorityOptions, width: 'w-28' },
-    { key: 'status', label: 'Status', type: 'select', options: statusOptions, width: 'w-36' },
+    { key: 'dueDate', label: 'tasks.due_date', type: 'date', width: 'w-36', editable: false },
+    { key: 'priority', label: 'tasks.priority', type: 'select', options: priorityOptions, width: 'w-28' },
+    { key: 'status', label: 'common.status', type: 'select', options: statusOptions, width: 'w-36' },
     {
       key: 'assignedTo',
-      label: 'Assigned To',
+      label: 'common.assigned_to',
       type: 'relation',
       width: 'w-36',
       relationIcon: 'user',
@@ -889,10 +890,10 @@
   // Parent entity fields (account, opportunity, case, lead) are only shown in edit mode
   // Exception: when creating from account quick action, show account as readonly and hide other parent fields
   const drawerColumns = $derived([
-    { key: 'subject', label: 'Subject', type: 'text', icon: FileText },
-    { key: 'status', label: 'Status', type: 'select', icon: Circle, options: statusOptions },
-    { key: 'priority', label: 'Priority', type: 'select', icon: Flag, options: priorityOptions },
-    { key: 'dueDate', label: 'Due Date', type: 'date', icon: Calendar },
+    { key: 'subject', label: 'tasks.subject', type: 'text', icon: FileText },
+    { key: 'status', label: 'common.status', type: 'select', icon: Circle, options: statusOptions },
+    { key: 'priority', label: 'tasks.priority', type: 'select', icon: Flag, options: priorityOptions },
+    { key: 'dueDate', label: 'tasks.due_date', type: 'date', icon: Calendar },
     // Parent entity field handling:
     // - In edit mode: show readonly for the existing parent entity
     // - In create mode with accountFromUrl: show account as readonly only
@@ -902,7 +903,7 @@
           const task = localTasks.find((t) => t.id === selectedTaskId);
           if (!task) return [];
           if (task.account)
-            return [{ key: 'accountName', label: 'Account', type: 'readonly', icon: Building2 }];
+            return [{ key: 'accountName', label: 'common.account', type: 'readonly', icon: Building2 }];
           if (task.lead)
             return [{ key: 'leadName', label: 'Lead', type: 'readonly', icon: UserPlus }];
           if (task.opportunity)
@@ -917,7 +918,7 @@
         ? [
             {
               key: 'accountDisplay',
-              label: 'Account',
+              label: 'common.account',
               type: 'readonly',
               icon: Building2,
               getValue: () => accountNameFromUrl || 'Loading...'
@@ -926,21 +927,21 @@
         : []),
     {
       key: 'assignedTo',
-      label: 'Assigned To',
+      label: 'common.assigned_to',
       type: 'multiselect',
       icon: User,
       options: userOptions
     },
     {
       key: 'contacts',
-      label: 'Contacts',
+      label: 'common.contact',
       type: 'multiselect',
       icon: Contact,
       options: contactOptions
     },
     { key: 'teams', label: 'Teams', type: 'multiselect', icon: Users, options: teamOptions },
-    { key: 'tags', label: 'Tags', type: 'multiselect', icon: Tag, options: tagOptions },
-    { key: 'description', label: 'Description', type: 'textarea' }
+    { key: 'tags', label: 'common.tags', type: 'multiselect', icon: Tag, options: tagOptions },
+    { key: 'description', label: 'common.description', type: 'textarea' }
   ]);
 
   // Drawer form data state
@@ -1106,11 +1107,11 @@
 </script>
 
 <svelte:head>
-  <title>Tasks - BottleCRM</title>
+  <title>{$_('tasks.title')} - {$_('app.name')}</title>
 </svelte:head>
 
 <div class="flex flex-col">
-  <PageHeader title="Tasks" subtitle="{filteredTasks.length} of {tasks.length} tasks">
+  <PageHeader title={$_('tasks.title')} subtitle="{filteredTasks.length} of {tasks.length} tasks">
     {#snippet actions()}
       <div class="flex items-center gap-2">
         <!-- Status Filter Chips -->

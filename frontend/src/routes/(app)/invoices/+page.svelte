@@ -1,6 +1,7 @@
 <script>
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
+  import { _ } from '$lib/i18n';
 
   import { PageHeader, FilterStrip, ViewTabs, FilterPill } from '$lib/components/layout';
   import { CrmTable } from '$lib/components/ui/crm-table';
@@ -86,7 +87,7 @@
     },
     {
       key: 'account',
-      label: 'Account',
+      label: 'common.account',
       type: 'relation',
       width: 'w-36',
       relationIcon: 'building',
@@ -95,7 +96,7 @@
     },
     {
       key: 'status',
-      label: 'Status',
+      label: 'common.status',
       type: 'select',
       width: 'w-28',
       options: INVOICE_STATUSES,
@@ -104,7 +105,7 @@
     },
     {
       key: 'issueDate',
-      label: 'Issue Date',
+      label: 'invoices.issue_date',
       type: 'date',
       width: 'w-28',
       canHide: true,
@@ -112,7 +113,7 @@
     },
     {
       key: 'dueDate',
-      label: 'Due Date',
+      label: 'invoices.due_date',
       type: 'date',
       width: 'w-28',
       canHide: true,
@@ -299,13 +300,13 @@
 </script>
 
 <svelte:head>
-  <title>Invoices | BottleCRM</title>
+  <title>{$_('invoices.title')} - {$_('app.name')}</title>
 </svelte:head>
 
 <!-- Page Content -->
 <div class="flex flex-col">
   <!-- Header -->
-  <PageHeader title="Invoices" subtitle="{invoices.length} of {pagination.total} invoices">
+  <PageHeader title={$_('invoices.title')} subtitle="{invoices.length} of {pagination.total} invoices">
     {#snippet actions()}
       <div class="flex items-center gap-2">
         <!-- Status Filter Chips -->
@@ -389,14 +390,14 @@
     />
 
     <SelectFilter
-      label="Status"
+      label={$_('common.status')}
       value={filters.status}
       options={INVOICE_STATUSES}
       onchange={(value) => updateFilters({ ...filters, status: value })}
     />
 
     <DateRangeFilter
-      label="Issue Date"
+      label={$_('invoices.issue_date')}
       startDate={filters.issue_date_gte}
       endDate={filters.issue_date_lte}
       onchange={(start, end) =>
@@ -404,7 +405,7 @@
     />
 
     <DateRangeFilter
-      label="Due Date"
+      label={$_('invoices.due_date')}
       startDate={filters.due_date_gte}
       endDate={filters.due_date_lte}
       onchange={(start, end) =>

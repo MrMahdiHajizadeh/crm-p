@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -64,12 +65,12 @@
 </script>
 
 <svelte:head>
-  <title>Escalation Policies - Settings - BottleCRM</title>
+  <title>{$_('settings.escalation')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="Escalation"
-  subtitle="When a ticket breaches its first-response or resolution SLA, the configured policy fires once per cooldown window"
+  title={$_('settings.escalation')}
+  subtitle={$_('settings.escalation_subtitle')}
 />
 
 <div class="flex-1 p-4 md:p-6 lg:p-8">
@@ -93,7 +94,7 @@
       <header class="flex items-center justify-between border-b border-[var(--border-default)] p-4">
         <div>
           <h2 class="text-base font-medium text-[var(--text-primary)]">
-            Policies by priority
+            {$_('settings.policies_by_priority')}
           </h2>
           <p class="text-sm text-[var(--text-secondary)]">
             One policy per priority. Each policy chooses what happens on a
@@ -104,8 +105,7 @@
 
       {#if policies.length === 0 && missingPriorities.length === priorities.length}
         <div class="p-6 text-center text-sm text-[var(--text-secondary)]">
-          No policies configured yet. Add one for each priority you want to
-          escalate.
+          {$_('settings.no_policies')}
         </div>
       {/if}
 
@@ -132,20 +132,20 @@
                 value={policy.is_active === false ? 'false' : 'true'}
               />
               {#if policy.is_active === false}
-                <span class="text-xs text-[var(--text-secondary)]">(Inactive)</span>
+                <span class="text-xs text-[var(--text-secondary)]">({$_('common.inactive')})</span>
               {/if}
             </div>
             <div class="flex items-center gap-1">
               <Button type="submit" size="sm" class="gap-1">
                 <Save class="h-3.5 w-3.5" />
-                Save
+                {$_('common.save')}
               </Button>
             </div>
           </div>
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="space-y-1.5">
-              <Label class="text-xs">First-response breach</Label>
+              <Label class="text-xs">{$_('settings.first_response_breach')}</Label>
               <select
                 name="first_response_action"
                 value={policy.first_response_action}
@@ -168,7 +168,7 @@
             </div>
 
             <div class="space-y-1.5">
-              <Label class="text-xs">Resolution breach</Label>
+              <Label class="text-xs">{$_('settings.resolution_breach')}</Label>
               <select
                 name="resolution_action"
                 value={policy.resolution_action}
@@ -191,7 +191,7 @@
             </div>
 
             <div class="space-y-1.5 md:col-span-2">
-              <Label class="text-xs">CC team (optional)</Label>
+              <Label class="text-xs">{$_('settings.cc_team')}</Label>
               <select
                 name="notify_team_id"
                 value={policy.notify_team?.id || ''}
@@ -229,7 +229,7 @@
 
     {#if policies.length > 0}
       <section class="rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)] p-4">
-        <h3 class="mb-3 text-sm font-medium text-[var(--text-primary)]">Delete a policy</h3>
+        <h3 class="mb-3 text-sm font-medium text-[var(--text-primary)]">{$_('settings.delete_policy')}</h3>
         <div class="flex flex-wrap gap-2">
           {#each policies as policy (policy.id)}
             <form method="POST" action="?/delete" use:enhance class="inline">
@@ -254,7 +254,7 @@
 <Dialog.Root bind:open={dialogOpen}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>New escalation policy</Dialog.Title>
+      <Dialog.Title>{$_('settings.new_escalation_policy')}</Dialog.Title>
       <Dialog.Description>
         Add an escalation policy for {dialogPriority} tickets.
       </Dialog.Description>
@@ -274,7 +274,7 @@
       <input type="hidden" name="is_active" value="true" />
 
       <div class="space-y-1.5">
-        <Label class="text-xs">First-response action</Label>
+        <Label class="text-xs">{$_('settings.first_response_action')}</Label>
         <select
           name="first_response_action"
           bind:value={dialogFirstAction}
@@ -297,7 +297,7 @@
       </div>
 
       <div class="space-y-1.5">
-        <Label class="text-xs">Resolution action</Label>
+        <Label class="text-xs">{$_('settings.resolution_action')}</Label>
         <select
           name="resolution_action"
           bind:value={dialogResolutionAction}
@@ -320,13 +320,13 @@
       </div>
 
       <div class="space-y-1.5">
-        <Label class="text-xs">CC team (optional)</Label>
+        <Label class="text-xs">{$_('settings.cc_team')}</Label>
         <select
           name="notify_team_id"
           bind:value={dialogNotifyTeamId}
           class="w-full rounded-md border border-[var(--border-default)] bg-[var(--surface-default)] px-3 py-2 text-sm"
         >
-          <option value="">— None —</option>
+          <option value="">{$_('settings.none')}</option>
           {#each teams as t (t.id)}
             <option value={t.id}>{t.name}</option>
           {/each}
@@ -335,9 +335,9 @@
 
       <Dialog.Footer>
         <Button type="button" variant="outline" onclick={() => (dialogOpen = false)}>
-          Cancel
+          {$_('common.cancel')}
         </Button>
-        <Button type="submit">Create</Button>
+        <Button type="submit">{$_('common.create')}</Button>
       </Dialog.Footer>
     </form>
   </Dialog.Content>

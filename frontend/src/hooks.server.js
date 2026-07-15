@@ -166,6 +166,7 @@ export const handle = sequence(Sentry.sentryHandle(), async function _handle({ e
       id: jwtPayload.user_id,
       name: jwtPayload.user_name || '',
       email: jwtPayload.user_email || '',
+      phone: jwtPayload.user_phone || '',
       profilePhoto: jwtPayload.user_profile_pic || ''
     };
 

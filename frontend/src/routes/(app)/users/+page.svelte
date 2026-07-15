@@ -27,6 +27,7 @@
   import * as Tabs from '$lib/components/ui/tabs/index.js';
   import { getInitials, formatDate } from '$lib/utils/formatting.js';
   import { TeamCard, TeamFormDialog } from '$lib/components/users/index.js';
+  import { _ } from '$lib/i18n';
 
   /** @type {{ data: import('./$types').PageData, form: any }} */
   let { data, form } = $props();
@@ -40,8 +41,9 @@
       ? data.users.map((u) => ({
           id: u.user.id,
           odId: u.profile?.id || u.odId,
-          name: u.user.name || u.user.email,
+          name: u.user.name || u.user.phone,
           email: u.user.email,
+          phone: u.user.phone,
           role: u.role,
           joined: u.profile?.created_at
             ? typeof u.profile.created_at === 'string'
@@ -83,21 +85,21 @@
   $effect(() => {
     if (form?.success) {
       if (form.action === 'add_user') {
-        toast.success('Member added successfully');
+        toast.success($_('users.member_added'));
       } else if (form.action === 'create_team') {
-        toast.success('Team created successfully');
+        toast.success($_('users.team_created'));
         teamDialogOpen = false;
         editingTeam = null;
       } else if (form.action === 'update_team') {
-        toast.success('Team updated successfully');
+        toast.success($_('users.team_updated'));
         teamDialogOpen = false;
         editingTeam = null;
       } else if (form.action === 'delete_team') {
-        toast.success('Team deleted successfully');
+        toast.success($_('users.team_deleted'));
       } else if (form.action === 'remove_user') {
-        toast.success('User deactivated');
+        toast.success($_('users.user_deactivated'));
       } else if (form.action === 'activate_user') {
-        toast.success('User activated');
+        toast.success($_('users.user_activated'));
       }
       invalidateAll();
     } else if (form?.error) {
@@ -220,12 +222,12 @@
 </script>
 
 <svelte:head>
-  <title>Users & Teams - BottleCRM</title>
+  <title>{$_('users.title')} - {$_('app.name')}</title>
 </svelte:head>
 
-<PageHeader title="Users & Teams" subtitle="Manage users and teams in your organization">
+<PageHeader title={$_('users.title')} subtitle={$_('users.subtitle')}>
   {#snippet tabs()}
-    <ViewTabs views={[{ id: 'all', label: 'All', count: users.length }]} active="all" />
+    <ViewTabs views={[{ id: 'all', label: $_('common.all'), count: users.length }]} active="all" />
   {/snippet}
 </PageHeader>
 
@@ -253,11 +255,11 @@
         <Tabs.List class="mb-6 grid w-full grid-cols-2 lg:w-[400px]">
           <Tabs.Trigger value="users" class="gap-2">
             <Users class="h-4 w-4" />
-            Users
+            {$_('users.tab_users')}
           </Tabs.Trigger>
           <Tabs.Trigger value="teams" class="gap-2">
             <UsersRound class="h-4 w-4" />
-            Teams
+            {$_('users.tab_teams')}
           </Tabs.Trigger>
         </Tabs.List>
 
@@ -274,10 +276,10 @@
                 </div>
                 <div>
                   <h3 class="text-[16px] font-medium leading-[1.3] text-[color:var(--text-primary)]">
-                    Add New Member
+                    {$_('users.add_new_member')}
                   </h3>
                   <p class="text-[12px] text-[color:var(--text-muted)]">
-                    Invite a user to join your organization
+                    {$_('users.invite_subtitle')}
                   </p>
                 </div>
               </div>
@@ -288,30 +290,52 @@
                 class="flex flex-col gap-4 sm:flex-row sm:items-end"
               >
                 <div class="flex-1">
-                  <Label class="" for="add-user-email">Email Address *</Label>
+                  <Label class="" for="add-user-name">{$_('users.name_label')} *</Label>
                   <Input
-                    id="add-user-email"
-                    name="email"
-                    type="email"
+                    id="add-user-name"
+                    name="name"
+                    type="text"
                     required
-                    placeholder="user@example.com"
+                    placeholder={$_('users.name_placeholder')}
+                    class="mt-1.5"
+                  />
+                </div>
+                <div class="flex-1">
+                  <Label class="" for="add-user-phone">{$_('users.phone_label')} *</Label>
+                  <Input
+                    id="add-user-phone"
+                    name="phone"
+                    type="tel"
+                    required
+                    placeholder={$_('users.phone_placeholder')}
+                    class="mt-1.5"
+                  />
+                </div>
+                <div class="flex-1">
+                  <Label class="" for="add-user-password">{$_('users.password_label')} *</Label>
+                  <Input
+                    id="add-user-password"
+                    name="password"
+                    type="password"
+                    required
+                    placeholder={$_('users.password_placeholder')}
                     class="mt-1.5"
                   />
                 </div>
                 <div class="sm:w-40">
-                  <Label class="" for="add-user-role">Role</Label>
+                  <Label class="" for="add-user-role">{$_('users.role_label')}</Label>
                   <select
                     id="add-user-role"
                     name="role"
                     class="border-input bg-background ring-offset-background focus-visible:ring-ring mt-1.5 flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
-                    <option value="USER">User</option>
-                    <option value="ADMIN">Admin</option>
+                    <option value="USER">{$_('users.role_user')}</option>
+                    <option value="ADMIN">{$_('users.role_admin')}</option>
                   </select>
                 </div>
                 <Button type="submit">
                   <Plus class="mr-2 h-4 w-4" />
-                  Add Member
+                  {$_('users.add_member')}
                 </Button>
               </form>
           </SectionCard>
@@ -327,10 +351,10 @@
                 </div>
                 <div>
                   <h3 class="text-[16px] font-medium leading-[1.3] text-[color:var(--text-primary)]">
-                    Team Members
+                    {$_('users.team_members')}
                   </h3>
                   <p class="text-[12px] text-[color:var(--text-muted)]">
-                    {users.length} member{users.length !== 1 ? 's' : ''} in your organization
+                    {users.length} {$_('users.member')}{users.length !== 1 ? 's' : ''} {$_('users.in_your_organization')}
                   </p>
                 </div>
               </div>
@@ -339,10 +363,10 @@
                 <Table.Root>
                   <Table.Header>
                     <Table.Row>
-                      <Table.Head class="w-[300px]">Member</Table.Head>
-                      <Table.Head>Role</Table.Head>
-                      <Table.Head>Joined</Table.Head>
-                      <Table.Head class="w-[80px]">Actions</Table.Head>
+                      <Table.Head class="w-[300px]">{$_('users.table_member')}</Table.Head>
+                      <Table.Head>{$_('users.table_role')}</Table.Head>
+                      <Table.Head>{$_('users.table_joined')}</Table.Head>
+                      <Table.Head class="w-[80px]">{$_('users.table_actions')}</Table.Head>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
@@ -364,15 +388,15 @@
                               <div class="flex items-center gap-2">
                                 <span class="text-foreground font-medium">{user.name}</span>
                                 {#if user.isSelf}
-                                  <Badge variant="secondary" class="text-xs">You</Badge>
+                                  <Badge variant="secondary" class="text-xs">{$_('users.you_badge')}</Badge>
                                 {/if}
                                 {#if !user.isActive}
                                   <Badge variant="outline" class="text-muted-foreground text-xs"
-                                    >Inactive</Badge
+                                    >{$_('users.inactive_badge')}</Badge
                                   >
                                 {/if}
                               </div>
-                              <span class="text-muted-foreground text-sm">{user.email}</span>
+                              <span class="text-muted-foreground text-sm">{user.email || user.phone || ''}</span>
                             </div>
                           </div>
                         </Table.Cell>
@@ -410,8 +434,8 @@
                                 name="role"
                                 class="border-input bg-background h-8 rounded-md border px-2 text-sm"
                               >
-                                <option value="USER" selected={user.role === 'USER'}>User</option>
-                                <option value="ADMIN" selected={user.role === 'ADMIN'}>Admin</option
+                                <option value="USER" selected={user.role === 'USER'}>{$_('users.role_user')}</option>
+                                <option value="ADMIN" selected={user.role === 'ADMIN'}>{$_('users.role_admin')}</option
                                 >
                               </select>
                               <Button type="submit" size="icon" class="h-7 w-7" variant="default">
@@ -444,7 +468,7 @@
                               size="icon"
                               class="h-8 w-8 text-[var(--color-success-default)] hover:bg-[var(--color-success-light)]"
                               onclick={() => handleActivateUser(user.id)}
-                              title="Activate user"
+                              title={$_('users.activate_title')}
                             >
                               <UserCheck class="h-4 w-4" />
                             </Button>
@@ -453,25 +477,25 @@
                             <AlertDialog.Root>
                               <AlertDialog.Trigger
                                 class="text-destructive hover:bg-destructive/10 inline-flex h-8 w-8 items-center justify-center rounded-md"
-                                title="Deactivate user"
+                                title={$_('users.deactivate_title')}
                               >
                                 <Trash2 class="h-4 w-4" />
                               </AlertDialog.Trigger>
                               <AlertDialog.Content>
                                 <AlertDialog.Header>
-                                  <AlertDialog.Title>Deactivate Team Member</AlertDialog.Title>
+                                  <AlertDialog.Title>{$_('users.deactivate_title_dialog')}</AlertDialog.Title>
                                   <AlertDialog.Description>
-                                    Are you sure you want to deactivate <strong>{user.name}</strong
-                                    >? They will no longer be able to access the organization.
+                                    {$_('users.deactivate_confirm_before')} <strong>{user.name}</strong
+                                    >{$_('users.deactivate_confirm_after')}
                                   </AlertDialog.Description>
                                 </AlertDialog.Header>
                                 <AlertDialog.Footer>
-                                  <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+                                  <AlertDialog.Cancel>{$_('common.cancel')}</AlertDialog.Cancel>
                                   <Button
                                     variant="destructive"
                                     onclick={() => handleRemoveUser(user.id)}
                                   >
-                                    Deactivate
+                                    {$_('users.deactivate')}
                                   </Button>
                                 </AlertDialog.Footer>
                               </AlertDialog.Content>
@@ -485,7 +509,7 @@
                       <Table.Row>
                         <Table.Cell colspan={4} class="py-8 text-center">
                           <Users class="text-muted-foreground/50 mx-auto h-8 w-8" />
-                          <p class="text-muted-foreground mt-2 text-sm">No team members found</p>
+                          <p class="text-muted-foreground mt-2 text-sm">{$_('users.no_members')}</p>
                         </Table.Cell>
                       </Table.Row>
                     {/if}
@@ -500,15 +524,15 @@
           <!-- Header with Create Button -->
           <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-lg font-semibold">Teams</h2>
+              <h2 class="text-lg font-semibold">{$_('users.teams_heading')}</h2>
               <p class="text-muted-foreground text-sm">
-                Create teams to group users for assignments and access control.
+                {$_('users.teams_description')}
               </p>
             </div>
-            <Button onclick={openCreateTeamDialog}>
-              <Plus class="mr-2 h-4 w-4" />
-              Create Team
-            </Button>
+              <Button onclick={openCreateTeamDialog}>
+                <Plus class="mr-2 h-4 w-4" />
+                {$_('users.create_team')}
+              </Button>
           </div>
 
           <!-- Teams Grid -->
@@ -526,14 +550,13 @@
               >
                 <UsersRound class="h-8 w-8 text-[var(--color-primary-default)]" />
               </div>
-              <h3 class="mb-2 text-lg font-semibold">No teams yet</h3>
+              <h3 class="mb-2 text-lg font-semibold">{$_('users.no_teams')}</h3>
               <p class="text-muted-foreground mx-auto mb-6 max-w-sm text-sm">
-                Teams help you organize users and manage access to records. Create your first team
-                to get started.
+                {$_('users.no_teams_desc')}
               </p>
               <Button onclick={openCreateTeamDialog}>
                 <Plus class="mr-2 h-4 w-4" />
-                Create Your First Team
+                {$_('users.create_first_team')}
               </Button>
             </SectionCard>
           {/if}

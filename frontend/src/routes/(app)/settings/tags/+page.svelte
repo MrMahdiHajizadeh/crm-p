@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -154,12 +155,12 @@
 </script>
 
 <svelte:head>
-  <title>Tags - BottleCRM</title>
+  <title>{$_('settings.tags')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="Tags"
-  subtitle="Create and manage tags to organize contacts, companies, deals, and tickets."
+  title={$_('settings.tags')}
+  subtitle={$_('settings.tags_subtitle')}
 >
   {#snippet actions()}
     <Button
@@ -167,7 +168,7 @@
       class="border-0 bg-[var(--color-primary-default)] text-white hover:bg-[var(--color-primary-dark)]"
     >
       <Plus class="mr-2 h-4 w-4" />
-      Create tag
+      {$_('settings.create_tag')}
     </Button>
   {/snippet}
 </PageHeader>
@@ -180,7 +181,7 @@
         <Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input
           type="text"
-          placeholder="Search tags..."
+          placeholder={$_('settings.search_tags')}
           bind:value={searchQuery}
           class="bg-background h-9 pl-9"
         />
@@ -192,7 +193,7 @@
             ? 'bg-secondary text-foreground'
             : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}"
         >
-          Active ({activeTags.length})
+          {$_('common.active')} ({activeTags.length})
         </button>
         <button
           onclick={() => (showArchived = true)}
@@ -200,7 +201,7 @@
             ? 'bg-secondary text-foreground'
             : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'}"
         >
-          Archived ({archivedTags.length})
+          {$_('common.archived')} ({archivedTags.length})
         </button>
       </div>
     </div>
@@ -215,22 +216,21 @@
             <Tag class="text-muted-foreground h-7 w-7" />
           </div>
           {#if searchQuery}
-            <h3 class="text-foreground text-lg font-medium">No tags found</h3>
-            <p class="text-muted-foreground mt-1 text-sm">
-              No tags match "{searchQuery}". Try a different search term.
-            </p>
+          <h3 class="text-foreground text-lg font-medium">{$_('settings.no_tags_found')}</h3>
+          <p class="text-muted-foreground mt-1 text-sm">
+            {$_('settings.no_tags_match')}
+          </p>
           {:else}
-            <h3 class="text-foreground text-lg font-medium">No tags yet</h3>
+            <h3 class="text-foreground text-lg font-medium">{$_('settings.no_tags_yet')}</h3>
             <p class="text-muted-foreground mt-1 max-w-sm text-sm">
-              Tags help you organize and filter your CRM records. Create your first tag to get
-              started.
+              {$_('settings.tags_help_text')}
             </p>
             <Button
               onclick={openCreate}
               class="mt-4 border-0 bg-[var(--color-primary-default)] text-white hover:bg-[var(--color-primary-dark)]"
             >
               <Plus class="mr-2 h-4 w-4" />
-              Create tag
+              {$_('settings.create_tag')}
             </Button>
           {/if}
         </div>
@@ -242,17 +242,17 @@
                 <th
                   class="text-muted-foreground px-4 py-3 text-left text-xs font-semibold tracking-wider uppercase"
                 >
-                  Tag name
+                  {$_('common.name')}
                 </th>
                 <th
                   class="text-muted-foreground px-4 py-3 text-left text-xs font-semibold tracking-wider uppercase"
                 >
-                  Description
+                  {$_('common.description')}
                 </th>
                 <th
                   class="text-muted-foreground px-4 py-3 text-right text-xs font-semibold tracking-wider uppercase"
                 >
-                  Actions
+                  {$_('common.actions')}
                 </th>
               </tr>
             </thead>
@@ -287,7 +287,7 @@
                         class="text-muted-foreground hover:text-foreground h-8 px-2"
                       >
                         <Pencil class="h-4 w-4" />
-                        <span class="ml-1.5">Edit</span>
+                        <span class="ml-1.5">{$_('common.edit')}</span>
                       </Button>
                       <DropdownMenu.Root>
                         <DropdownMenu.Trigger>
@@ -305,7 +305,7 @@
                             <DropdownMenu.Item class="text-destructive focus:text-destructive">
                               <button type="submit" class="flex w-full items-center gap-2">
                                 <Archive class="h-4 w-4" />
-                                Archive tag
+                                {$_('settings.archive_tag')}
                               </button>
                             </DropdownMenu.Item>
                           </form>
@@ -319,7 +319,7 @@
           </table>
         </div>
         <p class="text-muted-foreground mt-3 text-xs">
-          Showing {filteredActiveTags.length} of {activeTags.length} active tags
+          {$_('settings.showing_active_tags', { count: filteredActiveTags.length, total: activeTags.length })}
         </p>
       {/if}
     {:else if filteredArchivedTags.length === 0}
@@ -328,13 +328,13 @@
           <Archive class="text-muted-foreground h-7 w-7" />
         </div>
         {#if searchQuery}
-          <h3 class="text-foreground text-lg font-medium">No archived tags found</h3>
+          <h3 class="text-foreground text-lg font-medium">{$_('settings.no_archived_tags_found')}</h3>
           <p class="text-muted-foreground mt-1 text-sm">
-            No archived tags match "{searchQuery}".
+            {$_('settings.no_archived_tags_match')}
           </p>
         {:else}
-          <h3 class="text-foreground text-lg font-medium">No archived tags</h3>
-          <p class="text-muted-foreground mt-1 text-sm">Archived tags will appear here.</p>
+          <h3 class="text-foreground text-lg font-medium">{$_('settings.no_archived_tags')}</h3>
+          <p class="text-muted-foreground mt-1 text-sm">{$_('settings.archived_tags_hint')}</p>
         {/if}
       </div>
     {:else}
@@ -389,7 +389,7 @@
                       class="text-muted-foreground hover:text-foreground h-8 gap-1.5 opacity-0 group-hover:opacity-100"
                     >
                       <RotateCcw class="h-4 w-4" />
-                      Restore
+                      {$_('common.restore')}
                     </Button>
                   </form>
                 </td>
@@ -399,7 +399,7 @@
         </table>
       </div>
       <p class="text-muted-foreground mt-3 text-xs">
-        Showing {filteredArchivedTags.length} of {archivedTags.length} archived tags
+        {$_('settings.showing_archived_tags', { count: filteredArchivedTags.length, total: archivedTags.length })}
       </p>
     {/if}
   </div>
@@ -409,9 +409,9 @@
 <Dialog.Root bind:open={createDialogOpen}>
   <Dialog.Content class="gap-0 overflow-hidden p-0 sm:max-w-md">
     <div class="border-border border-b px-6 py-4">
-      <Dialog.Title class="text-lg font-semibold">Create a tag</Dialog.Title>
+      <Dialog.Title class="text-lg font-semibold">{$_('settings.create_tag')}</Dialog.Title>
       <Dialog.Description class="text-muted-foreground mt-1 text-sm">
-        Tags help you organize and segment your records.
+        {$_('settings.tags_help_text')}
       </Dialog.Description>
     </div>
     <form
@@ -428,19 +428,19 @@
       <div class="space-y-5 px-6 py-5">
         <div class="space-y-2">
           <Label for="name" class="text-sm font-medium">
-            Tag name <span class="text-destructive">*</span>
+            {$_('common.name')} <span class="text-destructive">*</span>
           </Label>
           <Input
             id="name"
             name="name"
             bind:value={formName}
-            placeholder="e.g., VIP Customer, Hot Lead"
+            placeholder={$_('settings.tag_name_placeholder')}
             class="h-10"
           />
         </div>
 
         <div class="space-y-2">
-          <Label class="text-sm font-medium">Color</Label>
+          <Label class="text-sm font-medium">{$_('settings.color')}</Label>
           <div class="flex flex-wrap gap-2">
             {#each TAG_COLORS as color}
               <button
@@ -464,13 +464,13 @@
 
         <div class="space-y-2">
           <Label for="description" class="text-sm font-medium">
-            Description <span class="text-muted-foreground font-normal">(optional)</span>
+            {$_('common.description')} <span class="text-muted-foreground font-normal">({$_('common.optional')})</span>
           </Label>
           <Input
             id="description"
             name="description"
             bind:value={formDescription}
-            placeholder="Describe what this tag is for..."
+            placeholder={$_('settings.description_placeholder')}
             class="h-10"
           />
         </div>
@@ -493,14 +493,14 @@
 
       <div class="border-border bg-muted/30 flex justify-end gap-2 border-t px-6 py-4">
         <Button variant="outline" type="button" onclick={() => (createDialogOpen = false)}>
-          Cancel
+          {$_('common.cancel')}
         </Button>
         <Button
           type="submit"
           disabled={!formName.trim() || isLoading}
           class="border-0 bg-[var(--color-primary-default)] text-white hover:bg-[var(--color-primary-dark)]"
         >
-          {isLoading ? 'Creating...' : 'Create tag'}
+          {isLoading ? $_('common.creating') : $_('settings.create_tag')}
         </Button>
       </div>
     </form>
@@ -511,9 +511,9 @@
 <Dialog.Root bind:open={editDialogOpen}>
   <Dialog.Content class="gap-0 overflow-hidden p-0 sm:max-w-md">
     <div class="border-border border-b px-6 py-4">
-      <Dialog.Title class="text-lg font-semibold">Edit tag</Dialog.Title>
+      <Dialog.Title class="text-lg font-semibold">{$_('settings.edit_tag')}</Dialog.Title>
       <Dialog.Description class="text-muted-foreground mt-1 text-sm">
-        Update the tag name, color, or description.
+        {$_('settings.edit_tag_subtitle')}
       </Dialog.Description>
     </div>
     <form
@@ -531,13 +531,13 @@
       <div class="space-y-5 px-6 py-5">
         <div class="space-y-2">
           <Label for="edit-name" class="text-sm font-medium">
-            Tag name <span class="text-destructive">*</span>
+            {$_('common.name')} <span class="text-destructive">*</span>
           </Label>
           <Input id="edit-name" name="name" bind:value={formName} class="h-10" />
         </div>
 
         <div class="space-y-2">
-          <Label class="text-sm font-medium">Color</Label>
+          <Label class="text-sm font-medium">{$_('settings.color')}</Label>
           <div class="flex flex-wrap gap-2">
             {#each TAG_COLORS as color}
               <button
@@ -561,7 +561,7 @@
 
         <div class="space-y-2">
           <Label for="edit-description" class="text-sm font-medium">
-            Description <span class="text-muted-foreground font-normal">(optional)</span>
+            {$_('common.description')} <span class="text-muted-foreground font-normal">({$_('common.optional')})</span>
           </Label>
           <Input
             id="edit-description"
@@ -573,7 +573,7 @@
 
         <!-- Preview -->
         <div class="pt-2">
-          <Label class="text-muted-foreground text-sm font-medium">Preview</Label>
+          <Label class="text-muted-foreground text-sm font-medium">{$_('common.preview')}</Label>
           <div class="mt-2 flex items-center">
             <span
               class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium {getHubspotBadgeClass(
@@ -589,14 +589,14 @@
 
       <div class="border-border bg-muted/30 flex justify-end gap-2 border-t px-6 py-4">
         <Button variant="outline" type="button" onclick={() => (editDialogOpen = false)}>
-          Cancel
+          {$_('common.cancel')}
         </Button>
         <Button
           type="submit"
           disabled={!formName.trim() || isLoading}
           class="border-0 bg-[var(--color-primary-default)] text-white hover:bg-[var(--color-primary-dark)]"
         >
-          {isLoading ? 'Saving...' : 'Save'}
+          {isLoading ? $_('common.saving') : $_('common.save')}
         </Button>
       </div>
     </form>

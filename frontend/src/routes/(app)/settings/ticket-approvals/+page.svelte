@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
   import { ShieldCheck, Loader2, Plus, Trash2, Edit3 } from '@lucide/svelte';
@@ -140,17 +141,17 @@
 </script>
 
 <svelte:head>
-  <title>Approval rules - Settings - BottleCRM</title>
+  <title>{$_('settings.approval_rules')} - {$_('app.name')}</title>
 </svelte:head>
 
-<PageHeader title="Approval rules">
+<PageHeader title={$_('settings.approval_rules')}>
   {#snippet titleIcon()}
     <ShieldCheck class="size-4" />
   {/snippet}
   {#snippet actions()}
     {#if !creating && editingId === null}
       <Button onclick={startCreate} disabled={pending}>
-        <Plus class="mr-1 h-4 w-4" /> New rule
+        <Plus class="mr-1 h-4 w-4" /> {$_('settings.new_rule')}
       </Button>
     {/if}
   {/snippet}
@@ -166,11 +167,11 @@
   {#if creating || editingId !== null}
     <section class="rounded-md border border-[var(--border-default)] bg-[var(--surface-default)] p-4">
       <h2 class="mb-3 text-sm font-medium">
-        {editingId ? 'Edit rule' : 'New rule'}
+        {editingId ? $_('settings.edit_rule') : $_('settings.new_rule')}
       </h2>
       <div class="grid gap-3 sm:grid-cols-2">
         <label class="space-y-1 text-sm">
-          <span class="font-medium">Name</span>
+          <span class="font-medium">{$_('common.name')}</span>
           <input
             type="text"
             bind:value={draft.name}
@@ -179,12 +180,12 @@
         </label>
 
         <label class="space-y-1 text-sm">
-          <span class="font-medium">Priority filter</span>
+          <span class="font-medium">{$_('settings.priority_filter')}</span>
           <select
             bind:value={draft.match_priority}
             class="w-full rounded border border-[var(--border-default)] bg-[var(--surface-default)] p-2 text-sm"
           >
-            <option value="">Any priority</option>
+            <option value="">{$_('settings.any_priority')}</option>
             <option value="Low">Low</option>
             <option value="Normal">Normal</option>
             <option value="High">High</option>
@@ -193,12 +194,12 @@
         </label>
 
         <label class="space-y-1 text-sm">
-          <span class="font-medium">Ticket type filter</span>
+          <span class="font-medium">{$_('settings.ticket_type_filter')}</span>
           <select
             bind:value={draft.match_case_type}
             class="w-full rounded border border-[var(--border-default)] bg-[var(--surface-default)] p-2 text-sm"
           >
-            <option value="">Any type</option>
+            <option value="">{$_('settings.any_type')}</option>
             <option value="Question">Question</option>
             <option value="Incident">Incident</option>
             <option value="Problem">Problem</option>
@@ -206,12 +207,12 @@
         </label>
 
         <label class="space-y-1 text-sm">
-          <span class="font-medium">Team filter</span>
+          <span class="font-medium">{$_('settings.team_filter')}</span>
           <select
             bind:value={draft.match_team_id}
             class="w-full rounded border border-[var(--border-default)] bg-[var(--surface-default)] p-2 text-sm"
           >
-            <option value="">Any team</option>
+            <option value="">{$_('settings.any_team')}</option>
             {#each teams as t (t.id)}
               <option value={t.id}>{t.name}</option>
             {/each}
@@ -219,26 +220,26 @@
         </label>
 
         <label class="space-y-1 text-sm">
-          <span class="font-medium">Fallback approver role</span>
+          <span class="font-medium">{$_('settings.fallback_approver_role')}</span>
           <select
             bind:value={draft.approver_role}
             class="w-full rounded border border-[var(--border-default)] bg-[var(--surface-default)] p-2 text-sm"
           >
-            <option value="ADMIN">Any admin</option>
-            <option value="MANAGER">Any manager (when role exists)</option>
+            <option value="ADMIN">{$_('settings.any_admin')}</option>
+            <option value="MANAGER">{$_('settings.any_manager')}</option>
           </select>
         </label>
 
         <label class="flex items-center gap-2 text-sm">
           <input type="checkbox" bind:checked={draft.is_active} />
-          <span>Active</span>
+          <span>{$_('common.active')}</span>
         </label>
       </div>
 
       <fieldset class="mt-3 rounded-md border border-[var(--border-default)] p-3">
-        <legend class="px-1 text-xs font-medium">Explicit approvers</legend>
+        <legend class="px-1 text-xs font-medium">{$_('settings.explicit_approvers')}</legend>
         {#if profiles.length === 0}
-          <p class="text-xs text-[var(--text-secondary)]">No profiles loaded.</p>
+          <p class="text-xs text-[var(--text-secondary)]">{$_('settings.no_profiles')}</p>
         {:else}
           <div class="grid gap-1.5 sm:grid-cols-2">
             {#each profiles as p (p.id)}
@@ -258,10 +259,10 @@
       <div class="mt-3 flex gap-2">
         <Button onclick={save} disabled={pending}>
           {#if pending}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
-          {editingId ? 'Save changes' : 'Create rule'}
+          {editingId ? $_('common.save_changes') : $_('settings.create_rule')}
         </Button>
         <Button variant="ghost" onclick={cancelEdit} disabled={pending}>
-          Cancel
+          {$_('common.cancel')}
         </Button>
       </div>
     </section>
@@ -269,7 +270,7 @@
 
   {#if rules.length === 0}
     <p class="rounded-md border border-[var(--border-default)] bg-[var(--surface-muted)] p-4 text-center text-sm text-[var(--text-secondary)]">
-      No approval rules yet.
+      {$_('settings.no_approval_rules')}
     </p>
   {:else}
     <ul class="flex flex-col gap-2">
@@ -280,7 +281,7 @@
               {r.name}
               {#if !r.is_active}
                 <span class="ml-2 rounded bg-[var(--surface-muted)] px-1.5 text-[10px] text-[var(--text-secondary)]">
-                  inactive
+                  {$_('common.inactive')}
                 </span>
               {/if}
             </span>
@@ -307,7 +308,7 @@
               onclick={() => startEdit(r)}
               disabled={pending}
             >
-              <Edit3 class="mr-1 h-3.5 w-3.5" /> Edit
+              <Edit3 class="mr-1 h-3.5 w-3.5" /> {$_('common.edit')}
             </Button>
             <Button
               size="sm"
@@ -315,7 +316,7 @@
               onclick={() => destroy(r.id)}
               disabled={pending}
             >
-              <Trash2 class="mr-1 h-3.5 w-3.5" /> Delete
+              <Trash2 class="mr-1 h-3.5 w-3.5" /> {$_('common.delete')}
             </Button>
           </div>
         </li>

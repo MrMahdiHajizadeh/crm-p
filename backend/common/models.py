@@ -35,15 +35,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, editable=False, db_index=True, primary_key=True
     )
-    email = models.EmailField(_("email address"), blank=True, unique=True)
+    email = models.EmailField(_("email address"), blank=True, null=True, default=None, unique=False)
     name = models.CharField(_("name"), max_length=255, blank=True, default="")
+    phone = models.CharField(_("phone"), max_length=20, blank=False, unique=True)
     profile_pic = models.CharField(max_length=1000, null=True, blank=True)
     activation_key = models.CharField(max_length=150, null=True, blank=True)
     key_expires = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(_("staff status"), default=False)
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
@@ -55,15 +56,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         ordering = ("-is_active",)
 
     def save(self, *args, **kwargs):
-        # On first save only, fall back to the email local-part when no name
-        # was supplied — keeps `name` non-empty without overwriting later
-        # edits (PATCHing name to "" leaves it empty by user intent).
-        if self._state.adding and not self.name and self.email:
-            self.name = self.email.split("@", 1)[0][:255]
+        if self._state.adding and not self.name:
+            self.name = self.phone or "User"
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.email
+        return self.phone or self.email or self.name
 
 
 class Address(BaseModel):
@@ -237,6 +235,7 @@ class Profile(BaseModel):
             "email": self.user.email,
             "id": self.user.id,
             "name": self.user.name,
+            "phone": self.user.phone,
             "is_active": self.user.is_active,
             "profile_pic": self.user.profile_pic,
             "last_login": self.user.last_login,

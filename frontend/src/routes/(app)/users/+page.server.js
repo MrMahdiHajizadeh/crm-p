@@ -114,8 +114,9 @@ export async function load({ locals, cookies }) {
         role: profile.role,
         user: {
           id: profile.user_details?.id || profile.id,
-          email: profile.user_details?.email || 'N/A',
-          name: profile.user_details?.email?.split('@')[0] || 'N/A'
+          email: profile.user_details?.email || '',
+          name: profile.user_details?.name || profile.user_details?.phone || profile.user_details?.email?.split('@')[0] || 'N/A',
+          phone: profile.user_details?.phone || ''
         },
         isActive: true,
         profile
@@ -126,8 +127,9 @@ export async function load({ locals, cookies }) {
         role: profile.role,
         user: {
           id: profile.user_details?.id || profile.id,
-          email: profile.user_details?.email || 'N/A',
-          name: profile.user_details?.email?.split('@')[0] || 'N/A'
+          email: profile.user_details?.email || '',
+          name: profile.user_details?.name || profile.user_details?.phone || profile.user_details?.email?.split('@')[0] || 'N/A',
+          phone: profile.user_details?.phone || ''
         },
         isActive: false,
         profile
@@ -171,16 +173,21 @@ export const actions = {
 
     try {
       const formData = await request.formData();
-      const email = formData.get('email')?.toString().trim().toLowerCase();
+      const name = formData.get('name')?.toString().trim();
+      const phone = formData.get('phone')?.toString().trim();
+      const password = formData.get('password')?.toString();
       const role = formData.get('role')?.toString();
 
-      if (!email || !role) {
-        return fail(400, { error: 'Email and role are required' });
+      if (!phone || !name || !role) {
+        return fail(400, { error: 'Name, phone and role are required' });
       }
 
       // Create user via Django API
       // Django endpoint: POST /api/users/
-      const userData = { email, role };
+      const userData = { name, phone, role };
+      if (password) {
+        userData.password = password;
+      }
 
       await apiRequest(
         '/users/',
@@ -202,7 +209,7 @@ export const actions = {
         return fail(400, { error: 'User already in organization' });
       }
       if (err.message.includes('not found')) {
-        return fail(404, { error: 'No user found with that email' });
+        return fail(404, { error: 'No user found with that phone number' });
       }
       return fail(500, { error: err.message || 'Failed to add user' });
     }

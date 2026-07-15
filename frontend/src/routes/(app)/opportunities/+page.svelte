@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { onMount, tick } from 'svelte';
@@ -150,17 +151,17 @@
     },
     {
       key: 'amount',
-      label: 'Amount',
+      label: 'opportunities.amount',
       type: 'number',
       width: 'w-32',
       editable: false,
       format: (value, row) => formatAmount(value, row?.currency)
     },
-    { key: 'stage', label: 'Stage', type: 'select', options: stageOptions, width: 'w-32' },
-    { key: 'closedOn', label: 'Close Date', type: 'date', width: 'w-36', editable: false },
+    { key: 'stage', label: 'opportunities.stage', type: 'select', options: stageOptions, width: 'w-32' },
+    { key: 'closedOn', label: 'opportunities.close_date', type: 'date', width: 'w-36', editable: false },
     {
       key: 'assignedTo',
-      label: 'Assigned To',
+      label: 'common.assigned_to',
       type: 'relation',
       width: 'w-40',
       relationIcon: 'user',
@@ -176,7 +177,7 @@
     // Hidden by default
     {
       key: 'probability',
-      label: 'Probability',
+      label: 'opportunities.probability',
       type: 'number',
       width: 'w-28',
       canHide: true,
@@ -306,19 +307,19 @@
 
   // Drawer column definitions for CrmDrawer (derived since some options come from data)
   const drawerColumns = $derived([
-    { key: 'name', label: 'Name', type: 'text' },
+    { key: 'name', label: 'common.name', type: 'text' },
     // Account field: readonly when pre-filled from URL, select otherwise
     accountFromUrl
       ? {
           key: 'account',
-          label: 'Account',
+          label: 'common.account',
           type: 'readonly',
           icon: Building2,
           getValue: () => accountName || 'Loading...'
         }
       : {
           key: 'account',
-          label: 'Account',
+          label: 'common.account',
           type: 'select',
           icon: Building2,
           options: accountOptions,
@@ -326,7 +327,7 @@
         },
     {
       key: 'stage',
-      label: 'Stage',
+      label: 'opportunities.stage',
       type: 'select',
       icon: Target,
       options: stageOptions
@@ -341,14 +342,14 @@
     },
     {
       key: 'amount',
-      label: 'Amount',
+      label: 'opportunities.amount',
       type: 'number',
       icon: DollarSign,
       placeholder: '0'
     },
     {
       key: 'currency',
-      label: 'Currency',
+      label: 'opportunities.currency',
       type: 'select',
       icon: Banknote,
       options: currencyOptions,
@@ -356,20 +357,20 @@
     },
     {
       key: 'probability',
-      label: 'Probability',
+      label: 'opportunities.probability',
       type: 'number',
       icon: Percent,
       placeholder: '0'
     },
     {
       key: 'closedOn',
-      label: 'Close Date',
+      label: 'opportunities.close_date',
       type: 'date',
       icon: Calendar
     },
     {
       key: 'leadSource',
-      label: 'Lead Source',
+      label: 'opportunities.lead_source',
       type: 'select',
       icon: Globe,
       options: sourceOptions,
@@ -385,7 +386,7 @@
     },
     {
       key: 'assignedTo',
-      label: 'Assigned To',
+      label: 'common.assigned_to',
       type: 'multiselect',
       icon: Users,
       options: userOptions,
@@ -393,7 +394,7 @@
     },
     {
       key: 'teams',
-      label: 'Teams',
+      label: 'common.teams',
       type: 'multiselect',
       icon: Users,
       options: teamOptions,
@@ -401,7 +402,7 @@
     },
     {
       key: 'tags',
-      label: 'Tags',
+      label: 'common.tags',
       type: 'multiselect',
       icon: Tags,
       options: tagOptions,
@@ -1186,11 +1187,11 @@
 </script>
 
 <svelte:head>
-  <title>Opportunities - BottleCRM</title>
+  <title>{$_('opportunities.title')} - {$_('app.name')}</title>
 </svelte:head>
 
 <div class="flex flex-col">
-<PageHeader title="Opportunities" subtitle="Pipeline: {formatCurrency(stats.pipeline)}">
+<PageHeader title={$_('opportunities.title')} subtitle="Pipeline: {formatCurrency(stats.pipeline)}">
   {#snippet actions()}
     <div class="flex items-center gap-2">
       <!-- Status Filter Chips -->

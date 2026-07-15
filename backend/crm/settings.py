@@ -92,12 +92,8 @@ WSGI_APPLICATION = "crm.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DBNAME", "crm_db"),
-        "USER": os.environ.get("DBUSER", "postgres"),
-        "PASSWORD": os.environ.get("DBPASSWORD", "postgres"),
-        "HOST": os.environ.get("DBHOST", "localhost"),
-        "PORT": os.environ.get("DBPORT", "5432"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(os.path.dirname(BASE_DIR), "db.sqlite3"),
     }
 }
 

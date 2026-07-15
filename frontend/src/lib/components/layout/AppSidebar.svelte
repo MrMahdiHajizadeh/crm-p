@@ -2,6 +2,7 @@
   import { untrack } from 'svelte';
   import { page } from '$app/stores';
   import { afterNavigate, goto } from '$app/navigation';
+  import { _ } from '$lib/i18n';
 
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -176,56 +177,56 @@
 
   // Five-section IA per spec §4
   const workspaceItems = [
-    { href: '/', label: 'Home', icon: Home, type: 'link', preload: 'off', count: undefined },
-    { href: '/leads', label: 'Pipeline', icon: Activity, type: 'link', preload: 'off', count: undefined }
+    { href: '/', label: 'sidebar.home', icon: Home, type: 'link', preload: 'off', count: undefined },
+    { href: '/leads', label: 'sidebar.pipeline', icon: Activity, type: 'link', preload: 'off', count: undefined }
   ];
 
   const recordsItems = [
-    { href: '/leads', label: 'Leads', icon: Target, type: 'link', preload: 'off', count: undefined },
-    { href: '/contacts', label: 'Contacts', icon: Users, type: 'link', preload: 'off', count: undefined },
-    { href: '/accounts', label: 'Accounts', icon: Building, type: 'link', preload: 'off', count: undefined },
-    { href: '/opportunities', label: 'Deals', icon: Sparkles, type: 'link', preload: 'off', count: undefined }
+    { href: '/leads', label: 'sidebar.leads', icon: Target, type: 'link', preload: 'off', count: undefined },
+    { href: '/contacts', label: 'sidebar.contacts', icon: Users, type: 'link', preload: 'off', count: undefined },
+    { href: '/accounts', label: 'sidebar.accounts', icon: Building, type: 'link', preload: 'off', count: undefined },
+    { href: '/opportunities', label: 'sidebar.deals', icon: Sparkles, type: 'link', preload: 'off', count: undefined }
   ];
 
   const workItems = [
     {
       key: 'tickets',
-      label: 'Tickets',
+      label: 'sidebar.tickets',
       icon: Briefcase,
       type: 'dropdown',
       count: undefined,
       children: [
-        { href: '/tickets', label: 'All tickets', icon: Briefcase, preload: 'off', count: undefined },
-        { href: '/tickets/approvals', label: 'Approvals', icon: ShieldCheck, preload: 'off', count: undefined },
-        { href: '/tickets/analytics', label: 'Analytics', icon: BarChart3, preload: 'off', count: undefined },
-        { href: '/solutions', label: 'Knowledge base', icon: BookOpen, preload: 'off', count: undefined }
+        { href: '/tickets', label: 'sidebar.all_tickets', icon: Briefcase, preload: 'off', count: undefined },
+        { href: '/tickets/approvals', label: 'sidebar.approvals', icon: ShieldCheck, preload: 'off', count: undefined },
+        { href: '/tickets/analytics', label: 'sidebar.analytics', icon: BarChart3, preload: 'off', count: undefined },
+        { href: '/solutions', label: 'sidebar.knowledge_base', icon: BookOpen, preload: 'off', count: undefined }
       ]
     },
-    { href: '/tasks', label: 'Tasks', icon: CheckSquare, type: 'link', preload: 'off', count: undefined },
-    { href: '/timesheet', label: 'Timesheet', icon: Clock, type: 'link', preload: 'off', count: undefined },
-    { href: '/goals', label: 'Goals', icon: Trophy, type: 'link', preload: 'off', count: undefined }
+    { href: '/tasks', label: 'sidebar.tasks', icon: CheckSquare, type: 'link', preload: 'off', count: undefined },
+    { href: '/timesheet', label: 'sidebar.timesheet', icon: Clock, type: 'link', preload: 'off', count: undefined },
+    { href: '/goals', label: 'sidebar.goals', icon: Trophy, type: 'link', preload: 'off', count: undefined }
   ];
 
   const revenueItems = [
     {
       key: 'invoices',
-      label: 'Invoices',
+      label: 'sidebar.invoices',
       icon: FileText,
       type: 'dropdown',
       count: undefined,
       children: [
-        { href: '/invoices', label: 'All Invoices', icon: FileText, preload: 'off', count: undefined },
-        { href: '/invoices/estimates', label: 'Estimates', icon: FileEdit, preload: 'off', count: undefined },
-        { href: '/invoices/products', label: 'Products', icon: Package, preload: 'off', count: undefined },
-        { href: '/invoices/recurring', label: 'Recurring', icon: RefreshCw, preload: 'off', count: undefined },
-        { href: '/invoices/templates', label: 'Templates', icon: FileCode, preload: 'off', count: undefined },
-        { href: '/invoices/reports', label: 'Reports', icon: BarChart3, preload: 'off', count: undefined }
+        { href: '/invoices', label: 'sidebar.all_invoices', icon: FileText, preload: 'off', count: undefined },
+        { href: '/invoices/estimates', label: 'sidebar.estimates', icon: FileEdit, preload: 'off', count: undefined },
+        { href: '/invoices/products', label: 'sidebar.products', icon: Package, preload: 'off', count: undefined },
+        { href: '/invoices/recurring', label: 'sidebar.recurring', icon: RefreshCw, preload: 'off', count: undefined },
+        { href: '/invoices/templates', label: 'sidebar.templates', icon: FileCode, preload: 'off', count: undefined },
+        { href: '/invoices/reports', label: 'sidebar.reports', icon: BarChart3, preload: 'off', count: undefined }
       ]
     }
   ];
 
   const supportItems = [
-    { href: '/support', label: 'Help desk', icon: HelpCircle, type: 'link', preload: 'off', count: undefined }
+    { href: '/support', label: 'sidebar.help_desk', icon: HelpCircle, type: 'link', preload: 'off', count: undefined }
   ];
 
   // Combine for the auto-open-on-active effect (which scans dropdown items)
@@ -299,7 +300,7 @@
       <Sidebar.GroupLabel
         class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
       >
-        Workspace
+        {$_('sidebar.workspace')}
       </Sidebar.GroupLabel>
       <Sidebar.GroupContent>
         <Sidebar.Menu class="space-y-px">
@@ -318,7 +319,7 @@
                       <Sidebar.MenuButton
                         {...props}
                         isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={item.label}
+                        tooltipContent={$_(item.label)}
                         class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                           group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                           {hasActiveChild(item.children ?? [])
@@ -339,7 +340,7 @@
                             />
                             <span
                               class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{item.label}</span>
+                            >{$_(item.label)}</span>
                             {#if item.count !== undefined && item.count !== null}
                               <span
                                 class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -376,7 +377,7 @@
                                 {/if}
                                 <span
                                   class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{navChild.label}</span>
+                                >{$_(navChild.label)}</span>
                                 {#if navChild.count !== undefined && navChild.count !== null}
                                   <span
                                     class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
@@ -395,7 +396,7 @@
               <Sidebar.MenuItem>
                 <Sidebar.MenuButton
                   isActive={currentPath === item.href}
-                  tooltipContent={item.label}
+                  tooltipContent={$_(item.label)}
                   class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                     group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                     {currentPath === item.href
@@ -421,7 +422,7 @@
                       />
                       <span
                         class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{item.label}</span>
+                      >{$_(item.label)}</span>
                       {#if item.count !== undefined && item.count !== null}
                         <span
                           class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -442,7 +443,7 @@
       <Sidebar.GroupLabel
         class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
       >
-        Records
+        {$_('sidebar.records')}
       </Sidebar.GroupLabel>
       <Sidebar.GroupContent>
         <Sidebar.Menu class="space-y-px">
@@ -461,7 +462,7 @@
                       <Sidebar.MenuButton
                         {...props}
                         isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={item.label}
+                        tooltipContent={$_(item.label)}
                         class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                           group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                           {hasActiveChild(item.children ?? [])
@@ -482,7 +483,7 @@
                             />
                             <span
                               class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{item.label}</span>
+                            >{$_(item.label)}</span>
                             {#if item.count !== undefined && item.count !== null}
                               <span
                                 class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -519,7 +520,7 @@
                                 {/if}
                                 <span
                                   class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{navChild.label}</span>
+                                >{$_(navChild.label)}</span>
                                 {#if navChild.count !== undefined && navChild.count !== null}
                                   <span
                                     class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
@@ -538,7 +539,7 @@
               <Sidebar.MenuItem>
                 <Sidebar.MenuButton
                   isActive={currentPath === item.href}
-                  tooltipContent={item.label}
+                  tooltipContent={$_(item.label)}
                   class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                     group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                     {currentPath === item.href
@@ -564,7 +565,7 @@
                       />
                       <span
                         class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{item.label}</span>
+                      >{$_(item.label)}</span>
                       {#if item.count !== undefined && item.count !== null}
                         <span
                           class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -585,7 +586,7 @@
       <Sidebar.GroupLabel
         class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
       >
-        Work
+        {$_('sidebar.work')}
       </Sidebar.GroupLabel>
       <Sidebar.GroupContent>
         <Sidebar.Menu class="space-y-px">
@@ -604,7 +605,7 @@
                       <Sidebar.MenuButton
                         {...props}
                         isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={item.label}
+                        tooltipContent={$_(item.label)}
                         class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                           group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                           {hasActiveChild(item.children ?? [])
@@ -625,7 +626,7 @@
                             />
                             <span
                               class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{item.label}</span>
+                            >{$_(item.label)}</span>
                             {#if item.count !== undefined && item.count !== null}
                               <span
                                 class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -662,7 +663,7 @@
                                 {/if}
                                 <span
                                   class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{navChild.label}</span>
+                                >{$_(navChild.label)}</span>
                                 {#if navChild.count !== undefined && navChild.count !== null}
                                   <span
                                     class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
@@ -681,7 +682,7 @@
               <Sidebar.MenuItem>
                 <Sidebar.MenuButton
                   isActive={currentPath === item.href}
-                  tooltipContent={item.label}
+                  tooltipContent={$_(item.label)}
                   class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                     group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                     {currentPath === item.href
@@ -707,7 +708,7 @@
                       />
                       <span
                         class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{item.label}</span>
+                      >{$_(item.label)}</span>
                       {#if item.count !== undefined && item.count !== null}
                         <span
                           class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -728,7 +729,7 @@
       <Sidebar.GroupLabel
         class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
       >
-        Revenue
+        {$_('sidebar.revenue')}
       </Sidebar.GroupLabel>
       <Sidebar.GroupContent>
         <Sidebar.Menu class="space-y-px">
@@ -747,7 +748,7 @@
                       <Sidebar.MenuButton
                         {...props}
                         isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={item.label}
+                        tooltipContent={$_(item.label)}
                         class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                           group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                           {hasActiveChild(item.children ?? [])
@@ -768,7 +769,7 @@
                             />
                             <span
                               class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{item.label}</span>
+                            >{$_(item.label)}</span>
                             {#if item.count !== undefined && item.count !== null}
                               <span
                                 class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -805,7 +806,7 @@
                                 {/if}
                                 <span
                                   class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{navChild.label}</span>
+                                >{$_(navChild.label)}</span>
                                 {#if navChild.count !== undefined && navChild.count !== null}
                                   <span
                                     class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
@@ -824,7 +825,7 @@
               <Sidebar.MenuItem>
                 <Sidebar.MenuButton
                   isActive={currentPath === item.href}
-                  tooltipContent={item.label}
+                  tooltipContent={$_(item.label)}
                   class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                     group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                     {currentPath === item.href
@@ -850,7 +851,7 @@
                       />
                       <span
                         class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{item.label}</span>
+                      >{$_(item.label)}</span>
                       {#if item.count !== undefined && item.count !== null}
                         <span
                           class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -871,7 +872,7 @@
       <Sidebar.GroupLabel
         class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
       >
-        Support
+        {$_('sidebar.support')}
       </Sidebar.GroupLabel>
       <Sidebar.GroupContent>
         <Sidebar.Menu class="space-y-px">
@@ -890,7 +891,7 @@
                       <Sidebar.MenuButton
                         {...props}
                         isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={item.label}
+                        tooltipContent={$_(item.label)}
                         class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                           group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                           {hasActiveChild(item.children ?? [])
@@ -911,7 +912,7 @@
                             />
                             <span
                               class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{item.label}</span>
+                            >{$_(item.label)}</span>
                             {#if item.count !== undefined && item.count !== null}
                               <span
                                 class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -948,7 +949,7 @@
                                 {/if}
                                 <span
                                   class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{navChild.label}</span>
+                                >{$_(navChild.label)}</span>
                                 {#if navChild.count !== undefined && navChild.count !== null}
                                   <span
                                     class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
@@ -967,7 +968,7 @@
               <Sidebar.MenuItem>
                 <Sidebar.MenuButton
                   isActive={currentPath === item.href}
-                  tooltipContent={item.label}
+                  tooltipContent={$_(item.label)}
                   class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
                     group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                     {currentPath === item.href
@@ -993,7 +994,7 @@
                       />
                       <span
                         class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{item.label}</span>
+                      >{$_(item.label)}</span>
                       {#if item.count !== undefined && item.count !== null}
                         <span
                           class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
@@ -1015,7 +1016,7 @@
       <!-- Download mobile app -->
       <Sidebar.MenuItem>
         <Sidebar.MenuButton
-          tooltipContent="Download mobile app"
+          tooltipContent={$_('sidebar.download_mobile')}
           class="h-[30px] rounded-md pl-[18px] pr-[10px] text-[color:var(--sidebar-muted)] transition-colors duration-150 hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]
             group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0"
         >
@@ -1038,7 +1039,7 @@
                 </span>
               </span>
               <span class="flex-1 text-[13px] font-medium group-data-[collapsible=icon]:hidden">
-                Download app
+                {$_('sidebar.download_app')}
               </span>
             </a>
           {/snippet}
@@ -1049,7 +1050,7 @@
       <Sidebar.MenuItem>
         <Sidebar.MenuButton
           onclick={() => sidebar.toggle()}
-          tooltipContent={sidebar.state === 'collapsed' ? 'Expand sidebar' : 'Collapse sidebar'}
+          tooltipContent={sidebar.state === 'collapsed' ? $_('sidebar.expand_sidebar') : $_('sidebar.collapse_sidebar')}
           class="h-[30px] rounded-md pl-[18px] pr-[10px] text-[color:var(--sidebar-muted)] transition-colors duration-150 hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]
             group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0"
         >
@@ -1061,7 +1062,7 @@
                 <PanelLeftClose class="size-[15px] shrink-0 text-[color:var(--sidebar-subtle)]" strokeWidth={1.6} />
               {/if}
               <span class="flex-1 text-[13px] font-medium group-data-[collapsible=icon]:hidden">
-                Collapse
+                {$_('sidebar.collapse')}
               </span>
             </button>
           {/snippet}
@@ -1083,7 +1084,7 @@
                   <img
                     class="size-6 shrink-0 rounded-full object-cover"
                     src={user.profilePhoto}
-                    alt="User avatar"
+                    alt={$_('sidebar.user_avatar')}
                     onerror={() => (profileImageError = true)}
                   />
                 {:else}
@@ -1094,8 +1095,8 @@
                   </Avatar>
                 {/if}
                 <div class="flex min-w-0 flex-1 flex-col leading-tight group-data-[collapsible=icon]:hidden">
-                  <span class="truncate text-[14px] font-semibold text-[color:var(--sidebar-foreground)]">{user.name}</span>
-                  <span class="truncate text-[11px] text-[color:var(--sidebar-subtle)]">{user.email}</span>
+                  <span class="truncate text-[14px] font-semibold text-[color:var(--sidebar-foreground)]">{user.name || user.email || user.phone || 'User'}</span>
+                  <span class="truncate text-[11px] text-[color:var(--sidebar-subtle)]">{user.email || user.phone || ''}</span>
                 </div>
                 <ChevronsUpDown class="ml-auto size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden" strokeWidth={1.6} />
               </Sidebar.MenuButton>
@@ -1109,7 +1110,7 @@
             <DropdownMenu.Label
               class="text-muted-foreground text-[10px] font-bold tracking-wider uppercase"
             >
-              My Account
+              {$_('sidebar.my_account')}
             </DropdownMenu.Label>
             <DropdownMenu.Separator />
             <DropdownMenu.Group>
@@ -1119,15 +1120,15 @@
                 class="gap-2.5"
               >
                 <User class="size-4" />
-                <span>Profile</span>
+                <span>{$_('sidebar.profile')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item inset={false} onclick={() => navigateTo('/users')} class="gap-2.5">
                 <Users class="size-4" />
-                <span>Users & Teams</span>
+                <span>{$_('sidebar.users_teams')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item inset={false} onclick={() => navigateTo('/org')} class="gap-2.5">
                 <Building class="size-4" />
-                <span>Organizations</span>
+                <span>{$_('sidebar.organizations')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1135,7 +1136,7 @@
                 class="gap-2.5"
               >
                 <Settings class="size-4" />
-                <span>Settings</span>
+                <span>{$_('sidebar.settings')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1143,7 +1144,7 @@
                 class="gap-2.5"
               >
                 <Cloud class="size-4" />
-                <span>Salesforce</span>
+                <span>{$_('sidebar.salesforce')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1151,7 +1152,7 @@
                 class="gap-2.5"
               >
                 <Tag class="size-4" />
-                <span>Tags</span>
+                <span>{$_('sidebar.tags')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1159,7 +1160,7 @@
                 class="gap-2.5"
               >
                 <RotateCcw class="size-4" />
-                <span>Reopen Policy</span>
+                <span>{$_('sidebar.reopen_policy')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1167,7 +1168,7 @@
                 class="gap-2.5"
               >
                 <Sliders class="size-4" />
-                <span>Custom Fields</span>
+                <span>{$_('sidebar.custom_fields')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1175,7 +1176,7 @@
                 class="gap-2.5"
               >
                 <Route class="size-4" />
-                <span>Auto-Routing</span>
+                <span>{$_('sidebar.auto_routing')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1183,7 +1184,7 @@
                 class="gap-2.5"
               >
                 <Megaphone class="size-4" />
-                <span>Escalation</span>
+                <span>{$_('sidebar.escalation')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1191,7 +1192,7 @@
                 class="gap-2.5"
               >
                 <ShieldCheck class="size-4" />
-                <span>Approval Rules</span>
+                <span>{$_('sidebar.approval_rules')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1199,7 +1200,7 @@
                 class="gap-2.5"
               >
                 <Mail class="size-4" />
-                <span>Inbound Email</span>
+                <span>{$_('sidebar.inbound_email')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1207,7 +1208,7 @@
                 class="gap-2.5"
               >
                 <Clock class="size-4" />
-                <span>Business Hours</span>
+                <span>{$_('sidebar.business_hours')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1215,7 +1216,7 @@
                 class="gap-2.5"
               >
                 <MessageSquareQuote class="size-4" />
-                <span>Macros</span>
+                <span>{$_('sidebar.macros')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
@@ -1223,14 +1224,14 @@
                 class="gap-2.5"
               >
                 <KeyRound class="size-4" />
-                <span>API Tokens</span>
+                <span>{$_('sidebar.api_tokens')}</span>
               </DropdownMenu.Item>
             </DropdownMenu.Group>
             <DropdownMenu.Separator />
             <DropdownMenu.Label
               class="text-muted-foreground text-[10px] font-bold tracking-wider uppercase"
             >
-              Theme
+              {$_('sidebar.theme')}
             </DropdownMenu.Label>
             <DropdownMenu.Group class="flex gap-1 px-2 py-1.5">
               <button
@@ -1241,7 +1242,7 @@
                   : 'hover:bg-sidebar-accent text-muted-foreground hover:text-foreground'}"
               >
                 <Sun class="size-4" />
-                <span class="text-[10px] font-medium">Light</span>
+                <span class="text-[10px] font-medium">{$_('sidebar.light')}</span>
               </button>
               <button
                 onclick={() => setTheme('dark')}
@@ -1251,7 +1252,7 @@
                   : 'hover:bg-sidebar-accent text-muted-foreground hover:text-foreground'}"
               >
                 <Moon class="size-4" />
-                <span class="text-[10px] font-medium">Dark</span>
+                <span class="text-[10px] font-medium">{$_('sidebar.dark')}</span>
               </button>
               <button
                 onclick={() => setTheme('system')}
@@ -1261,7 +1262,7 @@
                   : 'hover:bg-sidebar-accent text-muted-foreground hover:text-foreground'}"
               >
                 <Monitor class="size-4" />
-                <span class="text-[10px] font-medium">System</span>
+                <span class="text-[10px] font-medium">{$_('sidebar.system')}</span>
               </button>
             </DropdownMenu.Group>
             <DropdownMenu.Separator />
@@ -1271,7 +1272,7 @@
               onclick={() => navigateTo('/logout')}
             >
               <LogOut class="size-4" />
-              <span>Sign out</span>
+              <span>{$_('sidebar.sign_out')}</span>
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Root>

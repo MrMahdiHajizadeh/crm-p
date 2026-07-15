@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
@@ -65,7 +66,7 @@
   const columns = [
     {
       key: 'subject',
-      label: 'Ticket',
+      label: 'tickets.subject',
       type: 'text',
       width: 'w-[250px]',
       canHide: false,
@@ -73,7 +74,7 @@
     },
     {
       key: 'account',
-      label: 'Account',
+      label: 'common.account',
       type: 'relation',
       relationIcon: 'building',
       width: 'w-40',
@@ -82,23 +83,23 @@
     },
     {
       key: 'priority',
-      label: 'Priority',
+      label: 'tickets.priority',
       type: 'select',
       options: ticketPriorityOptions,
       width: 'w-28'
     },
-    { key: 'status', label: 'Status', type: 'select', options: ticketStatusOptions, width: 'w-28' },
-    { key: 'ticketType', label: 'Type', type: 'select', options: ticketTypeOptions, width: 'w-28' },
+    { key: 'status', label: 'common.status', type: 'select', options: ticketStatusOptions, width: 'w-28' },
+    { key: 'ticketType', label: 'tickets.type', type: 'select', options: ticketTypeOptions, width: 'w-28' },
     {
       key: 'owner',
-      label: 'Assigned To',
+      label: 'common.assigned_to',
       type: 'relation',
       relationIcon: 'user',
       width: 'w-36',
       editable: false,
       getValue: (/** @type {any} */ row) => row.owner
     },
-    { key: 'createdAt', label: 'Created', type: 'date', width: 'w-32', editable: false }
+    { key: 'createdAt', label: 'common.created_at', type: 'date', width: 'w-32', editable: false }
   ];
 
   // Column visibility state
@@ -271,11 +272,11 @@
   // Drawer columns configuration (with icons and multiselect).
   // The drawer is create-only; account is editable except when pre-filled from URL.
   const drawerColumns = $derived([
-    { key: 'subject', label: 'Ticket Title', type: 'text' },
+    { key: 'subject', label: 'tickets.subject', type: 'text' },
     !accountFromUrl
       ? {
           key: 'accountId',
-          label: 'Account',
+          label: 'common.account',
           type: 'select',
           icon: Building2,
           options: accountOptions,
@@ -284,21 +285,21 @@
       : accountFromUrl
         ? {
             key: 'accountDisplay',
-            label: 'Account',
+            label: 'common.account',
             type: 'readonly',
             icon: Building2,
             getValue: () => accountName || 'Loading...'
           }
         : {
             key: 'accountName',
-            label: 'Account',
+            label: 'common.account',
             type: 'readonly',
             icon: Building2,
             emptyText: 'No account'
           },
     {
       key: 'ticketType',
-      label: 'Type',
+      label: 'tickets.type',
       type: 'select',
       icon: Tag,
       options: ticketTypeOptions,
@@ -306,21 +307,21 @@
     },
     {
       key: 'status',
-      label: 'Status',
+      label: 'common.status',
       type: 'select',
       icon: Circle,
       options: ticketStatusOptions
     },
     {
       key: 'priority',
-      label: 'Priority',
+      label: 'tickets.priority',
       type: 'select',
       icon: Flag,
       options: ticketPriorityOptions
     },
     {
       key: 'description',
-      label: 'Description',
+      label: 'common.description',
       type: 'textarea',
       icon: FileText,
       placeholder: 'Describe the ticket...',
@@ -328,7 +329,7 @@
     },
     {
       key: 'assignedTo',
-      label: 'Assigned To',
+      label: 'common.assigned_to',
       type: 'multiselect',
       icon: User,
       options: users.map((/** @type {any} */ u) => ({ id: u.id, name: u.name })),
@@ -336,7 +337,7 @@
     },
     {
       key: 'teams',
-      label: 'Teams',
+      label: 'common.teams',
       type: 'multiselect',
       icon: Users,
       options: teams.map((/** @type {any} */ t) => ({ id: t.id, name: t.name })),
@@ -344,7 +345,7 @@
     },
     {
       key: 'contacts',
-      label: 'Contacts',
+      label: 'common.contact',
       type: 'multiselect',
       icon: User,
       options: contacts.map((/** @type {any} */ c) => ({ id: c.id, name: c.name, email: c.email })),
@@ -352,7 +353,7 @@
     },
     {
       key: 'tags',
-      label: 'Tags',
+      label: 'common.tags',
       type: 'multiselect',
       icon: Tag,
       options: tags.map((/** @type {any} */ t) => ({ id: t.id, name: t.name })),
@@ -723,11 +724,11 @@
 </script>
 
 <svelte:head>
-  <title>Tickets - BottleCRM</title>
+  <title>{$_('tickets.title')} - {$_('app.name')}</title>
 </svelte:head>
 
 <div class="flex flex-col">
-  <PageHeader title="Tickets" subtitle="{filteredTickets.length} of {ticketsData.length} tickets">
+  <PageHeader title={$_('tickets.title')} subtitle="{filteredTickets.length} of {ticketsData.length} tickets">
     {#snippet actions()}
       <div class="flex items-center gap-2">
         <TicketStatusChips

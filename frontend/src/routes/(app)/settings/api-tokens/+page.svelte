@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -152,12 +153,12 @@ BCRM_TOKEN = "${token}"`;
 </script>
 
 <svelte:head>
-  <title>API Tokens - Settings - BottleCRM</title>
+  <title>{$_('settings.api_tokens')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="API Tokens"
-  subtitle="Connect your AI agent to BottleCRM. Tokens act as you and inherit your role."
+  title={$_('settings.api_tokens')}
+  subtitle={$_('settings.api_tokens_subtitle')}
 />
 
 <div class="flex-1 p-4 md:p-6 lg:p-8">
@@ -178,11 +179,11 @@ BCRM_TOKEN = "${token}"`;
         <div class="flex items-start gap-2">
           <TriangleAlert class="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
           <div class="min-w-0 flex-1 space-y-2">
-            <h2 class="text-sm font-medium text-amber-900 dark:text-amber-200">
-              Token “{form.created.name}” created
-            </h2>
+        <h2 class="text-sm font-medium text-amber-900 dark:text-amber-200">
+          {$_('settings.token_created', { name: form.created.name })}
+        </h2>
             <p class="text-sm text-amber-800 dark:text-amber-300">
-              Copy this token now — you won't be able to see it again.
+              {$_('settings.copy_token_now')}
             </p>
             <div class="flex items-center gap-2">
               <code
@@ -198,10 +199,10 @@ BCRM_TOKEN = "${token}"`;
               >
                 {#if copied}
                   <Check class="h-4 w-4" />
-                  Copied
+                  {$_('common.copied')}
                 {:else}
                   <Copy class="h-4 w-4" />
-                  Copy
+                  {$_('common.copy')}
                 {/if}
               </Button>
             </div>
@@ -213,10 +214,9 @@ BCRM_TOKEN = "${token}"`;
     <!-- Create token -->
     <section class="rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)]">
       <header class="border-b border-[var(--border-default)] p-4">
-        <h2 class="text-base font-medium text-[var(--text-primary)]">Create token</h2>
+        <h2 class="text-base font-medium text-[var(--text-primary)]">{$_('settings.create_token')}</h2>
         <p class="text-sm text-[var(--text-secondary)]">
-          Give the token a recognisable name. Set an optional expiry, or leave it blank for a token
-          that never expires.
+          {$_('settings.create_token_hint')}
         </p>
       </header>
       <form
@@ -233,16 +233,16 @@ BCRM_TOKEN = "${token}"`;
         class="flex flex-col gap-4 p-4 sm:flex-row sm:items-end"
       >
         <div class="flex-1 space-y-1.5">
-          <Label for="name">Name *</Label>
-          <Input id="name" name="name" required bind:value={formName} placeholder="My AI agent" />
+          <Label for="name">{$_('common.name')} *</Label>
+          <Input id="name" name="name" required bind:value={formName} placeholder={$_('settings.token_name_placeholder')} />
         </div>
         <div class="space-y-1.5">
-          <Label for="expires_at">Expires (optional)</Label>
+          <Label for="expires_at">{$_('settings.expires_optional')}</Label>
           <Input id="expires_at" name="expires_at" type="date" bind:value={formExpiresAt} />
         </div>
         <Button type="submit" class="gap-2" disabled={creating}>
           <Plus class="h-4 w-4" />
-          {creating ? 'Creating…' : 'Create token'}
+          {creating ? $_('common.creating') : $_('settings.create_token')}
         </Button>
       </form>
     </section>
@@ -250,27 +250,27 @@ BCRM_TOKEN = "${token}"`;
     <!-- Existing tokens -->
     <section class="rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)]">
       <header class="border-b border-[var(--border-default)] p-4">
-        <h2 class="text-base font-medium text-[var(--text-primary)]">Your tokens</h2>
+        <h2 class="text-base font-medium text-[var(--text-primary)]">{$_('settings.your_tokens')}</h2>
         <p class="text-sm text-[var(--text-secondary)]">
-          Tokens you have created. Revoke any token you no longer use.
+          {$_('settings.your_tokens_hint')}
         </p>
       </header>
 
       {#if tokens.length === 0}
         <div class="p-6 text-center text-sm text-[var(--text-secondary)]">
-          No tokens yet. Create one above to connect your AI agent.
+          {$_('settings.no_tokens')}
         </div>
       {:else}
         <Table.Root>
           <Table.Header>
             <Table.Row>
-              <Table.Head>Name</Table.Head>
-              <Table.Head>Prefix</Table.Head>
-              <Table.Head>Last used</Table.Head>
-              <Table.Head>Expires</Table.Head>
-              <Table.Head>Created</Table.Head>
-              <Table.Head>Status</Table.Head>
-              <Table.Head class="text-right">Actions</Table.Head>
+              <Table.Head>{$_('common.name')}</Table.Head>
+              <Table.Head>{$_('settings.prefix')}</Table.Head>
+              <Table.Head>{$_('settings.last_used')}</Table.Head>
+              <Table.Head>{$_('settings.expires')}</Table.Head>
+              <Table.Head>{$_('settings.created')}</Table.Head>
+              <Table.Head>{$_('common.status')}</Table.Head>
+              <Table.Head class="text-right">{$_('common.actions')}</Table.Head>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -295,9 +295,9 @@ BCRM_TOKEN = "${token}"`;
                 </Table.Cell>
                 <Table.Cell>
                   {#if isRevoked(token)}
-                    <Badge variant="secondary">Revoked</Badge>
+                    <Badge variant="secondary">{$_('common.revoked')}</Badge>
                   {:else}
-                    <Badge variant="outline">Active</Badge>
+                    <Badge variant="outline">{$_('common.active')}</Badge>
                   {/if}
                 </Table.Cell>
                 <Table.Cell class="text-right">
@@ -317,7 +317,7 @@ BCRM_TOKEN = "${token}"`;
                         <input type="hidden" name="id" value={token.id} />
                         <Button type="submit" variant="destructive" size="sm" class="gap-1">
                           <Check class="h-3.5 w-3.5" />
-                          Confirm
+                          {$_('common.confirm')}
                         </Button>
                         <Button
                           type="button"
@@ -325,7 +325,7 @@ BCRM_TOKEN = "${token}"`;
                           size="sm"
                           onclick={() => (confirmingId = '')}
                         >
-                          Cancel
+                          {$_('common.cancel')}
                         </Button>
                       </form>
                     {:else}
@@ -337,7 +337,7 @@ BCRM_TOKEN = "${token}"`;
                         onclick={() => (confirmingId = token.id)}
                       >
                         <Trash2 class="h-3.5 w-3.5" />
-                        Revoke
+                        {$_('common.revoke')}
                       </Button>
                     {/if}
                   {:else}
@@ -364,7 +364,7 @@ BCRM_TOKEN = "${token}"`;
           <ChevronRight class="h-4 w-4 text-[var(--text-secondary)]" />
         {/if}
         <KeyRound class="h-4 w-4 text-[var(--text-secondary)]" />
-        <span class="text-base font-medium text-[var(--text-primary)]"> Connect your AI </span>
+        <span class="text-base font-medium text-[var(--text-primary)]"> {$_('settings.connect_ai')} </span>
       </button>
       {#if helpOpen}
         <div class="space-y-3 border-t border-[var(--border-default)] p-4">

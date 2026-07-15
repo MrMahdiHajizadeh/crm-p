@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { tick } from 'svelte';
   import { Check, ChevronDown, Building2, User } from '@lucide/svelte';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -234,7 +235,7 @@
             <th
               class="px-[14px] py-[9px] text-left text-[10px] font-medium uppercase tracking-[0.06em] text-[color:var(--text-subtle)] {colIndex === 0 ? 'pl-7 md:pl-8' : ''} {column.width || ''}"
             >
-              {column.label}
+              {$_(column.label)}
             </th>
           {/each}
         </tr>
@@ -307,7 +308,7 @@
                       {#if formattedValue}
                         {formattedValue}
                       {:else}
-                        <span class="text-[color:var(--text-subtle)]">{column.emptyText || 'Empty'}</span>
+                        <span class="text-[color:var(--text-subtle)]">{column.emptyText ? $_(column.emptyText) : $_('common.empty')}</span>
                       {/if}
                     </button>
                   {:else}
@@ -315,7 +316,7 @@
                       {#if formattedValue}
                         {formattedValue}
                       {:else}
-                        <span class="text-[color:var(--text-subtle)]">{column.emptyText || 'Empty'}</span>
+                        <span class="text-[color:var(--text-subtle)]">{column.emptyText ? $_(column.emptyText) : $_('common.empty')}</span>
                       {/if}
                     </span>
                   {/if}
@@ -338,7 +339,7 @@
                       {#if formattedValue}
                         {formattedValue}
                       {:else}
-                        <span class="text-[color:var(--text-subtle)]">{column.emptyText || 'Empty'}</span>
+                        <span class="text-[color:var(--text-subtle)]">{column.emptyText ? $_(column.emptyText) : $_('common.empty')}</span>
                       {/if}
                     </button>
                   {:else}
@@ -346,7 +347,7 @@
                       {#if formattedValue}
                         {formattedValue}
                       {:else}
-                        <span class="text-[color:var(--text-subtle)]">{column.emptyText || 'Empty'}</span>
+                        <span class="text-[color:var(--text-subtle)]">{column.emptyText ? $_(column.emptyText) : $_('common.empty')}</span>
                       {/if}
                     </span>
                   {/if}

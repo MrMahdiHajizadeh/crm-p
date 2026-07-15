@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -60,17 +61,17 @@
 </script>
 
 <svelte:head>
-  <title>Inbound Email - Settings - BottleCRM</title>
+  <title>{$_('settings.inbound_email')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="Inbound Email"
-  subtitle="Customers email these addresses; replies thread back to the same ticket automatically"
+  title={$_('settings.inbound_email')}
+  subtitle={$_('settings.inbound_email_subtitle')}
 >
   {#snippet actions()}
     <Button onclick={openCreate} class="gap-2">
       <Plus class="h-4 w-4" />
-      New mailbox
+      {$_('settings.new_mailbox')}
     </Button>
   {/snippet}
 </PageHeader>
@@ -101,8 +102,8 @@
         class="rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)] p-8 text-center text-sm text-[var(--text-secondary)]"
       >
         <Mail class="mx-auto mb-3 h-10 w-10 text-[var(--text-tertiary)]" />
-        <p>No inbound mailboxes yet.</p>
-        <p class="mt-1">Click <strong>New mailbox</strong> to add one.</p>
+        <p>        {$_('settings.no_mailboxes')}</p>
+        <p class="mt-1">{$_('settings.click_new_mailbox')}</p>
       </section>
     {:else}
       <ul class="space-y-3">
@@ -133,21 +134,21 @@
                   </span>
                   {#if !mailbox.is_active}
                     <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                      Inactive
+                      {$_('common.inactive')}
                     </span>
                   {/if}
                 </div>
                 <div class="flex items-center gap-1">
                   <Button type="submit" size="sm" class="gap-1">
                     <Save class="h-3.5 w-3.5" />
-                    Save
+                    {$_('common.save')}
                   </Button>
                 </div>
               </header>
 
               <div class="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
                 <div class="space-y-1">
-                  <Label class="text-xs">Webhook URL</Label>
+                  <Label class="text-xs">{$_('settings.webhook_url')}</Label>
                   <div class="flex items-center gap-1">
                     <code class="flex-1 truncate rounded bg-[var(--surface-muted)] px-2 py-1 text-[11px]">
                       {webhookUrl(mailbox.id)}
@@ -164,7 +165,7 @@
                   </div>
                 </div>
                 <div class="space-y-1">
-                  <Label class="text-xs">Webhook secret</Label>
+                  <Label class="text-xs">{$_('settings.webhook_secret')}</Label>
                   <div class="flex items-center gap-1">
                     <code class="flex-1 truncate rounded bg-[var(--surface-muted)] px-2 py-1 text-[11px]">
                       {mailbox.webhook_secret}
@@ -182,7 +183,7 @@
                 </div>
 
                 <div class="space-y-1">
-                  <Label class="text-xs">Default priority</Label>
+                  <Label class="text-xs">{$_('settings.default_priority')}</Label>
                   <select
                     name="default_priority"
                     value={mailbox.default_priority}
@@ -195,7 +196,7 @@
                 </div>
 
                 <div class="space-y-1">
-                  <Label class="text-xs">Default ticket type</Label>
+                  <Label class="text-xs">{$_('settings.default_ticket_type')}</Label>
                   <select
                     name="default_case_type"
                     value={mailbox.default_case_type || ''}
@@ -208,7 +209,7 @@
                 </div>
 
                 <div class="space-y-1 sm:col-span-2">
-                  <Label class="text-xs">Default assignee</Label>
+                  <Label class="text-xs">{$_('settings.default_assignee')}</Label>
                   <select
                     name="default_assignee_id"
                     value={mailbox.default_assignee?.id || ''}
@@ -245,7 +246,7 @@
                   class="gap-1 text-[var(--color-danger-default)]"
                 >
                   <Trash2 class="h-3.5 w-3.5" />
-                  Delete mailbox
+                  {$_('settings.delete_mailbox')}
                 </Button>
               </form>
             </div>
@@ -259,7 +260,7 @@
 <Dialog.Root bind:open={dialogOpen}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>New inbound mailbox</Dialog.Title>
+      <Dialog.Title>{$_('settings.new_mailbox')}</Dialog.Title>
       <Dialog.Description>
         Configure an address customers can email to open tickets.
       </Dialog.Description>
@@ -277,7 +278,7 @@
       <input type="hidden" name="is_active" value="true" />
 
       <div class="space-y-1.5">
-        <Label for="address">Email address *</Label>
+        <Label for="address">{$_('settings.email_address')} *</Label>
         <Input
           id="address"
           name="address"
@@ -292,7 +293,7 @@
       </div>
 
       <div class="space-y-1.5">
-        <Label for="default_priority">Default priority</Label>
+        <Label for="default_priority">{$_('settings.default_priority')}</Label>
         <select
           id="default_priority"
           name="default_priority"
@@ -306,7 +307,7 @@
       </div>
 
       <div class="space-y-1.5">
-        <Label for="default_case_type">Default ticket type</Label>
+        <Label for="default_case_type">{$_('settings.default_ticket_type')}</Label>
         <select
           id="default_case_type"
           name="default_case_type"
@@ -320,7 +321,7 @@
       </div>
 
       <div class="space-y-1.5">
-        <Label for="default_assignee_id">Default assignee</Label>
+        <Label for="default_assignee_id">{$_('settings.default_assignee')}</Label>
         <select
           id="default_assignee_id"
           name="default_assignee_id"
@@ -336,9 +337,9 @@
 
       <Dialog.Footer>
         <Button type="button" variant="outline" onclick={() => (dialogOpen = false)}>
-          Cancel
+          {$_('common.cancel')}
         </Button>
-        <Button type="submit">Create</Button>
+        <Button type="submit">{$_('common.create')}</Button>
       </Dialog.Footer>
     </form>
   </Dialog.Content>

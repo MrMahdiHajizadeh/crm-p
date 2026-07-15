@@ -1,4 +1,5 @@
 <script>
+  import { _, locale } from '$lib/i18n';
   import { DollarSign, TrendingUp, Target, Percent, AlertCircle } from '@lucide/svelte';
   import {
     KPICard,
@@ -14,16 +15,13 @@
   import { formatCurrency } from '$lib/utils/formatting.js';
   import { orgSettings } from '$lib/stores/org.js';
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric'
-  });
-
-  /** @type {{ data: any }} */
   let { data } = $props();
 
-  const metrics = $derived(data.metrics || {});
+  const today = $derived(new Date().toLocaleDateString(
+    $locale === 'fa' ? 'fa-IR' : 'en-US',
+    { weekday: 'long', month: 'long', day: 'numeric' }
+  ));
+
   const recentData = $derived(data.recentData || {});
   const urgentCounts = $derived(data.urgentCounts || {});
   const pipelineByStage = $derived(data.pipelineByStage || {});
@@ -31,24 +29,22 @@
   const hotLeads = $derived(data.hotLeads || []);
   const goalSummary = $derived(data.goalSummary || []);
 
-  // Get org's default currency for KPI display
   const orgCurrency = $derived($orgSettings.default_currency || 'USD');
   const otherCurrencyCount = $derived(revenueMetrics.other_currency_count || 0);
   const currencyNote = $derived(
     otherCurrencyCount > 0
-      ? `${orgCurrency} only (${otherCurrencyCount} in other currencies)`
-      : `${orgCurrency} only`
+      ? $_('dashboard.currency_note', { currency: orgCurrency, count: otherCurrencyCount })
+      : `${orgCurrency} ${$_('common.only')}`
   );
-
 </script>
 
 <svelte:head>
-  <title>Dashboard - BottleCRM</title>
+  <title>{$_('dashboard.page_title')}</title>
 </svelte:head>
 
 <div class="min-h-screen">
   <div class="px-7 pt-6 md:px-8">
-    <p class="label-tiny">Today · {today}</p>
+    <p class="label-tiny">{$_('dashboard.today')} · {today}</p>
   </div>
 
   <div class="space-y-8 p-6 md:p-8">
@@ -63,13 +59,12 @@
         </div>
         <div>
           <p class="text-sm font-medium text-[var(--color-negative-default)]">
-            Error loading dashboard
+            {$_('dashboard.loading_error')}
           </p>
           <p class="text-xs text-[var(--color-negative-default)]/80">{data.error}</p>
         </div>
       </div>
     {:else}
-      <!-- Focus Bar - Urgent Items with premium styling -->
       <div>
         <FocusBar
           overdueCount={urgentCounts.overdue_tasks || 0}
@@ -79,7 +74,6 @@
         />
       </div>
 
-      <!-- Pipeline Overview - Full Width with glass effect -->
       <div
         class="rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--surface-raised)] p-6 shadow-[var(--shadow-sm)] dark:bg-[var(--surface-raised)]/80 dark:shadow-lg dark:shadow-black/10 dark:backdrop-blur-sm"
       >
@@ -92,7 +86,7 @@
             </div>
             <div>
               <h2 class="text-base font-semibold tracking-tight text-[var(--text-primary)]">
-                Sales Pipeline
+                {$_('dashboard.sales_pipeline')}
               </h2>
               <p class="text-xs text-[var(--text-tertiary)]">{currencyNote}</p>
             </div>
@@ -101,10 +95,9 @@
         <MiniPipeline pipelineData={pipelineByStage} currency={orgCurrency} />
       </div>
 
-      <!-- Revenue Metrics Grid - 4 columns with hover effects -->
       <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KPICard
-          label="Pipeline Value"
+          label={$_('dashboard.pipeline_value')}
           value={formatCurrency(revenueMetrics.pipeline_value || 0, orgCurrency, true)}
           subtitle={currencyNote}
           accentColor="orange"
@@ -114,7 +107,7 @@
           {/snippet}
         </KPICard>
         <KPICard
-          label="Weighted Pipeline"
+          label={$_('dashboard.weighted_pipeline')}
           value={formatCurrency(revenueMetrics.weighted_pipeline || 0, orgCurrency, true)}
           subtitle={currencyNote}
           accentColor="violet"
@@ -124,7 +117,7 @@
           {/snippet}
         </KPICard>
         <KPICard
-          label="Won This Month"
+          label={$_('dashboard.won_this_month')}
           value={formatCurrency(revenueMetrics.won_this_month || 0, orgCurrency, true)}
           subtitle={currencyNote}
           accentColor="emerald"
@@ -134,7 +127,7 @@
           {/snippet}
         </KPICard>
         <KPICard
-          label="Conversion Rate"
+          label={$_('dashboard.conversion_rate')}
           value="{revenueMetrics.conversion_rate || 0}%"
           accentColor="amber"
         >
@@ -144,7 +137,6 @@
         </KPICard>
       </div>
 
-      <!-- Pipeline Chart + Hot Leads -->
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div class="lg:col-span-3">
           <PipelineChart pipelineData={pipelineByStage} currency={orgCurrency} />
@@ -154,14 +146,12 @@
         </div>
       </div>
 
-      <!-- Tasks + Opportunities + Goals -->
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <TaskList tasks={recentData.tasks || []} />
         <OpportunitiesTable opportunities={recentData.opportunities || []} />
         <GoalProgress goals={goalSummary} />
       </div>
 
-      <!-- Activity Feed - Full Width -->
       <div>
         <ActivityFeed activities={recentData.activities || []} />
       </div>

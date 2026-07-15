@@ -9,6 +9,7 @@ from common.views.auth_views import (
     MeView,
     OrgAwareTokenRefreshView,
     OrgSwitchView,
+    PhonePasswordLoginView,
 )
 from common.views.custom_field_views import (
     CustomFieldDefinitionDetailView,
@@ -63,6 +64,7 @@ urlpatterns = [
     # Google ID token auth for mobile apps
     path("auth/google/", GoogleIdTokenView.as_view(), name="google_id_token"),
     # Magic link (passwordless) authentication
+    path("auth/phone-login/", PhonePasswordLoginView.as_view(), name="phone_login"),
     path("auth/magic-link/request/", MagicLinkRequestView.as_view(), name="magic_link_request"),
     path("auth/magic-link/verify/", MagicLinkVerifyView.as_view(), name="magic_link_verify"),
     path("auth/magic-link/verify-code/", MagicLinkVerifyCodeView.as_view(), name="magic_link_verify_code"),

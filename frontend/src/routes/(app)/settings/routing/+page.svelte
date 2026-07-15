@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -140,17 +141,17 @@
 </script>
 
 <svelte:head>
-  <title>Routing Rules - Settings - BottleCRM</title>
+  <title>{$_('settings.routing')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="Auto-Routing"
-  subtitle="Rules evaluated on each new ticket (lower priority order runs first)"
+  title={$_('settings.routing')}
+  subtitle={$_('settings.routing_subtitle')}
 >
   {#snippet actions()}
     <Button onclick={openCreate} class="gap-2">
       <Plus class="h-4 w-4" />
-      New rule
+      {$_('settings.new_rule')}
     </Button>
   {/snippet}
 </PageHeader>
@@ -162,13 +163,11 @@
     >
       <div class="mb-3 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
         <ArrowDownAZ class="h-4 w-4" />
-        Rules run from top to bottom; the first matching rule with
-        <code class="text-xs">stop_processing</code> ends evaluation.
+        {$_('settings.rules_run_order')}
       </div>
       {#if rules.length === 0}
         <p class="text-sm text-[var(--text-secondary)]">
-          No routing rules yet. New tickets stay unassigned until an admin picks
-          someone, or until you add a rule here.
+          {$_('settings.no_routing_rules')}
         </p>
       {:else}
         <ul class="divide-y divide-[var(--border-default)]">
@@ -187,7 +186,7 @@
                       ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200'
                       : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'}"
                   >
-                    {rule.is_active ? 'Active' : 'Disabled'}
+                    {rule.is_active ? $_('common.active') : $_('common.disabled')}
                   </span>
                   <span
                     class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-700 dark:bg-blue-900/40 dark:text-blue-200"
@@ -203,7 +202,7 @@
                   </ul>
                 {:else}
                   <p class="text-xs italic text-[var(--text-secondary)]">
-                    No conditions — matches every new ticket
+                    {$_('settings.no_conditions')}
                   </p>
                 {/if}
                 {#if rule.strategy === 'by_team' && rule.target_team}
@@ -230,10 +229,10 @@
                   class="gap-1.5"
                 >
                   <Play class="h-3 w-3" />
-                  Test
+                  {$_('common.test')}
                 </Button>
                 <Button type="button" size="sm" variant="outline" onclick={() => openEdit(rule)}>
-                  Edit
+                  {$_('common.edit')}
                 </Button>
                 <form method="POST" action="?/delete" use:enhance>
                   <input type="hidden" name="id" value={rule.id} />
@@ -253,7 +252,7 @@
         class="rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)] p-4"
       >
         <h3 class="mb-2 text-sm font-semibold text-[var(--text-primary)]">
-          Test rule against a ticket
+          {$_('settings.test_rule')}
         </h3>
         <p class="mb-3 text-xs text-[var(--text-secondary)]">
           Paste a ticket UUID and click Run. The engine evaluates ALL active rules
@@ -262,15 +261,15 @@
         </p>
         <div class="flex flex-wrap items-end gap-2">
           <div class="min-w-[280px] flex-1">
-            <Label for="test-case-id">Ticket ID</Label>
+            <Label for="test-case-id">{$_('settings.ticket_id')}</Label>
             <Input id="test-case-id" bind:value={testTicketId} placeholder="UUID" />
           </div>
           <Button type="button" onclick={runTest} disabled={testRunning} class="gap-1.5">
             <Play class="h-3 w-3" />
-            Run
+            {$_('common.run')}
           </Button>
           <Button type="button" variant="ghost" onclick={() => (testRuleId = null)}>
-            Close
+            {$_('common.close')}
           </Button>
         </div>
         {#if testResult}
@@ -301,7 +300,7 @@
               {/if}
             {:else}
               <p class="text-[var(--text-secondary)]">
-                No rule matched this ticket.
+                {$_('settings.no_rule_matched')}
               </p>
             {/if}
           </div>
@@ -314,7 +313,7 @@
 <Dialog.Root bind:open={dialogOpen}>
   <Dialog.Content class="max-w-2xl">
     <Dialog.Header>
-      <Dialog.Title>{editId ? 'Edit routing rule' : 'New routing rule'}</Dialog.Title>
+      <Dialog.Title>{editId ? $_('settings.edit_rule') : $_('settings.new_rule')}</Dialog.Title>
       <Dialog.Description>
         Conditions are AND-ed; create multiple rules for OR. Lower priority
         order runs first.
@@ -334,11 +333,11 @@
 
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <Label for="rule-name">Name</Label>
+          <Label for="rule-name">{$_('common.name')}</Label>
           <Input id="rule-name" name="name" bind:value={dName} required />
         </div>
         <div>
-          <Label for="rule-order">Priority order</Label>
+          <Label for="rule-order">{$_('settings.priority_order')}</Label>
           <Input
             id="rule-order"
             type="number"
@@ -350,7 +349,7 @@
       </div>
 
       <div>
-        <Label>Conditions</Label>
+        <Label>{$_('settings.conditions')}</Label>
         <p class="mb-2 text-xs text-[var(--text-secondary)]">
           All conditions must match (AND). Leave empty to match every new ticket.
         </p>
@@ -392,12 +391,12 @@
         </ul>
         <Button type="button" size="sm" variant="outline" onclick={addCondition} class="mt-2 gap-1">
           <Plus class="h-3 w-3" />
-          Add condition
+          {$_('settings.add_condition')}
         </Button>
       </div>
 
       <div>
-        <Label for="rule-strategy">Strategy</Label>
+        <Label for="rule-strategy">{$_('settings.strategy')}</Label>
         <select
           id="rule-strategy"
           bind:value={dStrategy}
@@ -411,7 +410,7 @@
 
       {#if dStrategy === 'by_team'}
         <div>
-          <Label for="rule-team">Target team</Label>
+          <Label for="rule-team">{$_('settings.target_team')}</Label>
           <select
             id="rule-team"
             bind:value={dTeam}
@@ -426,7 +425,7 @@
         </div>
       {:else}
         <div>
-          <Label>Target assignees</Label>
+          <Label>{$_('settings.target_assignees')}</Label>
           <p class="mb-2 text-xs text-[var(--text-secondary)]">
             {dStrategy === 'direct'
               ? 'First selected agent is assigned.'
@@ -459,7 +458,7 @@
             bind:checked={dActive}
             class="h-4 w-4 rounded border-[var(--border-default)]"
           />
-          Active
+          {$_('common.active')}
         </label>
         <label class="flex items-center gap-2 text-sm">
           <input
@@ -467,7 +466,7 @@
             bind:checked={dStopProcessing}
             class="h-4 w-4 rounded border-[var(--border-default)]"
           />
-          Stop processing if this rule matches
+          {$_('settings.stop_processing')}
         </label>
       </div>
 
@@ -481,11 +480,11 @@
 
       <Dialog.Footer>
         <Button type="button" variant="ghost" onclick={() => (dialogOpen = false)}>
-          Cancel
+          {$_('common.cancel')}
         </Button>
         <Button type="submit" class="gap-1.5">
           <Save class="h-4 w-4" />
-          Save
+          {$_('common.save')}
         </Button>
       </Dialog.Footer>
     </form>

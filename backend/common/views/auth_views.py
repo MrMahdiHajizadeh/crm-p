@@ -660,6 +660,76 @@ class MagicLinkVerifyView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
+class PhonePasswordLoginView(APIView):
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request):
+        from common.audit_log import audit_log
+
+        phone = request.data.get("phone", "").strip()
+        password = request.data.get("password", "")
+
+        if not phone or not password:
+            return Response(
+                {"error": "Phone number and password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(phone=phone)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Invalid phone or password"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not user.check_password(password):
+            return Response(
+                {"error": "Invalid phone or password"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"error": "Account is disabled"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
+
+        profiles = Profile.objects.filter(user=user, is_active=True)
+        default_org = None
+        profile = None
+
+        if profiles.exists():
+            profile = profiles.first()
+            default_org = profile.org
+
+        if default_org:
+            token = OrgAwareRefreshToken.for_user_and_org(user, default_org, profile)
+        else:
+            token = OrgAwareRefreshToken.for_user_and_org(user, None)
+
+        audit_log.login_success(user, default_org, request)
+
+        user_serializer = serializer.UserDetailSerializer(user)
+        response_data = {
+            "access_token": str(token.access_token),
+            "refresh_token": str(token),
+            "user": user_serializer.data,
+        }
+
+        if default_org:
+            response_data["current_org"] = {
+                "id": str(default_org.id),
+                "name": default_org.name,
+            }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
 class MagicLinkVerifyCodeView(APIView):
     """
     Verify a 6-digit OTP code (mobile flow) and return JWT tokens.

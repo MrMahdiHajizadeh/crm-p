@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { goto, invalidateAll } from '$app/navigation';
   import { page } from '$app/stores';
@@ -108,17 +109,17 @@
 </script>
 
 <svelte:head>
-  <title>Custom Fields - Settings - BottleCRM</title>
+  <title>{$_('settings.custom_fields')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="Custom Fields"
-  subtitle="Per-org schema extensions for tickets, leads, contacts, accounts, opportunities, tasks, invoices, estimates, and recurring invoices"
+  title={$_('settings.custom_fields')}
+  subtitle={$_('settings.custom_fields_subtitle')}
 >
   {#snippet actions()}
     <Button onclick={openCreate} class="gap-2">
       <Plus class="h-4 w-4" />
-      New field
+      {$_('settings.new_field')}
     </Button>
   {/snippet}
 </PageHeader>
@@ -130,7 +131,7 @@
     >
       <div class="flex flex-wrap items-center gap-2">
         <Sliders class="h-4 w-4 text-[var(--text-secondary)]" />
-        <span class="text-sm text-[var(--text-secondary)]">Entity:</span>
+        <span class="text-sm text-[var(--text-secondary)]">{$_('settings.entity')}:</span>
         {#each targets as t (t.value)}
           {@const isCurrent = t.value === target}
           <button
@@ -144,7 +145,7 @@
                 : 'border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--surface-muted)]',
               !t.enabled && 'cursor-not-allowed opacity-50'
             ]}
-            title={t.enabled ? '' : 'Coming soon — entity needs a custom_fields column first'}
+            title={t.enabled ? '' : $_('settings.entity_coming_soon')}
           >
             {t.label}
           </button>
@@ -156,18 +157,17 @@
       class="rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)]"
     >
       <header class="border-b border-[var(--border-default)] p-4">
-        <h2 class="text-base font-medium text-[var(--text-primary)]">
-          {target} fields
-        </h2>
-        <p class="text-sm text-[var(--text-secondary)]">
-          Active fields render on the {target.toLowerCase()} detail form. Inactive
-          fields stay archived but their values remain readable on existing records.
-        </p>
+          <h2 class="text-base font-medium text-[var(--text-primary)]">
+            {$_('settings.target_fields', { target })}
+          </h2>
+          <p class="text-sm text-[var(--text-secondary)]">
+            {$_('settings.target_fields_hint', { target: target.toLowerCase() })}
+          </p>
       </header>
 
       {#if definitions.length === 0}
         <div class="p-6 text-center text-sm text-[var(--text-secondary)]">
-          No custom fields yet. Click <strong>New field</strong> to define one.
+          {$_('settings.no_custom_fields')}
         </div>
       {:else}
         <ul class="divide-y divide-[var(--border-default)]">
@@ -186,12 +186,12 @@
                   </span>
                   {#if defn.is_required}
                     <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                      Required
+                      {$_('common.required')}
                     </span>
                   {/if}
                   {#if !defn.is_active}
                     <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                      Inactive
+                      {$_('common.inactive')}
                     </span>
                   {/if}
                 </div>
@@ -253,11 +253,11 @@
 <Dialog.Root bind:open={dialogOpen}>
   <Dialog.Content class="sm:max-w-lg">
     <Dialog.Header>
-      <Dialog.Title>{editing ? 'Edit field' : 'New field'}</Dialog.Title>
+      <Dialog.Title>{editing ? $_('settings.edit_field') : $_('settings.new_field')}</Dialog.Title>
       <Dialog.Description>
         {editing
-          ? 'Key, target entity, and type are immutable; create a new field if you need to change shape.'
-          : 'Define a custom field for ' + target + '.'}
+          ? $_('settings.edit_field_subtitle')
+          : $_('settings.new_field_subtitle', { target })}
       </Dialog.Description>
     </Dialog.Header>
 
@@ -277,7 +277,7 @@
       <input type="hidden" name="target_model" value={target} />
 
       <div class="space-y-1.5">
-        <Label for="label">Label *</Label>
+        <Label for="label">{$_('common.label')} *</Label>
         <Input
           id="label"
           name="label"
@@ -290,7 +290,7 @@
       </div>
 
       <div class="space-y-1.5">
-        <Label for="key">Key *</Label>
+        <Label for="key">{$_('settings.key')} *</Label>
         <Input
           id="key"
           name="key"
@@ -306,7 +306,7 @@
       </div>
 
       <div class="space-y-1.5">
-        <Label for="field_type">Type *</Label>
+        <Label for="field_type">{$_('settings.type')} *</Label>
         <select
           id="field_type"
           name="field_type"
@@ -322,7 +322,7 @@
 
       {#if formFieldType === 'dropdown'}
         <div class="space-y-1.5">
-          <Label for="options">Dropdown options (JSON)</Label>
+          <Label for="options">{$_('settings.dropdown_options')}</Label>
           <textarea
             id="options"
             name="options"
@@ -343,7 +343,7 @@
       <div class="grid grid-cols-2 gap-3">
         <label class="flex items-center gap-2 text-sm">
           <input type="checkbox" bind:checked={formIsRequired} />
-          Required
+          {$_('common.required')}
         </label>
         <input
           type="hidden"
@@ -353,7 +353,7 @@
 
         <label class="flex items-center gap-2 text-sm">
           <input type="checkbox" bind:checked={formIsFilterable} />
-          Filterable
+          {$_('settings.filterable')}
         </label>
         <input
           type="hidden"
@@ -362,7 +362,7 @@
         />
 
         <div class="space-y-1.5">
-          <Label for="display_order" class="text-xs">Display order</Label>
+          <Label for="display_order" class="text-xs">{$_('settings.display_order')}</Label>
           <Input
             id="display_order"
             name="display_order"
@@ -374,7 +374,7 @@
 
         <label class="flex items-center gap-2 text-sm">
           <input type="checkbox" bind:checked={formIsActive} />
-          Active
+          {$_('common.active')}
         </label>
         <input
           type="hidden"
@@ -386,11 +386,11 @@
       <Dialog.Footer>
         <Button type="button" variant="outline" onclick={closeDialog} class="gap-1">
           <X class="h-4 w-4" />
-          Cancel
+          {$_('common.cancel')}
         </Button>
         <Button type="submit" class="gap-1">
           <Check class="h-4 w-4" />
-          {editing ? 'Save changes' : 'Create field'}
+          {editing ? $_('common.save_changes') : $_('settings.create_field')}
         </Button>
       </Dialog.Footer>
     </form>

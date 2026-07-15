@@ -11,6 +11,7 @@
   import { Separator } from '$lib/components/ui/separator/index.js';
   import { SectionCard } from '$lib/components/ui/section-card/index.js';
   import * as Avatar from '$lib/components/ui/avatar/index.js';
+  import { _ } from '$lib/i18n';
 
   /** @type {{ data: import('./$types').PageData, form: import('./$types').ActionData }} */
   let { data, form } = $props();
@@ -55,7 +56,7 @@
 
     const validation = await validatePhoneNumber(formData.phone);
     if (!validation.isValid) {
-      phoneError = validation.error || 'Invalid phone number';
+      phoneError = validation.error || $_('profile.invalid_phone');
     } else {
       phoneError = '';
     }
@@ -89,10 +90,10 @@
 </script>
 
 <svelte:head>
-  <title>Profile - BottleCRM</title>
+  <title>{$_('profile.title')} - {$_('app.name')}</title>
 </svelte:head>
 
-<PageHeader title="Profile" subtitle="Manage your personal information">
+<PageHeader title={$_('profile.title')} subtitle={$_('profile.subtitle')}>
   {#snippet actions()}
     <Button
       variant={isEditing ? 'outline' : 'default'}
@@ -101,10 +102,10 @@
     >
       {#if isEditing}
         <X class="mr-2 h-4 w-4" />
-        Cancel
+        {$_('common.cancel')}
       {:else}
         <Edit class="mr-2 h-4 w-4" />
-        Edit Profile
+        {$_('profile.edit_profile')}
       {/if}
     </Button>
   {/snippet}
@@ -157,7 +158,7 @@
             {#if data.user.profilePhoto}
               <Avatar.Image
                 src={data.user.profilePhoto}
-                alt={data.user.name || 'Profile'}
+                alt={data.user.name || $_('profile.photo')}
                 class=""
               />
             {/if}
@@ -169,12 +170,12 @@
           <!-- User Info -->
           <div class="flex-1 text-center sm:text-left">
             <h2 class="text-foreground text-xl font-semibold">
-              {data.user.name || 'Unnamed User'}
+              {data.user.name || $_('profile.unnamed_user')}
             </h2>
-            <p class="text-muted-foreground">{data.user.email}</p>
+            <p class="text-muted-foreground">{data.user.email || data.user.phone || ''}</p>
             <div class="mt-3">
               <Badge variant={data.user.isActive ? 'default' : 'destructive'}>
-                {data.user.isActive ? 'Active' : 'Inactive'}
+                {data.user.isActive ? $_('common.active') : $_('common.inactive')}
               </Badge>
             </div>
           </div>
@@ -186,12 +187,12 @@
       {#snippet title()}
         <div class="flex min-w-0 flex-col gap-0.5">
           <h3 class="truncate text-[16px] font-medium leading-[1.3] text-[color:var(--text-primary)]">
-            Profile Information
-          </h3>
-          <p class="text-[12px] text-[color:var(--text-muted)]">
-            {isEditing
-              ? 'Update your personal details below'
-              : 'Your personal details and account information'}
+            {$_('profile.information')}
+            </h3>
+            <p class="text-[12px] text-[color:var(--text-muted)]">
+              {isEditing
+                ? $_('profile.edit_subtitle')
+                : $_('profile.view_subtitle')}
           </p>
         </div>
       {/snippet}
@@ -201,13 +202,13 @@
             <div class="grid gap-6 sm:grid-cols-2">
               <!-- Name -->
               <div class="sm:col-span-2">
-                <Label for="name" class="">Full Name</Label>
+                <Label for="name" class="">{$_('profile.full_name')}</Label>
                 <Input
                   type="text"
                   id="name"
                   name="name"
                   bind:value={formData.name}
-                  placeholder="Enter your full name"
+                  placeholder={$_('profile.name_placeholder')}
                   maxlength={255}
                   class="mt-1.5"
                 />
@@ -215,27 +216,27 @@
 
               <!-- Email (read-only) -->
               <div>
-                <Label for="email" class="">Email Address</Label>
+                <Label for="email" class="">{$_('profile.email_address')}</Label>
                 <Input
                   type="email"
                   id="email"
-                  value={data.user.email}
+                  value={data.user.email || ''}
                   disabled
                   class="bg-muted mt-1.5"
                 />
-                <p class="text-muted-foreground mt-1 text-xs">Email cannot be changed</p>
+                <p class="text-muted-foreground mt-1 text-xs">{$_('profile.email_cannot_change')}</p>
               </div>
 
               <!-- Phone -->
               <div>
-                <Label for="phone" class="">Phone Number</Label>
+                <Label for="phone" class="">{$_('profile.phone_number')}</Label>
                 <Input
                   type="tel"
                   id="phone"
                   name="phone"
                   bind:value={formData.phone}
                   oninput={validatePhone}
-                  placeholder="Enter your phone number"
+                  placeholder={$_('profile.phone_placeholder')}
                   class="mt-1.5"
                 />
                 {#if phoneError}
@@ -248,7 +249,7 @@
 
             <div class="flex justify-end gap-3">
               <Button type="button" variant="outline" onclick={toggleEdit} disabled={isSubmitting}>
-                Cancel
+                {$_('common.cancel')}
               </Button>
               <Button type="submit" disabled={isSubmitting || !!phoneError}>
                 {#if isSubmitting}
@@ -267,10 +268,10 @@
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Saving...
+                  {$_('common.saving')}
                 {:else}
                   <Save class="mr-2 h-4 w-4" />
-                  Save Changes
+                  {$_('profile.save_changes')}
                 {/if}
               </Button>
             </div>
@@ -282,19 +283,19 @@
             <div class="space-y-1">
               <div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                 <Mail class="h-4 w-4" />
-                Email Address
+                {$_('profile.email_address')}
               </div>
-              <p class="text-foreground">{data.user.email}</p>
+              <p class="text-foreground">{data.user.email || data.user.phone || ''}</p>
             </div>
 
             <!-- Phone -->
             <div class="space-y-1">
               <div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                 <Phone class="h-4 w-4" />
-                Phone Number
+                {$_('profile.phone_number')}
               </div>
               <p class="text-foreground">
-                {formattedDisplayPhone || data.user.phone || 'Not provided'}
+                {formattedDisplayPhone || data.user.phone || $_('common.not_provided')}
               </p>
             </div>
 
@@ -302,7 +303,7 @@
             <div class="space-y-1">
               <div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                 <Calendar class="h-4 w-4" />
-                Last Login
+                {$_('profile.last_login')}
               </div>
               <p class="text-foreground">{formatDate(data.user.lastLogin)}</p>
             </div>
@@ -311,7 +312,7 @@
             <div class="space-y-1">
               <div class="text-muted-foreground flex items-center gap-2 text-sm font-medium">
                 <Calendar class="h-4 w-4" />
-                Member Since
+                {$_('profile.member_since')}
               </div>
               <p class="text-foreground">{formatDate(data.user.createdAt)}</p>
             </div>
@@ -325,10 +326,10 @@
         {#snippet title()}
           <div class="flex min-w-0 flex-col gap-0.5">
             <h3 class="truncate text-[16px] font-medium leading-[1.3] text-[color:var(--text-primary)]">
-              Organizations
+              {$_('profile.organizations')}
             </h3>
             <p class="text-[12px] text-[color:var(--text-muted)]">
-              Organizations you are a member of
+              {$_('profile.organizations_subtitle')}
             </p>
           </div>
         {/snippet}
@@ -346,7 +347,7 @@
                     {userOrg.organization.name}
                   </h4>
                   <p class="text-muted-foreground text-sm">
-                    Joined {formatDate(userOrg.joinedAt)}
+                    {$_('profile.joined')} {formatDate(userOrg.joinedAt)}
                   </p>
                 </div>
               </div>

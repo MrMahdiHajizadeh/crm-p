@@ -61,9 +61,9 @@ class OrgAwareRefreshToken(RefreshToken):
 
         # Add user info to token (avoids extra API calls for display)
         if user:
-            token["user_email"] = user.email
-            # Build display name from email (User model doesn't have first/last name)
-            token["user_name"] = user.email.split("@")[0] if user.email else ""
+            token["user_email"] = user.email or ""
+            token["user_name"] = user.name or user.phone or ""
+            token["user_phone"] = user.phone or ""
             token["user_profile_pic"] = user.profile_pic or ""
 
         # Add org context to the token payload
@@ -415,28 +415,37 @@ class BillingAddressSerializer(serializers.ModelSerializer):
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = User
         fields = (
             "email",
+            "phone",
+            "password",
             "profile_pic",
         )
 
     def __init__(self, *args, **kwargs):
         self.org = kwargs.pop("org", None)
         super().__init__(*args, **kwargs)
-        self.fields["email"].required = True
+        self.fields["email"].required = False
+        self.fields["phone"].required = False
+        self.fields["password"].required = False
 
     def validate_email(self, email):
-        if self.instance:
-            if self.instance.email != email:
-                if not Profile.objects.filter(user__email=email, org=self.org).exists():
-                    return email
+        if email:
+            email = email.lower()
+            if Profile.objects.filter(user__email=email, org=self.org).exists():
                 raise serializers.ValidationError("Email already exists")
-            return email
-        if not Profile.objects.filter(user__email=email.lower(), org=self.org).exists():
-            return email
-        raise serializers.ValidationError("Given Email id already exists")
+        return email
+
+    def validate_phone(self, phone):
+        if phone:
+            existing = User.objects.filter(phone=phone).first()
+            if existing and self.instance is None:
+                raise serializers.ValidationError("Phone number already exists")
+        return phone
 
 
 class CreateProfileSerializer(serializers.ModelSerializer):
@@ -751,7 +760,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "email", "profile_pic", "is_active", "organizations"]
+        fields = ["id", "name", "phone", "email", "profile_pic", "is_active", "organizations"]
 
     @extend_schema_field(list)
     def get_organizations(self, obj):
@@ -762,6 +771,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
                 "id": str(profile.org.id),
                 "name": profile.org.name,
                 "role": profile.role,
+                "phone": profile.phone or "",
                 "is_organization_admin": profile.is_organization_admin,
                 "has_sales_access": profile.has_sales_access,
                 "has_marketing_access": profile.has_marketing_access,

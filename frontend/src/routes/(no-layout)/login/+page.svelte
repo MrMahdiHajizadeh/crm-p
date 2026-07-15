@@ -1,127 +1,90 @@
 <script>
   import '../../../app.css';
   import { enhance } from '$app/forms';
-
-  import imgGoogle from '$lib/assets/images/google.svg';
+  import { goto } from '$app/navigation';
+  import { _ } from '$lib/i18n';
   import imgLogo from '$lib/assets/images/logo.png';
-  import { ArrowRight } from '@lucide/svelte';
+  import { ArrowRight, Smartphone, Lock, AlertCircle } from '@lucide/svelte';
 
-  let { data = {} } = $props();
+  let { form } = $props();
 
-  let isLoading = $state(false);
-  let email = $state('');
-  let magicLinkSent = $state(false);
-  let isSendingLink = $state(false);
-  let magicLinkError = $state('');
+  let isSubmitting = $state(false);
 
-  function handleGoogleLogin() {
-    isLoading = true;
-  }
-
-  function handleMagicLink() {
-    isSendingLink = true;
-    magicLinkError = '';
-    return async ({ result }) => {
-      isSendingLink = false;
-      if (result?.type === 'success') {
-        magicLinkSent = true;
-      } else if (result?.type === 'failure') {
-        magicLinkError = result.data?.error || 'Something went wrong. Please try again.';
-      } else if (!result) {
-        magicLinkError = 'Something went wrong. Please try again.';
-      }
-    };
-  }
+  $effect(() => {
+    if (form?.success) {
+      goto('/org');
+    }
+  });
 </script>
 
 <svelte:head>
-  <title>Sign in | BottleCRM</title>
-  <meta
-    name="description"
-    content="Sign in or sign up for BottleCRM to manage your contacts, deals, and grow your business."
-  />
+  <title>{$_('login.page_title')}</title>
+  <meta name="description" content={$_('login.description')} />
 </svelte:head>
 
 <div class="login-page">
-  <!-- Main Container -->
   <div class="login-wrapper">
-    <!-- Logo -->
     <a href="/" class="logo">
       <img src={imgLogo} alt="" class="logo-icon" />
-      <span class="logo-text">BottleCRM</span>
+      <span class="logo-text">{$_('app.name')}</span>
     </a>
 
-    <!-- Login Card -->
     <div class="login-card">
-      <h1 class="login-title">Sign in to your account</h1>
+      <h1 class="login-title">{$_('login.title')}</h1>
 
-      <!-- Google Sign In -->
-      <a
-        href={data['google_url']}
-        onclick={handleGoogleLogin}
-        class="google-btn"
-        class:loading={isLoading}
-      >
-        {#if isLoading}
-          <span class="spinner"></span>
-          <span>Redirecting...</span>
-        {:else}
-          <img src={imgGoogle} alt="" class="google-icon" />
-          <span>Continue with Google</span>
-        {/if}
-      </a>
-
-      <!-- Divider -->
-      <div class="divider">
-        <span>or</span>
-      </div>
-
-      <!-- Magic Link -->
-      {#if magicLinkSent}
-        <div class="magic-link-success">
-          <p>Check your email for a sign-in link.</p>
-          <p class="magic-link-hint">The link expires in 10 minutes.</p>
+      <form method="POST" use:enhance class="login-form">
+        <div class="input-group">
+          <label for="phone" class="input-label">تلفن همراه</label>
+          <div class="input-wrapper">
+            <Smartphone class="input-icon" size={18} />
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              placeholder="مثال: 09120000000"
+              class="text-input"
+              required
+              autocomplete="username"
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
-      {:else}
-        <form method="POST" use:enhance={handleMagicLink} class="magic-link-form">
-          <input
-            type="email"
-            name="email"
-            placeholder="Enter your email address"
-            class="email-input"
-            required
-            bind:value={email}
-            disabled={isSendingLink}
-          />
-          <button type="submit" class="magic-link-btn" disabled={isSendingLink}>
-            {#if isSendingLink}
-              <span class="spinner"></span>
-              <span>Sending...</span>
-            {:else}
-              <span>Continue with email</span>
-              <ArrowRight size={16} />
-            {/if}
-          </button>
-        </form>
-        {#if magicLinkError}
-          <p class="magic-link-error">{magicLinkError}</p>
+
+        <div class="input-group">
+          <label for="password" class="input-label">رمز عبور</label>
+          <div class="input-wrapper">
+            <Lock class="input-icon" size={18} />
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="رمز عبور خود را وارد کنید"
+              class="text-input"
+              required
+              autocomplete="current-password"
+              disabled={isSubmitting}
+            />
+          </div>
+        </div>
+
+        {#if form?.error}
+          <div class="error-box">
+            <AlertCircle size={16} />
+            <span>{form.error}</span>
+          </div>
         {/if}
-      {/if}
-    </div>
 
-    <!-- Help Links -->
-    <div class="help-section">
-      <p class="help-text">New here? Just enter your email above to get started.</p>
+        <button type="submit" class="submit-btn" disabled={isSubmitting}>
+          {#if isSubmitting}
+            <span class="spinner"></span>
+            <span>در حال ورود...</span>
+          {:else}
+            <span>ورود</span>
+            <ArrowRight size={18} />
+          {/if}
+        </button>
+      </form>
     </div>
-
-    <!-- Footer -->
-    <footer class="login-footer">
-      <a href="https://bottlecrm.io/privacy-policy">Privacy Policy</a>
-      <span class="dot"></span>
-      <a href="https://bottlecrm.io/terms">Terms of Service</a>
-      <span class="dot"></span>
-      <a href="https://github.com/MicroPyramid/Django-CRM" target="_blank" rel="noopener">GitHub</a>
-    </footer>
   </div>
 </div>
 
@@ -144,7 +107,6 @@
     align-items: center;
   }
 
-  /* Logo */
   .logo {
     display: flex;
     align-items: center;
@@ -166,15 +128,12 @@
     letter-spacing: -0.02em;
   }
 
-  /* Login Card */
   .login-card {
     width: 100%;
     background: #fff;
     border-radius: 8px;
     padding: 2.5rem 2rem;
-    box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.08),
-      0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
   }
 
   .login-title {
@@ -183,97 +142,43 @@
     color: #33475b;
     text-align: center;
     margin: 0 0 1.5rem;
-    letter-spacing: -0.01em;
   }
 
-  /* Google Button */
-  .google-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    width: 100%;
-    height: 48px;
-    background: #ff7a59;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 600;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-  }
-
-  .google-btn:hover {
-    background: #ff5c35;
-  }
-
-  .google-btn:active {
-    background: #e8532d;
-  }
-
-  .google-btn.loading {
-    pointer-events: none;
-    opacity: 0.85;
-  }
-
-  .google-icon {
-    width: 20px;
-    height: 20px;
-    background: #fff;
-    border-radius: 3px;
-    padding: 2px;
-  }
-
-  .spinner {
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  /* Divider */
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin: 1.5rem 0;
-  }
-
-  .divider::before,
-  .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #cbd6e2;
-  }
-
-  .divider span {
-    font-size: 0.8125rem;
-    color: #7c98b6;
-    text-transform: lowercase;
-  }
-
-  /* Magic Link Form */
-  .magic-link-form {
+  .login-form {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
-  .email-input {
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .input-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #516f90;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  :global(.input-icon) {
+    position: absolute;
+    left: 12px;
+    color: #cbd6e2;
+    pointer-events: none;
+  }
+
+  .text-input {
     width: 100%;
     height: 48px;
-    padding: 0 1rem;
+    padding: 0 2.5rem 0 1rem;
     border: 1px solid #cbd6e2;
     border-radius: 6px;
     font-size: 1rem;
@@ -282,24 +187,38 @@
     outline: none;
     transition: border-color 0.15s ease;
     box-sizing: border-box;
+    direction: ltr;
+    text-align: left;
   }
 
-  .email-input:focus {
+  .text-input:focus {
     border-color: #ff7a59;
   }
 
-  .email-input:disabled {
+  .text-input:disabled {
     opacity: 0.6;
   }
 
-  .magic-link-btn {
+  .error-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #fff0f0;
+    border: 1px solid #ffd4d4;
+    border-radius: 6px;
+    color: #c0392b;
+    font-size: 0.875rem;
+  }
+
+  .submit-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     width: 100%;
     height: 48px;
-    background: #33475b;
+    background: #ff7a59;
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -307,110 +226,38 @@
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.15s ease;
+    margin-top: 0.5rem;
   }
 
-  .magic-link-btn:hover {
-    background: #2d3e50;
+  .submit-btn:hover {
+    background: #ff5c35;
   }
 
-  .magic-link-btn:disabled {
-    opacity: 0.85;
-    pointer-events: none;
+  .submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 
-  .magic-link-success {
-    text-align: center;
-    padding: 1rem 0;
-  }
-
-  .magic-link-error {
-    margin-top: 0.75rem;
-    font-size: 0.875rem;
-    color: #c0392b;
-    text-align: center;
-  }
-
-  .magic-link-success p {
-    color: #33475b;
-    font-size: 1rem;
-    font-weight: 500;
-    margin: 0;
-  }
-
-  .magic-link-hint {
-    color: #7c98b6 !important;
-    font-size: 0.875rem !important;
-    font-weight: 400 !important;
-    margin-top: 0.5rem !important;
-  }
-
-  /* Help Section */
-  .help-section {
-    margin-top: 1.5rem;
-    text-align: center;
-  }
-
-  .help-text {
-    font-size: 0.9375rem;
-    color: #516f90;
-    margin: 0;
-  }
-
-  /* Footer */
-  .login-footer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-top: 2rem;
-    flex-wrap: wrap;
-  }
-
-  .login-footer a {
-    font-size: 0.8125rem;
-    color: #7c98b6;
-    text-decoration: none;
-    transition: color 0.15s ease;
-  }
-
-  .login-footer a:hover {
-    color: #33475b;
-  }
-
-  .dot {
-    width: 3px;
-    height: 3px;
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
     border-radius: 50%;
-    background: #cbd6e2;
+    animation: spin 0.7s linear infinite;
   }
 
-  /* Responsive */
-  @media (max-width: 480px) {
-    .login-page {
-      padding: 1.5rem;
-      align-items: flex-start;
-      padding-top: 3rem;
-    }
-
-    .login-card {
-      padding: 2rem 1.5rem;
-    }
-
-    .login-title {
-      font-size: 1.375rem;
-    }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
-  /* Dark mode support */
   :global(.dark) .login-page {
     background: #1a1a1a;
   }
 
   :global(.dark) .login-card {
     background: #2d2d2d;
-    box-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.2),
-      0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.15);
   }
 
   :global(.dark) .logo-text {
@@ -421,51 +268,32 @@
     color: #fff;
   }
 
-  :global(.dark) .divider::before,
-  :global(.dark) .divider::after {
-    background: #404040;
-  }
-
-  :global(.dark) .divider span {
-    color: #888;
-  }
-
-  :global(.dark) .email-input {
+  :global(.dark) .text-input {
     background: #1a1a1a;
     border-color: #404040;
     color: #fff;
   }
 
-  :global(.dark) .email-input:focus {
+  :global(.dark) .text-input:focus {
     border-color: #ff7a59;
   }
 
-  :global(.dark) .magic-link-btn {
+  :global(.dark) .input-label {
+    color: #999;
+  }
+
+  :global(.dark) .submit-btn {
     background: #fff;
     color: #1a1a1a;
   }
 
-  :global(.dark) .magic-link-btn:hover {
+  :global(.dark) .submit-btn:hover {
     background: #e0e0e0;
   }
 
-  :global(.dark) .magic-link-success p {
-    color: #fff;
-  }
-
-  :global(.dark) .help-text {
-    color: #999;
-  }
-
-  :global(.dark) .login-footer a {
-    color: #888;
-  }
-
-  :global(.dark) .login-footer a:hover {
-    color: #fff;
-  }
-
-  :global(.dark) .dot {
-    background: #404040;
+  :global(.dark) .error-box {
+    background: #3d1f1f;
+    border-color: #5c3030;
+    color: #ff6b6b;
   }
 </style>

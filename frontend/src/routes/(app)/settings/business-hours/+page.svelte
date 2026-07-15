@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -72,21 +73,21 @@
 </script>
 
 <svelte:head>
-  <title>Business Hours - Settings - BottleCRM</title>
+  <title>{$_('settings.business_hours')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="Business Hours"
-  subtitle="Working hours and holidays SLA timers honor"
+  title={$_('settings.business_hours')}
+  subtitle={$_('settings.business_hours_subtitle')}
 >
   {#snippet actions()}
     <Button type="submit" form="business-hours-form" disabled={saving} class="gap-2">
       {#if saving}
         <Loader2 class="h-4 w-4 animate-spin" />
-        Saving…
+        {$_('common.saving')}
       {:else}
         <Check class="h-4 w-4" />
-        Save changes
+        {$_('common.save_changes')}
       {/if}
     </Button>
   {/snippet}
@@ -126,7 +127,7 @@
         </div>
         <div>
           <h2 class="text-base font-medium text-[var(--text-primary)]">
-            Working hours
+            {$_('settings.working_hours')}
           </h2>
           <p class="text-sm text-[var(--text-secondary)]">
             Tickets opened outside these hours don't burn SLA. Holidays and customer-wait
@@ -136,7 +137,7 @@
       </header>
 
       <div class="space-y-2">
-        <Label for="timezone" class="text-sm">Timezone</Label>
+        <Label for="timezone" class="text-sm">{$_('settings.timezone')}</Label>
         <select
           id="timezone"
           name="timezone"
@@ -153,10 +154,10 @@
         <table class="w-full text-sm">
           <thead class="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--text-secondary)]">
             <tr>
-              <th class="px-3 py-2 text-left">Day</th>
-              <th class="px-3 py-2 text-left">Closed</th>
-              <th class="px-3 py-2 text-left">Open</th>
-              <th class="px-3 py-2 text-left">Close</th>
+              <th class="px-3 py-2 text-left">{$_('common.day')}</th>
+              <th class="px-3 py-2 text-left">{$_('common.closed')}</th>
+              <th class="px-3 py-2 text-left">{$_('settings.open_time')}</th>
+              <th class="px-3 py-2 text-left">{$_('settings.close_time')}</th>
             </tr>
           </thead>
           <tbody>
@@ -210,7 +211,7 @@
     class="mx-auto mt-6 max-w-3xl rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)] p-6 space-y-4"
   >
     <header>
-      <h2 class="text-base font-medium text-[var(--text-primary)]">Holidays</h2>
+      <h2 class="text-base font-medium text-[var(--text-primary)]">{$_('settings.holidays')}</h2>
       <p class="text-sm text-[var(--text-secondary)]">
         Full days off in the calendar's timezone. SLA timers skip them entirely.
       </p>
@@ -234,7 +235,7 @@
     >
       <input type="hidden" name="id" value={calendarId} />
       <div class="space-y-1">
-        <Label for="holiday_date" class="text-xs">Date</Label>
+        <Label for="holiday_date" class="text-xs">{$_('common.date')}</Label>
         <Input
           id="holiday_date"
           name="date"
@@ -245,7 +246,7 @@
         />
       </div>
       <div class="flex-1 space-y-1">
-        <Label for="holiday_name" class="text-xs">Name</Label>
+        <Label for="holiday_name" class="text-xs">{$_('common.name')}</Label>
         <Input
           id="holiday_name"
           name="name"
@@ -258,12 +259,12 @@
       </div>
       <Button type="submit" variant="outline" class="gap-1">
         <Plus class="h-4 w-4" />
-        Add
+        {$_('common.add')}
       </Button>
     </form>
 
     {#if (calendar.holidays || []).length === 0}
-      <p class="text-sm text-[var(--text-secondary)]">No holidays configured.</p>
+      <p class="text-sm text-[var(--text-secondary)]">{$_('settings.no_holidays')}</p>
     {:else}
       <ul class="divide-y divide-[var(--border-default)] rounded-md border border-[var(--border-default)]">
         {#each calendar.holidays as h (h.id)}
@@ -292,8 +293,8 @@
                 variant="ghost"
                 size="sm"
                 class="h-7 w-7 p-0 text-[var(--text-secondary)] hover:text-[var(--color-danger-default)]"
-                aria-label="Remove holiday"
-                title="Remove holiday"
+                aria-label={$_('settings.remove_holiday')}
+                title={$_('settings.remove_holiday')}
               >
                 <Trash2 class="h-4 w-4" />
               </Button>

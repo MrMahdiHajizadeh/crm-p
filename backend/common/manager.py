@@ -2,21 +2,22 @@ from django.contrib.auth.models import BaseUserManager
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError("The Email field must be set")
-        email = self.normalize_email(email)
-        # Mirror the User.save() invariant so callers reading the manager
-        # in isolation see the contract: name defaults to email-local-part
-        # when not provided.
-        if not extra_fields.get("name"):
-            extra_fields["name"] = email.split("@", 1)[0][:255]
-        user = self.model(email=email, **extra_fields)
+    def create_user(self, phone=None, email=None, password=None, **extra_fields):
+        if not phone and not email:
+            raise ValueError("Either phone or email must be set")
+        if phone and not extra_fields.get("name"):
+            extra_fields["name"] = phone
+        if password:
+            extra_fields["password"] = password
+        if phone:
+            user = self.model(phone=phone, email=email, **extra_fields)
+        else:
+            user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, phone=None, email=None, password=None, **extra_fields):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_staff", True)
 
@@ -26,4 +27,4 @@ class UserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
 
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(phone=phone, email=email, password=password, **extra_fields)

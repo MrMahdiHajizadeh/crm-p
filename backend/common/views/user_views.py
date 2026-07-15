@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from cases.models import Case
 from cases.serializer import CaseSerializer
 from common import swagger_params
-from common.models import Comment, Profile, Teams
+from common.models import Comment, Profile, Teams, User
 from common.serializer import (
     BillingAddressSerializer,
     CommentSerializer,
@@ -85,41 +85,48 @@ class UsersListView(APIView, LimitOffsetPagination):
             )
         params = request.data
         if params:
-            user_serializer = CreateUserSerializer(
-                data=params, org=request.profile.org
-            )
-            address_serializer = BillingAddressSerializer(data=params)
-            profile_serializer = CreateProfileSerializer(data=params)
-            data = {}
-            if not user_serializer.is_valid():
-                data["user_errors"] = dict(user_serializer.errors)
-            if not profile_serializer.is_valid():
-                data["profile_errors"] = profile_serializer.errors
-            if not address_serializer.is_valid():
-                data["address_errors"] = (address_serializer.errors,)
-            if data:
+            phone = params.get("phone", "").strip()
+            password = params.get("password", "")
+
+            if not phone:
                 return Response(
-                    {"error": True, "errors": data},
+                    {"error": True, "errors": "Phone number is required"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if address_serializer.is_valid():
-                address_obj = address_serializer.save()
-                user = user_serializer.save(
+
+            # Check if user already exists by phone
+            existing_user = User.objects.filter(phone=phone).first()
+            if existing_user:
+                user = existing_user
+            else:
+                user = User.objects.create(
+                    phone=phone,
+                    name=params.get("name", phone),
                     is_active=True,
                 )
-                user.email = user.email
+
+            # Set password if provided
+            if password:
+                user.set_password(password)
                 user.save()
-                Profile.objects.create(
-                    user=user,
-                    date_of_joining=timezone.now(),
-                    role=params.get("role"),
-                    address=address_obj,
-                    org=request.profile.org,
-                )
+
+            profile, created = Profile.objects.get_or_create(
+                user=user,
+                org=request.profile.org,
+                defaults={
+                    "role": params.get("role", "USER"),
+                    "date_of_joining": timezone.now(),
+                },
+            )
+            if not created:
                 return Response(
-                    {"error": False, "message": "User Created Successfully"},
-                    status=status.HTTP_201_CREATED,
+                    {"error": True, "errors": "User already in organization"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
+            return Response(
+                {"error": False, "message": "User Created Successfully"},
+                status=status.HTTP_201_CREATED,
+            )
         return Response(
             {"error": True, "errors": "Invalid request"},
             status=status.HTTP_400_BAD_REQUEST,

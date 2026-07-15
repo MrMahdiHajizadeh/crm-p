@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance, deserialize } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
   import { tick, onMount, untrack } from 'svelte';
@@ -70,110 +71,18 @@
 
   /** @type {ColumnDef[]} */
   const columns = [
-    {
-      key: 'title',
-      label: 'Title',
-      type: 'text',
-      width: 'w-[200px]',
-      canHide: false,
-      editable: false,
-      emptyText: 'Untitled'
-    },
-    {
-      key: 'name',
-      label: 'Name',
-      type: 'text',
-      width: 'w-[180px]',
-      editable: false,
-      canHide: true,
-      getValue: (row) => `${row.firstName || ''} ${row.lastName || ''}`.trim(),
-      emptyText: ''
-    },
-    {
-      key: 'company',
-      label: 'Company',
-      type: 'relation',
-      width: 'w-40',
-      relationIcon: 'building',
-      getValue: (row) => (typeof row.company === 'object' ? row.company?.name : row.company),
-      emptyText: ''
-    },
-    {
-      key: 'email',
-      label: 'Email',
-      type: 'email',
-      width: 'w-52',
-      editable: false,
-      emptyText: ''
-    },
-    {
-      key: 'status',
-      label: 'Status',
-      type: 'select',
-      width: 'w-36',
-      options: leadStatusOptions
-    },
-    {
-      key: 'rating',
-      label: 'Rating',
-      type: 'select',
-      width: 'w-28',
-      options: leadRatingOptions
-    },
-    {
-      key: 'createdAt',
-      label: 'Created',
-      type: 'date',
-      width: 'w-36',
-      editable: false
-    },
-    // Hidden by default
-    {
-      key: 'phone',
-      label: 'Phone',
-      type: 'text',
-      width: 'w-36',
-      canHide: true,
-      editable: false,
-      emptyText: ''
-    },
-    {
-      key: 'jobTitle',
-      label: 'Job Title',
-      type: 'text',
-      width: 'w-36',
-      canHide: true,
-      editable: false,
-      emptyText: ''
-    },
-    {
-      key: 'leadSource',
-      label: 'Source',
-      type: 'select',
-      width: 'w-28',
-      canHide: true
-    },
-    {
-      key: 'industry',
-      label: 'Industry',
-      type: 'select',
-      width: 'w-32',
-      canHide: true,
-      options: INDUSTRIES.map((i) => ({
-        ...i,
-        color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-      }))
-    },
-    {
-      key: 'owner',
-      label: 'Assigned',
-      type: 'relation',
-      width: 'w-36',
-      canHide: true,
-      relationIcon: 'user',
-      getValue: (row) => row.owner?.name || '',
-      emptyText: ''
-    }
+    { key: 'title', label: 'leads.title', type: 'text', width: 'w-[200px]', canHide: false, editable: false, emptyText: 'common.untitled' },
+    { key: 'name', label: 'leads.name', type: 'text', width: 'w-[180px]', editable: false, canHide: true, getValue: (row) => `${row.firstName || ''} ${row.lastName || ''}`.trim(), emptyText: '' },
+    { key: 'company', label: 'leads.company', type: 'relation', width: 'w-40', relationIcon: 'building', getValue: (row) => (typeof row.company === 'object' ? row.company?.name : row.company), emptyText: '' },
+    { key: 'email', label: 'common.email', type: 'email', width: 'w-52', editable: false, emptyText: '' },
+    { key: 'status', label: 'common.status', type: 'select', width: 'w-36', options: leadStatusOptions },
+    { key: 'rating', label: 'leads.rating', type: 'select', width: 'w-28', options: leadRatingOptions },
+    { key: 'createdAt', label: 'common.created_at', type: 'date', width: 'w-36', editable: false },
+    { key: 'phone', label: 'common.phone', type: 'text', width: 'w-36', canHide: true, editable: false, emptyText: '' },
+    { key: 'jobTitle', label: 'leads.job_title', type: 'text', width: 'w-36', canHide: true, editable: false, emptyText: '' },
+    { key: 'leadSource', label: 'leads.source', type: 'select', width: 'w-28', canHide: true },
+    { key: 'industry', label: 'leads.industry', type: 'select', width: 'w-32', canHide: true, options: INDUSTRIES.map((i) => ({ ...i, color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' })) },
+    { key: 'owner', label: 'common.assigned_to', type: 'relation', width: 'w-36', canHide: true, relationIcon: 'user', getValue: (row) => row.owner?.name || '', emptyText: '' }
   ];
 
   // Default visible columns (7 columns: Title, Name, Company, Email, Status, Rating, Created)

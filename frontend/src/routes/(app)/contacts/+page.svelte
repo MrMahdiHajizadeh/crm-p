@@ -35,6 +35,7 @@
   import { goto } from '$app/navigation';
   import { COUNTRIES } from '$lib/constants/countries.js';
   import { browser } from '$app/environment';
+  import { _ } from '$lib/i18n';
 
   // Column visibility configuration
   const STORAGE_KEY = 'contacts-column-config';
@@ -48,7 +49,7 @@
   const columns = [
     {
       key: 'name',
-      label: 'Contact',
+      label: 'common.name',
       type: 'text',
       width: 'w-48',
       editable: false,
@@ -58,17 +59,17 @@
     },
     {
       key: 'organization',
-      label: 'Company',
+      label: 'common.company',
       type: 'text',
       width: 'w-40',
       emptyText: ''
     },
-    { key: 'title', label: 'Title', type: 'text', width: 'w-36', emptyText: '' },
-    { key: 'email', label: 'Email', type: 'email', width: 'w-52', emptyText: '' },
-    { key: 'phone', label: 'Phone', type: 'text', width: 'w-36', emptyText: '' },
+    { key: 'title', label: 'contacts.title', type: 'text', width: 'w-36', emptyText: '' },
+    { key: 'email', label: 'common.email', type: 'email', width: 'w-52', emptyText: '' },
+    { key: 'phone', label: 'common.phone', type: 'text', width: 'w-36', emptyText: '' },
     {
       key: 'createdAt',
-      label: 'Created',
+      label: 'common.created_at',
       type: 'date',
       width: 'w-32',
       editable: false
@@ -76,7 +77,7 @@
     // Hidden by default
     {
       key: 'owner',
-      label: 'Owner',
+      label: 'common.owner',
       type: 'relation',
       width: 'w-36',
       relationIcon: 'user',
@@ -185,59 +186,59 @@
       ? [
           {
             key: 'accountDisplay',
-            label: 'Account',
+            label: 'common.account',
             type: 'readonly',
             icon: Building2,
             getValue: () => accountName || 'Loading...'
           }
         ]
       : []),
-    { key: 'firstName', label: 'First Name', type: 'text', icon: User, placeholder: 'First name' },
-    { key: 'lastName', label: 'Last Name', type: 'text', placeholder: 'Last name' },
-    { key: 'email', label: 'Email', type: 'email', icon: Mail, placeholder: 'email@example.com' },
-    { key: 'phone', label: 'Phone', type: 'text', icon: Phone, placeholder: '+1 (555) 000-0000' },
+    { key: 'firstName', label: 'common.first_name', type: 'text', icon: User, placeholder: 'First name' },
+    { key: 'lastName', label: 'common.last_name', type: 'text', placeholder: 'Last name' },
+    { key: 'email', label: 'common.email', type: 'email', icon: Mail, placeholder: 'email@example.com' },
+    { key: 'phone', label: 'common.phone', type: 'text', icon: Phone, placeholder: '+1 (555) 000-0000' },
     {
       key: 'organization',
-      label: 'Company',
+      label: 'common.company',
       type: 'text',
       icon: Building2,
       placeholder: 'Company name'
     },
-    { key: 'title', label: 'Job Title', type: 'text', icon: Briefcase, placeholder: 'Job title' },
-    { key: 'department', label: 'Department', type: 'text', placeholder: 'Department' },
+    { key: 'title', label: 'contacts.job_title', type: 'text', icon: Briefcase, placeholder: 'Job title' },
+    { key: 'department', label: 'contacts.department', type: 'text', placeholder: 'Department' },
     {
       key: 'doNotCall',
-      label: 'Do Not Call',
+      label: 'contacts.do_not_call',
       type: 'checkbox',
       icon: PhoneOff
     },
     {
       key: 'linkedInUrl',
-      label: 'LinkedIn',
+      label: 'common.linkedin',
       type: 'text',
       icon: Linkedin,
       placeholder: 'https://linkedin.com/in/...'
     },
     {
       key: 'addressLine',
-      label: 'Address',
+      label: 'common.address',
       type: 'text',
       icon: MapPin,
       placeholder: 'Street address'
     },
-    { key: 'city', label: 'City', type: 'text', placeholder: 'City' },
-    { key: 'state', label: 'State', type: 'text', placeholder: 'State/Province' },
-    { key: 'postcode', label: 'Postal Code', type: 'text', placeholder: 'Postal code' },
+    { key: 'city', label: 'common.city', type: 'text', placeholder: 'City' },
+    { key: 'state', label: 'common.state', type: 'text', placeholder: 'State/Province' },
+    { key: 'postcode', label: 'common.postal_code', type: 'text', placeholder: 'Postal code' },
     {
       key: 'country',
-      label: 'Country',
+      label: 'common.country',
       type: 'select',
       options: countryOptions,
       placeholder: 'Select country'
     },
     {
       key: 'tags',
-      label: 'Tags',
+      label: 'common.tags',
       type: 'multiselect',
       icon: Tag,
       options: allTags.map((/** @type {any} */ t) => ({ id: t.id, name: t.name })),
@@ -245,7 +246,7 @@
     },
     {
       key: 'description',
-      label: 'Notes',
+      label: 'common.notes',
       type: 'textarea',
       icon: FileText,
       placeholder: 'Add notes about this contact...'
@@ -758,12 +759,12 @@
 </script>
 
 <svelte:head>
-  <title>Contacts - BottleCRM</title>
+  <title>{$_('contacts.title')} - {$_('app.name')}</title>
 </svelte:head>
 
 <div class="flex flex-col">
 <PageHeader
-  title="Contacts"
+  title={$_('contacts.title')}
   subtitle="{filteredContacts.length} of {contacts.length} contacts"
 >
   {#snippet actions()}

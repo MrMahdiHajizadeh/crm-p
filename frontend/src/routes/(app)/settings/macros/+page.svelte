@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -98,12 +99,12 @@
 </script>
 
 <svelte:head>
-  <title>Macros - Settings - BottleCRM</title>
+  <title>{$_('settings.macros')} - {$_('app.name')}</title>
 </svelte:head>
 
 <PageHeader
-  title="Macros"
-  subtitle="Reusable canned responses agents apply to a ticket comment in one click"
+  title={$_('settings.macros')}
+  subtitle={$_('settings.macros_subtitle')}
 />
 
 <div class="flex-1 p-4 md:p-6 lg:p-8">
@@ -119,7 +120,7 @@
         </div>
         <div>
           <h2 class="text-base font-medium text-[var(--text-primary)]">
-            New macro
+            {$_('settings.new_macro')}
           </h2>
           <p class="text-sm text-[var(--text-secondary)]">
             Use placeholders like
@@ -155,7 +156,7 @@
       >
         <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div class="space-y-1">
-            <Label for="m-title" class="text-sm">Title</Label>
+            <Label for="m-title" class="text-sm">{$_('common.title')}</Label>
             <Input
               id="m-title"
               name="title"
@@ -167,22 +168,22 @@
             />
           </div>
           <div class="space-y-1">
-            <Label for="m-scope" class="text-sm">Scope</Label>
+            <Label for="m-scope" class="text-sm">{$_('settings.scope')}</Label>
             <select
               id="m-scope"
               name="scope"
               bind:value={newScope}
               class="w-full rounded-md border border-[var(--border-default)] bg-[var(--surface-default)] px-3 py-2 text-sm focus:ring-2 focus:ring-[var(--color-primary-default)]"
             >
-              <option value="personal">Personal (only you)</option>
+              <option value="personal">{$_('settings.scope_personal')}</option>
               {#if isAdmin}
-                <option value="org">Org (all agents)</option>
+                <option value="org">{$_('settings.scope_org')}</option>
               {/if}
             </select>
           </div>
         </div>
         <div class="space-y-1">
-          <Label for="m-body" class="text-sm">Body</Label>
+           <Label for="m-body" class="text-sm">{$_('settings.body')}</Label>
           <Textarea
             id="m-body"
             name="body"
@@ -217,7 +218,7 @@
               Creating…
             {:else}
               <Plus class="h-4 w-4" />
-              Create macro
+              {$_('settings.create_macro')}
             {/if}
           </Button>
         </div>
@@ -232,17 +233,17 @@
     >
       <header>
         <h2 class="text-base font-medium text-[var(--text-primary)]">
-          Org macros
+          {$_('settings.org_macros')}
         </h2>
         <p class="text-sm text-[var(--text-secondary)]">
-          Visible to every agent in the org. {isAdmin
-            ? 'You can edit and deactivate.'
-            : 'Only admins can edit.'}
+          {isAdmin
+            ? $_('settings.org_macros_admin_hint')
+            : $_('settings.org_macros_user_hint')}
         </p>
       </header>
       {#if orgMacros.length === 0}
         <p class="text-sm text-[var(--text-secondary)]">
-          No org macros yet.{isAdmin ? ' Create one above.' : ''}
+          {isAdmin ? $_('settings.no_org_macros_admin') : $_('settings.no_org_macros')}
         </p>
       {:else}
         <ul
@@ -258,7 +259,7 @@
                     <span
                       class="rounded bg-[var(--surface-sunken)] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[var(--text-secondary)]"
                     >
-                      Inactive
+                      {$_('common.inactive')}
                     </span>
                   {/if}
                   {#if unknown.length > 0}
@@ -328,14 +329,14 @@
     >
       <header>
         <h2 class="text-base font-medium text-[var(--text-primary)]">
-          My macros
+          {$_('settings.my_macros')}
         </h2>
         <p class="text-sm text-[var(--text-secondary)]">
           Only you can see and use these.
         </p>
       </header>
       {#if personalMacros.length === 0}
-        <p class="text-sm text-[var(--text-secondary)]">No personal macros yet.</p>
+        <p class="text-sm text-[var(--text-secondary)]">{$_('settings.no_personal_macros')}</p>
       {:else}
         <ul
           class="divide-y divide-[var(--border-default)] rounded-md border border-[var(--border-default)]"
@@ -411,7 +412,7 @@
 <Dialog.Root bind:open={editOpen}>
   <Dialog.Content class="max-w-xl">
     <Dialog.Header>
-      <Dialog.Title>Edit macro</Dialog.Title>
+      <Dialog.Title>{$_('settings.edit_macro')}</Dialog.Title>
       <Dialog.Description>
         Changes apply the next time someone inserts this macro.
       </Dialog.Description>
@@ -438,7 +439,7 @@
       >
         <input type="hidden" name="id" value={editing.id} />
         <div class="space-y-1">
-          <Label for="edit-title" class="text-sm">Title</Label>
+          <Label for="edit-title" class="text-sm">{$_('common.title')}</Label>
           <Input
             id="edit-title"
             name="title"
@@ -449,7 +450,7 @@
           />
         </div>
         <div class="space-y-1">
-          <Label for="edit-body" class="text-sm">Body</Label>
+          <Label for="edit-body" class="text-sm">{$_('settings.body')}</Label>
           <Textarea
             id="edit-body"
             name="body"
@@ -483,7 +484,7 @@
               bind:checked={editIsActive}
               class="h-4 w-4"
             />
-            <Label for="edit-active" class="text-sm">Active</Label>
+            <Label for="edit-active" class="text-sm">{$_('common.active')}</Label>
             <input
               type="hidden"
               name="is_active"
@@ -497,14 +498,14 @@
             variant="outline"
             onclick={() => (editOpen = false)}
           >
-            Cancel
+            {$_('common.cancel')}
           </Button>
           <Button type="submit" disabled={saving} class="gap-2">
             {#if saving}
               <Loader2 class="h-4 w-4 animate-spin" />
-              Saving…
+              {$_('common.saving')}
             {:else}
-              Save
+              {$_('common.save')}
             {/if}
           </Button>
         </Dialog.Footer>

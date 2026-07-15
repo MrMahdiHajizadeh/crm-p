@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { toast } from 'svelte-sonner';
@@ -106,18 +107,18 @@
 </script>
 
 <svelte:head>
-  <title>Organization Settings - BottleCRM</title>
+  <title>{$_('settings.organization')} - {$_('app.name')}</title>
 </svelte:head>
 
-<PageHeader title="Organization Settings" subtitle="Manage your organization preferences">
+<PageHeader title={$_('settings.organization')} subtitle={$_('settings.organization_subtitle')}>
   {#snippet actions()}
     <Button type="submit" form="org-settings-form" disabled={isLoading} class="gap-2">
       {#if isLoading}
         <Loader2 class="h-4 w-4 animate-spin" />
-        Saving...
+        {$_('common.saving')}
       {:else}
         <Check class="h-4 w-4" />
-        Save Changes
+        {$_('common.save_changes')}
       {/if}
     </Button>
   {/snippet}
@@ -176,7 +177,7 @@
                   class="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium tracking-wider uppercase"
                 >
                   <Building2 class="h-3.5 w-3.5" />
-                  Organization Identity
+                  {$_('settings.org_identity')}
                 </div>
               </div>
 
@@ -185,7 +186,7 @@
                 <div class="space-y-2">
                   <Label for="name" class="text-muted-foreground flex items-center gap-2 text-sm">
                     <Hash class="h-3.5 w-3.5" />
-                    Organization Name
+                    {$_('settings.org_name')}
                   </Label>
                   <div class="input-glow rounded-lg transition-shadow duration-300">
                     <Input
@@ -193,7 +194,7 @@
                       name="name"
                       type="text"
                       bind:value={formName}
-                      placeholder="Acme Corporation"
+                      placeholder={$_('settings.org_name_placeholder')}
                       class="h-11 border-[var(--border-default)] bg-[var(--bg-subtle)] text-base transition-colors focus:border-[var(--accent-primary)] focus:bg-transparent"
                     />
                   </div>
@@ -203,7 +204,7 @@
                 <div class="space-y-2">
                   <Label for="domain" class="text-muted-foreground flex items-center gap-2 text-sm">
                     <Globe class="h-3.5 w-3.5" />
-                    Company Domain
+                    {$_('settings.company_domain')}
                   </Label>
                   <div class="input-glow rounded-lg transition-shadow duration-300">
                     <div class="relative flex items-center">
@@ -215,7 +216,7 @@
                         name="domain"
                         type="text"
                         bind:value={formDomain}
-                        placeholder="yourcompany.com"
+                        placeholder={$_('settings.domain_placeholder')}
                         class="h-11 border-[var(--border-default)] bg-[var(--bg-subtle)] pl-10 text-base transition-colors focus:border-[var(--accent-primary)] focus:bg-transparent"
                       />
                     </div>
@@ -230,7 +231,7 @@
                   class="text-muted-foreground flex items-center gap-2 text-sm"
                 >
                   <FileText class="h-3.5 w-3.5" />
-                  About Your Organization
+                  {$_('settings.about_org')}
                 </Label>
                 <div class="input-glow rounded-lg transition-shadow duration-300">
                   <textarea
@@ -238,7 +239,7 @@
                     name="description"
                     rows="3"
                     bind:value={formDescription}
-                    placeholder="Brief description of your organization, industry, and what you do..."
+                    placeholder={$_('settings.about_org_placeholder')}
                     class="border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[100px] w-full resize-none rounded-lg border bg-[var(--bg-subtle)] px-4 py-3 text-base transition-colors focus:border-[var(--accent-primary)] focus:bg-transparent focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                   ></textarea>
                 </div>
@@ -268,11 +269,11 @@
                   class="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium tracking-wider uppercase"
                 >
                   <Globe class="h-3.5 w-3.5" />
-                  Regional Settings
+                  {$_('settings.regional_settings')}
                 </div>
-                <h3 class="text-lg font-semibold">Currency & Locale</h3>
+                <h3 class="text-lg font-semibold">{$_('settings.currency_locale')}</h3>
                 <p class="text-muted-foreground text-sm">
-                  Configure default currency and regional preferences
+                  {$_('settings.currency_locale_subtitle')}
                 </p>
               </div>
             </div>
@@ -285,7 +286,7 @@
                   class="text-muted-foreground flex items-center gap-2 text-sm"
                 >
                   <Banknote class="h-3.5 w-3.5" />
-                  Default Currency
+                  {$_('settings.default_currency')}
                 </Label>
                 <div class="input-glow rounded-lg transition-shadow duration-300">
                   <div class="relative">
@@ -302,7 +303,7 @@
                   </div>
                 </div>
                 <p class="text-muted-foreground text-xs">
-                  Applied to opportunities, invoices, and financial reports
+                  {$_('settings.default_currency_hint')}
                 </p>
               </div>
 
@@ -313,7 +314,7 @@
                   class="text-muted-foreground flex items-center gap-2 text-sm"
                 >
                   <MapPin class="h-3.5 w-3.5" />
-                  Default Country
+                  {$_('settings.default_country')}
                 </Label>
                 <div class="input-glow rounded-lg transition-shadow duration-300">
                   <div class="relative">
@@ -330,7 +331,7 @@
                   </div>
                 </div>
                 <p class="text-muted-foreground text-xs">
-                  Used for addresses, date formats, and locale settings
+                  {$_('settings.default_country_hint')}
                 </p>
               </div>
             </div>
@@ -344,7 +345,7 @@
                 <div class="relative">
                   <div class="mb-3 flex items-center gap-2">
                     <Sparkles class="h-4 w-4 text-[var(--accent-secondary)]" />
-                    <span class="text-muted-foreground text-sm font-medium">Currency Preview</span>
+                    <span class="text-muted-foreground text-sm font-medium">{$_('settings.currency_preview')}</span>
                   </div>
                   <div class="flex items-baseline gap-3">
                     <span class="text-gradient text-4xl font-bold tracking-tight md:text-5xl">
@@ -381,7 +382,7 @@
         <div class="flex items-center gap-6">
           <div class="flex items-center gap-2">
             <div class="h-2 w-2 rounded-full bg-[var(--status-success)]"></div>
-            <span class="text-muted-foreground text-sm">Settings synced</span>
+            <span class="text-muted-foreground text-sm">{$_('settings.synced')}</span>
           </div>
           <div class="text-muted-foreground text-sm">
             Last updated: {new Date().toLocaleDateString('en-US', {
@@ -399,10 +400,10 @@
         >
           {#if isLoading}
             <Loader2 class="h-4 w-4 animate-spin" />
-            Saving...
+            {$_('common.saving')}
           {:else}
             <Check class="h-4 w-4" />
-            Save All Changes
+            {$_('common.save_all_changes')}
           {/if}
         </Button>
       </div>

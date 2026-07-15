@@ -1,4 +1,5 @@
 <script>
+  import { _, locale } from '$lib/i18n';
   import { Button } from '$lib/components/ui/button/index.js';
   import {
     Activity,
@@ -76,12 +77,10 @@
     text: 'text-[var(--text-tertiary)]'
   };
 
-  /**
-   * Get date category for grouping
-   * @param {string | undefined} dateStr
-   */
+  let currentLocale = $derived($locale);
+
   function getDateCategory(dateStr) {
-    if (!dateStr) return 'Earlier';
+    if (!dateStr) return 'earlier';
     const date = new Date(dateStr);
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -90,29 +89,21 @@
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
 
-    if (date >= today) return 'Today';
-    if (date >= yesterday) return 'Yesterday';
-    if (date >= weekAgo) return 'This Week';
-    return 'Earlier';
+    if (date >= today) return 'today';
+    if (date >= yesterday) return 'yesterday';
+    if (date >= weekAgo) return 'this_week';
+    return 'earlier';
   }
 
-  /**
-   * Format time only
-   * @param {string | undefined} dateStr
-   */
   function formatTime(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return date.toLocaleTimeString(currentLocale === 'fa' ? 'fa-IR' : 'en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
-  /**
-   * Group activities by date category
-   * @param {ActivityItem[]} activities
-   */
   function groupByDate(activities) {
     const groups = /** @type {Record<string, ActivityItem[]>} */ ({});
-    const order = ['Today', 'Yesterday', 'This Week', 'Earlier'];
+    const order = ['today', 'yesterday', 'this_week', 'earlier'];
 
     for (const activity of activities) {
       const category = getDateCategory(activity.timestamp || activity.createdAt);
@@ -146,11 +137,11 @@
         <Activity class="size-4 text-[var(--color-primary-default)]" />
       </div>
       <h3 class="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
-        Recent Activity
+        {$_('dashboard.recent_activity')}
       </h3>
     </div>
     <Button variant="ghost" size="sm" href="/activities" class="gap-1 text-xs font-medium">
-      View all
+      {$_('dashboard.view_all')}
       <ChevronRight class="size-3.5" />
     </Button>
   </div>
@@ -164,8 +155,8 @@
         >
           <Clock class="size-6 text-[var(--text-tertiary)]" />
         </div>
-        <p class="text-sm font-medium text-[var(--text-secondary)]">No recent activity</p>
-        <p class="text-xs text-[var(--text-tertiary)]">Actions will appear here</p>
+        <p class="text-sm font-medium text-[var(--text-secondary)]">{$_('dashboard.no_activity')}</p>
+        <p class="text-xs text-[var(--text-tertiary)]">{$_('dashboard.activity_hint')}</p>
       </div>
     {:else}
       <div class="space-y-5">
@@ -174,7 +165,7 @@
             <p
               class="mb-3 text-[10px] font-semibold tracking-widest text-[var(--text-tertiary)] uppercase"
             >
-              {group.category}
+              {$_('dashboard.' + group.category)}
             </p>
             <div class="space-y-2">
               {#each group.items as activity (activity.id)}
@@ -200,7 +191,7 @@
                     <div
                       class="mt-1 flex items-center gap-1.5 text-xs text-[var(--text-secondary)]"
                     >
-                      <span class="font-medium">{activity.user?.name || 'System'}</span>
+                      <span class="font-medium">{activity.user?.name || $_('dashboard.system')}</span>
                       <span class="text-[var(--text-tertiary)]">&middot;</span>
                       <span>{formatTime(activity.timestamp || activity.createdAt)}</span>
                     </div>
@@ -219,7 +210,7 @@
           class="mt-4 w-full text-xs font-medium"
           onclick={() => (showAll = true)}
         >
-          Show more ({activities.length - 5} more)
+          {$_('dashboard.show_more', { count: activities.length - 5 })}
         </Button>
       {/if}
     {/if}
