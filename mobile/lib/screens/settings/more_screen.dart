@@ -39,6 +39,24 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             // Workspace Section — destinations that aren't on the bottom nav.
             _buildSectionHeader('Workspace'),
             _MenuItem(
+              icon: LucideIcons.building2,
+              label: 'Accounts',
+              description: 'Manage companies and organizations',
+              onTap: () => context.push(AppRoutes.accounts),
+            ),
+            _MenuItem(
+              icon: LucideIcons.users,
+              label: 'Contacts',
+              description: 'View and manage your contacts',
+              onTap: () => context.push(AppRoutes.contacts),
+            ),
+            _MenuItem(
+              icon: LucideIcons.fileText,
+              label: 'Invoices',
+              description: 'Track invoices and payments',
+              onTap: () => context.push(AppRoutes.invoices),
+            ),
+            _MenuItem(
               icon: LucideIcons.checkSquare,
               label: 'Tasks',
               description: 'Your to-dos across leads, deals and tickets',

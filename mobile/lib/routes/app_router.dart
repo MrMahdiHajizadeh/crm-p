@@ -34,6 +34,16 @@ import '../screens/solutions/solution_detail_screen.dart';
 import '../screens/tickets/approvals_inbox_screen.dart';
 import '../screens/tickets/ticket_analytics_screen.dart';
 
+// New Entity Screens
+import '../screens/accounts/accounts_list_screen.dart';
+import '../screens/accounts/account_detail_screen.dart';
+import '../screens/accounts/account_form_screen.dart';
+import '../screens/contacts/contacts_list_screen.dart';
+import '../screens/contacts/contact_detail_screen.dart';
+import '../screens/contacts/contact_form_screen.dart';
+import '../screens/invoices/invoices_list_screen.dart';
+import '../screens/invoices/invoice_detail_screen.dart';
+
 // Shell
 import '../widgets/common/app_shell.dart';
 
@@ -80,6 +90,22 @@ class AppRoutes {
 
   // Analytics
   static const String ticketAnalytics = '/tickets/analytics';
+
+  // Accounts
+  static const String accounts = '/accounts';
+  static const String accountDetail = '/accounts/:id';
+  static const String accountCreate = '/accounts/create';
+  static const String accountEdit = '/accounts/:id/edit';
+
+  // Contacts
+  static const String contacts = '/contacts';
+  static const String contactDetail = '/contacts/:id';
+  static const String contactCreate = '/contacts/create';
+  static const String contactEdit = '/contacts/:id/edit';
+
+  // Invoices
+  static const String invoices = '/invoices';
+  static const String invoiceDetail = '/invoices/:id';
 }
 
 /// Navigation shell key for bottom navigation
@@ -202,6 +228,100 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'ticketAnalytics',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const TicketAnalyticsScreen(),
+      ),
+      // ============================================
+      // ACCOUNTS ROUTES (Full screen, no bottom nav)
+      // ============================================
+      GoRoute(
+        path: AppRoutes.accounts,
+        name: 'accounts',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AccountsListScreen(),
+        routes: [
+          GoRoute(
+            path: 'create',
+            name: 'accountCreate',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const AccountFormScreen(),
+          ),
+          GoRoute(
+            path: ':id',
+            name: 'accountDetail',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return AccountDetailScreen(accountId: id);
+            },
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'accountEdit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return AccountFormScreen(accountId: id);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+      // ============================================
+      // CONTACTS ROUTES (Full screen, no bottom nav)
+      // ============================================
+      GoRoute(
+        path: AppRoutes.contacts,
+        name: 'contacts',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ContactsListScreen(),
+        routes: [
+          GoRoute(
+            path: 'create',
+            name: 'contactCreate',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const ContactFormScreen(),
+          ),
+          GoRoute(
+            path: ':id',
+            name: 'contactDetail',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return ContactDetailScreen(contactId: id);
+            },
+            routes: [
+              GoRoute(
+                path: 'edit',
+                name: 'contactEdit',
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  return ContactFormScreen(contactId: id);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+      // ============================================
+      // INVOICES ROUTES (Full screen, no bottom nav)
+      // ============================================
+      GoRoute(
+        path: AppRoutes.invoices,
+        name: 'invoices',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const InvoicesListScreen(),
+        routes: [
+          GoRoute(
+            path: ':id',
+            name: 'invoiceDetail',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return InvoiceDetailScreen(invoiceId: id);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.profile,

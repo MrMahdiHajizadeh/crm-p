@@ -10,10 +10,10 @@ class ApiConfig {
   // ==========================================================================
 
   /// Development API URL
-  static const String _developmentUrl = 'https://msi-8000.rcdev.in';
+  static const String _developmentUrl = 'http://crm.valerion.ir';
 
   /// Production API URL
-  static const String _productionUrl = 'https://api.bottlecrm.io';
+  static const String _productionUrl = 'http://crm.valerion.ir';
 
   /// Get the current base URL based on build mode
   static String get baseUrl => kDebugMode ? _developmentUrl : _productionUrl;

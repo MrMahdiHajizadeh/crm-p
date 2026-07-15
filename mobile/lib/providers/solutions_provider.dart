@@ -99,7 +99,9 @@ class SolutionsNotifier extends Notifier<SolutionsListData> {
     String id,
     Map<String, dynamic> payload,
   ) async {
-    final response = await _api.put(ApiConfig.solutionDetail(id), payload);
+    // Use PATCH to avoid backend's PUT handler from clearing M2M fields
+    // (tags, categories, etc.) unconditionally.
+    final response = await _api.patch(ApiConfig.solutionDetail(id), payload);
     if (response.success) await refresh();
     return response;
   }

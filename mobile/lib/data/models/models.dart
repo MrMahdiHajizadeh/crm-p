@@ -17,3 +17,6 @@ export 'time_entry.dart';
 export 'solution.dart';
 export 'approval.dart';
 export 'attachment.dart';
+export 'account.dart';
+export 'contact.dart';
+export 'invoice.dart';

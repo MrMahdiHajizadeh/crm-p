@@ -244,11 +244,14 @@ class TasksNotifier extends AsyncNotifier<TasksListData> {
 
     debugPrint('TasksNotifier: loaded ${newTasks.length} tasks');
 
+    // Backend returns `offset: null` when there are no more pages.
+    final nextOffset = data['offset'] as int?;
+
     return TasksListData(
       tasks: newTasks,
       totalCount: tasksCount,
-      hasMore: newTasks.length >= _pageSize,
-      currentOffset: offset + newTasks.length,
+      hasMore: nextOffset != null,
+      currentOffset: nextOffset ?? (offset + newTasks.length),
     );
   }
 

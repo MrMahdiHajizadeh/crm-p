@@ -489,7 +489,10 @@ class LeadsNotifier extends AsyncNotifier<LeadsListData> {
   ) async {
     try {
       final url = '${ApiConfig.leads}$id/';
-      final response = await _apiService.put(url, leadData);
+      // Use PATCH to avoid backend's PUT handler from clearing M2M fields
+      // (tags, assigned_to, contacts, teams) unconditionally before reading
+      // the request body — see tasks_provider for the same fix.
+      final response = await _apiService.patch(url, leadData);
       if (response.success) await refresh();
       return response;
     } catch (e) {

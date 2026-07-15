@@ -303,11 +303,14 @@ class DealsNotifier extends AsyncNotifier<DealsListData> {
       }
     }
 
+    // Backend returns `offset: null` when there are no more pages.
+    final nextOffset = data['offset'] as int?;
+
     return DealsListData(
       deals: newDeals,
       totalCount: dealsCount,
-      hasMore: newDeals.length >= _pageSize,
-      currentOffset: offset + newDeals.length,
+      hasMore: nextOffset != null,
+      currentOffset: nextOffset ?? (offset + newDeals.length),
     );
   }
 
@@ -516,13 +519,14 @@ class DealsNotifier extends AsyncNotifier<DealsListData> {
   }
 
   /// Update an existing deal — list refreshes on success.
+  /// Uses PATCH to avoid backend's PUT handler clearing M2M fields.
   Future<({bool success, String? error, Deal? deal})> updateDeal(
     String id,
     Deal deal,
   ) async {
     try {
       final url = '${ApiConfig.opportunities}$id/';
-      final response = await _apiService.put(url, deal.toJson());
+      final response = await _apiService.patch(url, deal.toJson());
 
       if (response.success && response.data != null) {
         final isError = response.data!['error'] as bool? ?? true;

@@ -1,0 +1,145 @@
+name: Flutter Mobile Build
+
+on:
+  push:
+    branches: [main, master, develop]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/flutter-build.yml'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'mobile/**'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - debug
+          - release
+
+env:
+  FLUTTER_VERSION: '3.27.0'
+
+jobs:
+  analyze:
+    name: Analyze & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run analyzer
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+  build-apk:
+    name: Build APK
+    needs: analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: |
+          if [ "${{ github.event_name == 'workflow_dispatch' && inputs.build_type }}" = "debug" ]; then
+            flutter build apk --debug
+          else
+            flutter build apk --release
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bottlecrm-apk-${{ github.event_name == 'workflow_dispatch' && inputs.build_type || 'release' }}
+          path: mobile/build/app/outputs/flutter-apk/*.apk
+          retention-days: 14
+
+  build-appbundle:
+    name: Build App Bundle (Play Store)
+    needs: analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build App Bundle
+        run: flutter build appbundle --release
+
+      - name: Upload App Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bottlecrm-aab-release
+          path: mobile/build/app/outputs/bundle/release/*.aab
+          retention-days: 14
+
+  docker-build:
+    name: Docker Build (Backend)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          tags: bottlecrm-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
