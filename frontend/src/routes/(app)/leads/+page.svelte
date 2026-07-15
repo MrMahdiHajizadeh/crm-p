@@ -1385,9 +1385,17 @@
         if (result.type === 'success') {
           toast.success(successMessage);
           if (shouldCloseDrawer) {
-            await closeDrawer();
+            // Close drawer state locally
+            drawerOpen = false;
+            drawerData = null;
+            // Update URL and refresh data in one atomic goto
+            const url = new URL($page.url);
+            url.searchParams.delete('view');
+            url.searchParams.delete('action');
+            await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+          } else {
+            await invalidateAll();
           }
-          await invalidateAll();
         } else if (result.type === 'failure') {
           toast.error(result.data?.error || 'Operation failed');
         } else if (result.type === 'error') {
