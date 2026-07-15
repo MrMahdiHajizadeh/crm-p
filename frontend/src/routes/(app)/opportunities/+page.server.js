@@ -133,11 +133,15 @@ export async function load({ locals, cookies, url }) {
     }));
 
     // Extract users (profiles) from teams/users response
-    const users = (teamsUsersResponse.profiles || []).map((profile) => ({
-      id: profile.id,
-      name: profile.user_details?.email || profile.email || 'Unknown',
-      email: profile.user_details?.email || profile.email
-    }));
+    const users = (teamsUsersResponse.profiles || []).map((profile) => {
+      const details = profile.user_details || {};
+      const displayName = details.name || details.phone || details.email || profile.email || `User ${profile.id}`;
+      return {
+        id: profile.id,
+        name: displayName,
+        email: details.email || profile.email
+      };
+    });
 
     // Extract teams from teams/users response
     const teams = (teamsUsersResponse.teams || []).map((team) => ({
@@ -182,11 +186,15 @@ export async function load({ locals, cookies, url }) {
         : null,
 
       // Assigned users (multi)
-      assignedTo: (opp.assigned_to || []).map((profile) => ({
-        id: profile.id,
-        name: profile.user_details?.email || profile.email || 'Unknown',
-        email: profile.user_details?.email || profile.email
-      })),
+      assignedTo: (opp.assigned_to || []).map((profile) => {
+        const details = profile.user_details || {};
+        const displayName = details.name || details.phone || details.email || profile.email || 'Unknown';
+        return {
+          id: profile.id,
+          name: displayName,
+          email: details.email || profile.email
+        };
+      }),
 
       // Teams
       teams: (opp.teams || []).map((team) => ({

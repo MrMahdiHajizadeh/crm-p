@@ -22,6 +22,7 @@
     { weekday: 'long', month: 'long', day: 'numeric' }
   ));
 
+  /** @type {any} */
   const recentData = $derived(data.recentData || {});
   const urgentCounts = $derived(data.urgentCounts || {});
   const pipelineByStage = $derived(data.pipelineByStage || {});

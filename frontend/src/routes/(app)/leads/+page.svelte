@@ -3,7 +3,7 @@
   import { enhance, deserialize } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
   import { tick, onMount, untrack } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Plus,
     Phone,
@@ -508,7 +508,7 @@
 
       const users = serverFormOptions.users.map((/** @type {any} */ u) => ({
         value: u.id,
-        label: u.email || u.name || 'Unknown'
+        label: u.name || u.email || 'Unknown'
       }));
 
       const teamsList = serverFormOptions.teams.map((/** @type {any} */ t) => ({

@@ -9,6 +9,8 @@ from common.views.auth_views import (
     MeView,
     OrgAwareTokenRefreshView,
     OrgSwitchView,
+    PhoneCodeRequestView,
+    PhoneCodeVerifyView,
     PhonePasswordLoginView,
 )
 from common.views.custom_field_views import (
@@ -68,6 +70,9 @@ urlpatterns = [
     path("auth/magic-link/request/", MagicLinkRequestView.as_view(), name="magic_link_request"),
     path("auth/magic-link/verify/", MagicLinkVerifyView.as_view(), name="magic_link_verify"),
     path("auth/magic-link/verify-code/", MagicLinkVerifyCodeView.as_view(), name="magic_link_verify_code"),
+    # OTP phone login (SMS)
+    path("auth/request-phone-code/", PhoneCodeRequestView.as_view(), name="request_phone_code"),
+    path("auth/verify-phone-code/", PhoneCodeVerifyView.as_view(), name="verify_phone_code"),
     # Organization and profile management
     path("org/", OrgProfileCreateView.as_view()),
     path("org/settings/", OrgSettingsView.as_view(), name="org_settings"),

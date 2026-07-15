@@ -120,6 +120,53 @@ def send_magic_link_email(token_id, raw_code=None):
 
 
 @shared_task
+def send_otp_sms(phone, code):
+    """Send OTP verification code via sms-webservice.com."""
+    import logging
+    import requests
+    from django.conf import settings
+
+    logger = logging.getLogger(__name__)
+
+    if not settings.SMS_API_KEY:
+        logger.warning("SMS_API_KEY not configured — skipping SMS to %s", phone)
+        return
+
+    text = f"کد تأیید شما در بوتل‌سی‌آرام: {code}\nاین کد تا ۱۰ دقیقه معتبر است."
+
+    try:
+        if settings.SMS_OTP_TEMPLATE:
+            url = f"{settings.SMS_API_BASE_URL}/SendTokenSingle"
+            params = {
+                "ApiKey": settings.SMS_API_KEY,
+                "TemplateKey": settings.SMS_OTP_TEMPLATE,
+                "Destination": phone,
+                "p1": code,
+                "p2": "",
+                "p3": "",
+            }
+        else:
+            url = f"{settings.SMS_API_BASE_URL}/Send"
+            params = {
+                "ApiKey": settings.SMS_API_KEY,
+                "Text": text,
+                "Sender": settings.SMS_SENDER_NUMBER,
+                "Recipients": phone,
+            }
+
+        response = requests.get(url, params=params, timeout=15)
+        data = response.json()
+
+        if data.get("Success"):
+            logger.info("OTP sent to %s: %s", phone, data)
+        else:
+            logger.error("SMS failed for %s: %s", phone, data.get("Error"))
+
+    except Exception as e:
+        logger.error("SMS send error for %s: %s", phone, e)
+
+
+@shared_task
 def send_email_user_mentions(
     comment_id,
     called_from,
@@ -280,7 +327,7 @@ def remove_users(removed_users_list, team_id, org_id=None):
                 for user in users_list:
                     lead.assigned_to.remove(user)
 
-            opportunities = team.oppurtunity_teams.all()
+            opportunities = team.opportunity_teams.all()
             for opportunity in opportunities:
                 for user in users_list:
                     opportunity.assigned_to.remove(user)
@@ -337,7 +384,7 @@ def update_team_users(team_id, org_id=None):
                 if team_member not in lead_assigned_to_users:
                     lead.assigned_to.add(team_member)
 
-        opportunities = team.oppurtunity_teams.all()
+        opportunities = team.opportunity_teams.all()
         for opportunity in opportunities:
             opportunity_assigned_to_users = opportunity.assigned_to.all()
             for team_member in teams_members:

@@ -17,3 +17,7 @@ DATABASES = {
 # Disable Celery broker/result backend in tests (no Redis needed)
 CELERY_BROKER_URL = "memory://"
 CELERY_RESULT_BACKEND = "cache+memory://"
+
+# Run Celery tasks synchronously in tests to avoid needing a running worker + Redis
+CELERY_TASK_ALWAYS_EAGER = True
+CELERY_TASK_EAGER_PROPAGATES = True

@@ -1,7 +1,7 @@
 <script>
   import '../../app.css';
   import { AppShell } from '$lib/components/layout/index.js';
-  import { Toaster } from '$lib/components/ui/sonner/index.js';
+  import Toast from '$lib/components/ui/toast/toast.svelte';
   import { initOrgSettings } from '$lib/stores/org.js';
 
   let { data, children } = $props();
@@ -20,4 +20,4 @@
   </main>
 </AppShell>
 
-<Toaster richColors closeButton position="bottom-right" />
+<Toast />

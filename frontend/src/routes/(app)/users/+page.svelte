@@ -1,7 +1,6 @@
 <script>
-  import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Users,
     UsersRound,
@@ -79,21 +78,15 @@
   let teamDialogOpen = $state(false);
   /** @type {any} */
   let editingTeam = $state(null);
-  let isTeamLoading = $state(false);
 
   // Handle form results
   $effect(() => {
     if (form?.success) {
       if (form.action === 'add_user') {
         toast.success($_('users.member_added'));
-      } else if (form.action === 'create_team') {
-        toast.success($_('users.team_created'));
-        teamDialogOpen = false;
-        editingTeam = null;
-      } else if (form.action === 'update_team') {
-        toast.success($_('users.team_updated'));
-        teamDialogOpen = false;
-        editingTeam = null;
+      } else if (form.action === 'create_team' || form.action === 'update_team') {
+        const msgKey = form.action === 'create_team' ? 'users.team_created' : 'users.team_updated';
+        toast.success($_(msgKey));
       } else if (form.action === 'delete_team') {
         toast.success($_('users.team_deleted'));
       } else if (form.action === 'remove_user') {
@@ -105,7 +98,6 @@
     } else if (form?.error) {
       toast.error(form.error);
     }
-    isTeamLoading = false;
   });
 
   /**
@@ -125,40 +117,7 @@
     teamDialogOpen = true;
   }
 
-  /**
-   * Handle team form submission
-   * @param {{ name: string, description: string, users: string[], teamId?: string }} formData
-   */
-  function handleTeamSubmit(formData) {
-    isTeamLoading = true;
 
-    // Create a hidden form and submit it
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = formData.teamId ? '?/update_team' : '?/create_team';
-    form.style.display = 'none';
-
-    // Add form fields
-    const addField = (/** @type {string} */ name, /** @type {string} */ value) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value;
-      form.appendChild(input);
-    };
-
-    addField('name', formData.name);
-    addField('description', formData.description);
-    if (formData.teamId) {
-      addField('team_id', formData.teamId);
-    }
-    formData.users.forEach((userId) => {
-      addField('users', userId);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
-  }
 
   /**
    * Handle team deletion
@@ -576,6 +535,4 @@
     teamDialogOpen = false;
     editingTeam = null;
   }}
-  onSubmit={handleTeamSubmit}
-  isLoading={isTeamLoading}
 />

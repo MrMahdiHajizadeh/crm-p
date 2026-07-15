@@ -51,11 +51,7 @@ class ContactsListView(APIView, LimitOffsetPagination):
         queryset = self.model.objects.filter(org=self.request.profile.org).order_by(
             "-id"
         )
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            queryset = queryset.filter(
-                Q(assigned_to__in=[self.request.profile])
-                | Q(created_by=self.request.profile.user)
-            ).distinct()
+        # All org members can see all contacts (needed for lead/opportunity linking)
 
         if params:
             if params.get("name"):

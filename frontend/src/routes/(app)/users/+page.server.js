@@ -339,7 +339,9 @@ export const actions = {
       const formData = await request.formData();
       const name = formData.get('name')?.toString().trim();
       const description = formData.get('description')?.toString().trim() || '';
-      const users = formData.getAll('users').map((u) => u.toString());
+      const usersRaw = formData.get('users')?.toString() || '[]';
+      let users;
+      try { users = JSON.parse(usersRaw); } catch { users = []; }
 
       if (!name) {
         return fail(400, { error: 'Team name is required' });
@@ -381,7 +383,9 @@ export const actions = {
       const teamId = formData.get('team_id')?.toString();
       const name = formData.get('name')?.toString().trim();
       const description = formData.get('description')?.toString().trim() || '';
-      const users = formData.getAll('users').map((u) => u.toString());
+      const usersRaw = formData.get('users')?.toString() || '[]';
+      let users;
+      try { users = JSON.parse(usersRaw); } catch { users = []; }
 
       if (!teamId) {
         return fail(400, { error: 'Team ID is required' });

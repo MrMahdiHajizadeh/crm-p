@@ -45,9 +45,9 @@ class TestDomainListView:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_unauthenticated(self, unauthenticated_client):
-        """Unauthenticated user gets PermissionDenied."""
-        with pytest.raises(PermissionDenied):
-            unauthenticated_client.get(self.url)
+        """Unauthenticated user gets 403."""
+        response = unauthenticated_client.get(self.url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db

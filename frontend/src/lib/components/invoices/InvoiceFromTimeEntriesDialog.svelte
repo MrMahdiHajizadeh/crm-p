@@ -54,7 +54,7 @@
 
   async function loadAccounts() {
     try {
-      const res = await fetch('/api/accounts');
+      const res = await fetch('/api/accounts/');
       if (!res.ok) return;
       const body = await res.json();
       accounts =

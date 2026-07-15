@@ -57,7 +57,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if self._state.adding and not self.name:
-            self.name = self.phone or "User"
+            # Derive name from email local-part, then fall back to phone.
+            if self.email:
+                local = self.email.split("@")[0]
+                self.name = local[:255]
+            else:
+                self.name = self.phone or "User"
         super().save(*args, **kwargs)
 
     def __str__(self):

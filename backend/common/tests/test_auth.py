@@ -207,9 +207,9 @@ class TestProfileDetailView:
         assert str(response.data["org"]["id"]) == str(org_a.id)
 
     def test_profile_detail_unauthenticated(self, unauthenticated_client):
-        """Unauthenticated user gets error (401 or PermissionDenied from middleware)."""
-        with pytest.raises((PermissionDenied, Exception)):
-            unauthenticated_client.get(self.url)
+        """Unauthenticated user gets 401."""
+        response = unauthenticated_client.get(self.url)
+        assert response.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
 
 
 # ---------------------------------------------------------------------------

@@ -4,17 +4,37 @@
   import { goto } from '$app/navigation';
   import { _ } from '$lib/i18n';
   import imgLogo from '$lib/assets/images/logo.png';
-  import { ArrowRight, Smartphone, Lock, AlertCircle } from '@lucide/svelte';
+  import { ArrowRight, Smartphone, Lock, AlertCircle, MessageSquareText } from '@lucide/svelte';
 
-  let { form } = $props();
+  let { form, data } = $props();
 
   let isSubmitting = $state(false);
+  let loginMode = $state('password'); // 'password' | 'otp' | 'verify'
+  let otpPhone = $state('');
 
   $effect(() => {
     if (form?.success) {
       goto('/org');
     }
   });
+
+  function switchToOtp() {
+    loginMode = 'otp';
+    otpPhone = '';
+  }
+
+  function switchToPassword() {
+    loginMode = 'password';
+  }
+
+  function handleOtpRequest() {
+    isSubmitting = true;
+    // The form submission is handled by use:enhance
+  }
+
+  function handleOtpVerify() {
+    isSubmitting = true;
+  }
 </script>
 
 <svelte:head>
@@ -30,60 +50,166 @@
     </a>
 
     <div class="login-card">
-      <h1 class="login-title">{$_('login.title')}</h1>
+      <h1 class="login-title">
+        {loginMode === 'password' ? $_('login.title') : 'ورود با رمز یکبار مصرف'}
+      </h1>
 
-      <form method="POST" use:enhance class="login-form">
-        <div class="input-group">
-          <label for="phone" class="input-label">تلفن همراه</label>
-          <div class="input-wrapper">
-            <Smartphone class="input-icon" size={18} />
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              placeholder="مثال: 09120000000"
-              class="text-input"
-              required
-              autocomplete="username"
-              disabled={isSubmitting}
-            />
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label for="password" class="input-label">رمز عبور</label>
-          <div class="input-wrapper">
-            <Lock class="input-icon" size={18} />
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="رمز عبور خود را وارد کنید"
-              class="text-input"
-              required
-              autocomplete="current-password"
-              disabled={isSubmitting}
-            />
-          </div>
-        </div>
-
-        {#if form?.error}
-          <div class="error-box">
-            <AlertCircle size={16} />
-            <span>{form.error}</span>
-          </div>
-        {/if}
-
-        <button type="submit" class="submit-btn" disabled={isSubmitting}>
-          {#if isSubmitting}
-            <span class="spinner"></span>
-            <span>در حال ورود...</span>
-          {:else}
-            <span>ورود</span>
-            <ArrowRight size={18} />
-          {/if}
+      <!-- Tab switcher -->
+      <div class="mode-switcher">
+        <button
+          type="button"
+          class="mode-btn"
+          class:active={loginMode === 'password'}
+          onclick={switchToPassword}
+        >
+          <Lock size={14} />
+          ورود با رمز
         </button>
-      </form>
+        <button
+          type="button"
+          class="mode-btn"
+          class:active={loginMode === 'otp' || loginMode === 'verify'}
+          onclick={switchToOtp}
+        >
+          <MessageSquareText size={14} />
+          رمز یکبار مصرف
+        </button>
+      </div>
+
+      {#if loginMode === 'password'}
+        <form method="POST" use:enhance class="login-form">
+          <div class="input-group">
+            <label for="phone" class="input-label">تلفن همراه</label>
+            <div class="input-wrapper">
+              <Smartphone class="input-icon" size={18} />
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                placeholder="مثال: 09120000000"
+                class="text-input"
+                required
+                autocomplete="username"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="password" class="input-label">رمز عبور</label>
+            <div class="input-wrapper">
+              <Lock class="input-icon" size={18} />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="رمز عبور خود را وارد کنید"
+                class="text-input"
+                required
+                autocomplete="current-password"
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          {#if form?.error}
+            <div class="error-box">
+              <AlertCircle size={16} />
+              <span>{form.error}</span>
+            </div>
+          {/if}
+
+          <button type="submit" class="submit-btn" disabled={isSubmitting}>
+            {#if isSubmitting}
+              <span class="spinner"></span>
+              <span>در حال ورود...</span>
+            {:else}
+              <span>ورود</span>
+              <ArrowRight size={18} />
+            {/if}
+          </button>
+        </form>
+      {:else if loginMode === 'otp'}
+        <form method="POST" action="?/requestOTP" use:enhance class="login-form">
+          <div class="input-group">
+            <label for="otp-phone" class="input-label">تلفن همراه</label>
+            <div class="input-wrapper">
+              <Smartphone class="input-icon" size={18} />
+              <input
+                type="tel"
+                id="otp-phone"
+                name="phone"
+                placeholder="مثال: 09120000000"
+                class="text-input"
+                required
+                autocomplete="username"
+                bind:value={otpPhone}
+                disabled={isSubmitting}
+              />
+            </div>
+          </div>
+
+          {#if form?.error}
+            <div class="error-box">
+              <AlertCircle size={16} />
+              <span>{form.error}</span>
+            </div>
+          {/if}
+
+          {#if form?.success && form?.message === 'Code sent'}
+            <div class="success-box">
+              <span>کد تأیید ارسال شد</span>
+            </div>
+            {#if otpPhone}
+              {@const verifyAction = new URLSearchParams({ phone: otpPhone })}
+              <p class="hint-text">کد ۶ رقمی ارسال شده به شماره {otpPhone} را وارد کنید</p>
+            {/if}
+          {:else}
+            <button type="submit" class="submit-btn" onclick={handleOtpRequest} disabled={isSubmitting}>
+              {#if isSubmitting}
+                <span class="spinner"></span>
+                <span>در حال ارسال...</span>
+              {:else}
+                <span>ارسال کد تأیید</span>
+                <ArrowRight size={18} />
+              {/if}
+            </button>
+          {/if}
+        </form>
+
+        {#if form?.success && form?.message === 'Code sent'}
+          <form method="POST" action="?/verifyOTP" use:enhance class="login-form" style="margin-top: 1rem">
+            <input type="hidden" name="phone" value={otpPhone} />
+            <div class="input-group">
+              <label for="otp-code" class="input-label">کد تأیید</label>
+              <div class="input-wrapper">
+                <MessageSquareText class="input-icon" size={18} />
+                <input
+                  type="text"
+                  id="otp-code"
+                  name="code"
+                  placeholder="۱۲۳۴۵۶"
+                  class="text-input"
+                  required
+                  maxlength="6"
+                  pattern="[0-9]{6}"
+                  autocomplete="one-time-code"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+            <button type="submit" class="submit-btn" disabled={isSubmitting}>
+              {#if isSubmitting}
+                <span class="spinner"></span>
+                <span>در حال ورود...</span>
+              {:else}
+                <span>ورود</span>
+                <ArrowRight size={18} />
+              {/if}
+            </button>
+          </form>
+        {/if}
+      {/if}
     </div>
   </div>
 </div>
@@ -134,6 +260,43 @@
     border-radius: 8px;
     padding: 2.5rem 2rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  .mode-switcher {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    background: #f0f4f8;
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.625rem 0.75rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #516f90;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .mode-btn.active {
+    background: #fff;
+    color: #33475b;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    font-weight: 600;
+  }
+
+  .mode-btn:hover:not(.active) {
+    color: #33475b;
   }
 
   .login-title {
@@ -209,6 +372,26 @@
     border-radius: 6px;
     color: #c0392b;
     font-size: 0.875rem;
+  }
+
+  .success-box {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f0fff4;
+    border: 1px solid #d4ffd4;
+    border-radius: 6px;
+    color: #27ae60;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .hint-text {
+    font-size: 0.8125rem;
+    color: #516f90;
+    text-align: center;
+    margin: 0.5rem 0 0;
   }
 
   .submit-btn {

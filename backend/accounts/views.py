@@ -166,7 +166,7 @@ class AccountsListView(APIView, LimitOffsetPagination):
         context["tags"] = tags
         users = Profile.objects.filter(
             is_active=True, org=self.request.profile.org
-        ).values("id", "user__email")
+        ).values("id", "user__email", "user__name", "user__phone")
         context["users"] = users
         leads = Lead.objects.filter(org=self.request.profile.org).exclude(
             Q(status="converted") | Q(status="closed")

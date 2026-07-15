@@ -175,7 +175,9 @@ export async function load({ locals, url, cookies }) {
     // Extract form options from Django response
     const users = (response.users || []).map((u) => ({
       id: u.id,
-      email: u.user__email
+      email: u.user__email,
+      name: u.user__name || u.user__phone || u.user__email || `User ${u.id}`,
+      phone: u.user__phone
     }));
 
     const allContacts = (response.contacts || []).map((c) => ({

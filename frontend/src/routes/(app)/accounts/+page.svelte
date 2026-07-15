@@ -128,14 +128,14 @@
     },
     {
       key: 'annualRevenue',
-      label: 'Revenue',
+      label: $_('accounts.revenue'),
       type: 'number',
       icon: DollarSign,
       placeholder: '0'
     },
     {
       key: 'currency',
-      label: 'Currency',
+      label: $_('leads.currency'),
       type: 'select',
       icon: Banknote,
       options: currencyOptions,
@@ -143,7 +143,7 @@
     },
     {
       key: 'numberOfEmployees',
-      label: 'Employees',
+      label: $_('accounts.employees'),
       type: 'number',
       icon: Users,
       placeholder: '0'
@@ -155,12 +155,12 @@
       icon: MapPin,
       placeholder: 'Street address'
     },
-    { key: 'city', label: 'City', type: 'text', placeholder: 'City' },
-    { key: 'state', label: 'State', type: 'text', placeholder: 'State/Province' },
-    { key: 'postcode', label: 'Postal Code', type: 'text', placeholder: 'Postal code' },
+    { key: 'city', label: $_('leads.city'), type: 'text', placeholder: 'City' },
+    { key: 'state', label: $_('leads.state'), type: 'text', placeholder: 'State/Province' },
+    { key: 'postcode', label: $_('leads.postal_code'), type: 'text', placeholder: 'Postal code' },
     {
       key: 'country',
-      label: 'Country',
+      label: $_('leads.country'),
       type: 'select',
       options: countryOptions,
       placeholder: 'Select country'
@@ -178,16 +178,16 @@
   const columns = [
     {
       key: 'name',
-      label: 'Account',
+      label: 'common.name',
       type: 'text',
       width: 'w-60',
       canHide: false,
       emptyText: 'Untitled'
     },
-    { key: 'industry', label: $_('accounts.industry'), type: 'text', width: 'w-40', emptyText: '' },
+    { key: 'industry', label: 'accounts.industry', type: 'text', width: 'w-40', emptyText: '' },
     {
       key: 'annualRevenue',
-      label: 'Revenue',
+      label: 'accounts.revenue',
       type: 'number',
       width: 'w-32',
       format: (value, row) => formatCurrency(value, row?.currency || 'USD', true)
@@ -254,7 +254,9 @@
   const pagination = $derived(data.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 });
 
   // M2M options from API
-  const userOptions = $derived((data.users || []).map((u) => ({ value: u.id, label: u.email })));
+  const userOptions = $derived(
+    (data.users || []).map((u) => ({ value: u.id, label: u.name || u.email || `User ${u.id}` }))
+  );
   const contactOptions = $derived(
     (data.contacts || []).map((c) => ({ value: c.id, label: c.name }))
   );
@@ -280,7 +282,7 @@
     },
     {
       key: 'contacts',
-      label: 'Contacts',
+      label: $_('contacts.title'),
       type: 'multiselect',
       icon: Contact,
       options: contactOptions,

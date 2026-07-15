@@ -856,3 +856,177 @@ class MagicLinkVerifyCodeView(APIView):
                 "name": default_org.name,
             }
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class PhoneCodeRequestView(APIView):
+    """Request a 6-digit OTP code via SMS for phone login/register."""
+
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request):
+        from common.models import MagicLinkToken
+        from common.tasks import send_otp_sms
+
+        phone = request.data.get("phone", "").strip()
+        if not phone:
+            return Response(
+                {"error": "Phone number is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Normalize phone: remove leading 0, add 98 prefix
+        if phone.startswith("0"):
+            phone = "98" + phone[1:]
+        elif not phone.startswith("98"):
+            phone = "98" + phone
+
+        # Rate limit: max 5 per phone per hour
+        one_hour_ago = timezone.now() - timedelta(hours=1)
+        recent_count = MagicLinkToken.objects.filter(
+            email=phone, created_at__gte=one_hour_ago
+        ).count()
+        if recent_count >= 5:
+            return Response(
+                {"message": "If this number is valid, you will receive a code."},
+                status=status.HTTP_200_OK,
+            )
+
+        # Invalidate any existing unused tokens for this phone
+        MagicLinkToken.objects.filter(email=phone, is_used=False).update(is_used=True)
+
+        # Generate 6-digit OTP
+        raw_code = f"{secrets.randbelow(10**6):06d}"
+        code_hash = make_password(raw_code)
+
+        MagicLinkToken.objects.create(
+            email=phone,
+            token=secrets.token_hex(32),
+            delivery="code",
+            code_hash=code_hash,
+            expires_at=timezone.now() + timedelta(minutes=10),
+            ip_address=request.META.get("REMOTE_ADDR"),
+        )
+
+        # Send SMS via Celery
+        try:
+            send_otp_sms.delay(phone, raw_code)
+        except Exception as e:
+            logger.warning("Failed to queue SMS task: %s", e)
+
+        return Response(
+            {"message": "If this number is valid, you will receive a code."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PhoneCodeVerifyView(APIView):
+    """Verify a 6-digit OTP code sent via SMS and return JWT tokens."""
+
+    permission_classes = []
+    authentication_classes = []
+
+    MAX_ATTEMPTS = 5
+
+    def post(self, request):
+        from django.contrib.auth.hashers import check_password
+        from django.db import transaction
+        from common.audit_log import audit_log
+        from common.models import MagicLinkToken
+
+        phone = request.data.get("phone", "").strip()
+        code = request.data.get("code", "").strip()
+
+        if not phone or not code:
+            return Response(
+                {"error": "Phone and code are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Normalize phone
+        if phone.startswith("0"):
+            phone = "98" + phone[1:]
+        elif not phone.startswith("98"):
+            phone = "98" + phone
+
+        invalid = Response(
+            {"error": "Invalid or expired code"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+        with transaction.atomic():
+            token_obj = (
+                MagicLinkToken.objects.select_for_update()
+                .filter(
+                    email=phone,
+                    delivery="code",
+                    is_used=False,
+                    expires_at__gt=timezone.now(),
+                )
+                .order_by("-created_at")
+                .first()
+            )
+
+            if not token_obj:
+                return invalid
+
+            if token_obj.attempts >= self.MAX_ATTEMPTS:
+                token_obj.is_used = True
+                token_obj.save(update_fields=["is_used"])
+                return Response(
+                    {"error": "Too many attempts. Please request a new code."},
+                    status=status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+
+            if not check_password(code, token_obj.code_hash):
+                token_obj.attempts += 1
+                token_obj.save(update_fields=["attempts"])
+                return invalid
+
+            token_obj.is_used = True
+            token_obj.used_at = timezone.now()
+            token_obj.save(update_fields=["is_used", "used_at"])
+
+        # Find or create user by phone
+        user, created = User.objects.get_or_create(
+            phone=phone,
+            defaults={
+                "email": f"user_{phone}@botlecrm.app",
+                "is_active": True,
+            },
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save(update_fields=["password"])
+
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
+
+        profiles = Profile.objects.filter(user=user, is_active=True)
+        default_org = None
+        profile = None
+        if profiles.exists():
+            profile = profiles.first()
+            default_org = profile.org
+
+        if default_org:
+            token = OrgAwareRefreshToken.for_user_and_org(user, default_org, profile)
+        else:
+            token = OrgAwareRefreshToken.for_user_and_org(user, None)
+
+        audit_log.login_success(user, default_org, request)
+
+        user_serializer = serializer.UserDetailSerializer(user)
+        response_data = {
+            "access_token": str(token.access_token),
+            "refresh_token": str(token),
+            "user": user_serializer.data,
+        }
+        if default_org:
+            response_data["current_org"] = {
+                "id": str(default_org.id),
+                "name": default_org.name,
+            }
+
+        return Response(response_data, status=status.HTTP_200_OK)

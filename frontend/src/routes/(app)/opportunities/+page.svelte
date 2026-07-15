@@ -3,7 +3,7 @@
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { onMount, tick } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Plus,
     Eye,
@@ -132,7 +132,7 @@
   const columns = [
     {
       key: 'name',
-      label: 'Opportunity',
+      label: 'common.name',
       type: 'text',
       width: 'w-48',
       canHide: false,
@@ -141,7 +141,7 @@
     },
     {
       key: 'account',
-      label: 'Account',
+      label: 'common.account',
       type: 'relation',
       width: 'w-40',
       relationIcon: 'building',
@@ -307,19 +307,19 @@
 
   // Drawer column definitions for CrmDrawer (derived since some options come from data)
   const drawerColumns = $derived([
-    { key: 'name', label: 'common.name', type: 'text' },
+    { key: 'name', label: $_('common.name'), type: 'text' },
     // Account field: readonly when pre-filled from URL, select otherwise
     accountFromUrl
       ? {
           key: 'account',
-          label: 'common.account',
+          label: $_('common.account'),
           type: 'readonly',
           icon: Building2,
           getValue: () => accountName || 'Loading...'
         }
       : {
           key: 'account',
-          label: 'common.account',
+          label: $_('common.account'),
           type: 'select',
           icon: Building2,
           options: accountOptions,
@@ -327,14 +327,14 @@
         },
     {
       key: 'stage',
-      label: 'opportunities.stage',
+      label: $_('opportunities.stage'),
       type: 'select',
       icon: Target,
       options: stageOptions
     },
     {
       key: 'opportunityType',
-      label: 'Type',
+      label: $_('opportunities.type'),
       type: 'select',
       icon: Briefcase,
       options: typeOptions,
@@ -342,14 +342,14 @@
     },
     {
       key: 'amount',
-      label: 'opportunities.amount',
+      label: $_('opportunities.amount'),
       type: 'number',
       icon: DollarSign,
       placeholder: '0'
     },
     {
       key: 'currency',
-      label: 'opportunities.currency',
+      label: $_('opportunities.currency'),
       type: 'select',
       icon: Banknote,
       options: currencyOptions,
@@ -357,20 +357,20 @@
     },
     {
       key: 'probability',
-      label: 'opportunities.probability',
+      label: $_('opportunities.probability'),
       type: 'number',
       icon: Percent,
       placeholder: '0'
     },
     {
       key: 'closedOn',
-      label: 'opportunities.close_date',
+      label: $_('opportunities.close_date'),
       type: 'date',
       icon: Calendar
     },
     {
       key: 'leadSource',
-      label: 'opportunities.lead_source',
+      label: $_('opportunities.lead_source'),
       type: 'select',
       icon: Globe,
       options: sourceOptions,
@@ -378,7 +378,7 @@
     },
     {
       key: 'contacts',
-      label: 'Contacts',
+      label: $_('common.contacts'),
       type: 'multiselect',
       icon: Contact,
       options: contactOptions,
@@ -386,7 +386,7 @@
     },
     {
       key: 'assignedTo',
-      label: 'common.assigned_to',
+      label: $_('common.assigned_to'),
       type: 'multiselect',
       icon: Users,
       options: userOptions,
@@ -394,7 +394,7 @@
     },
     {
       key: 'teams',
-      label: 'common.teams',
+      label: $_('common.teams'),
       type: 'multiselect',
       icon: Users,
       options: teamOptions,
@@ -402,7 +402,7 @@
     },
     {
       key: 'tags',
-      label: 'common.tags',
+      label: $_('common.tags'),
       type: 'multiselect',
       icon: Tags,
       options: tagOptions,
@@ -410,7 +410,7 @@
     },
     {
       key: 'description',
-      label: 'Notes',
+      label: $_('common.notes'),
       type: 'textarea',
       icon: FileText,
       placeholder: 'Add notes...'

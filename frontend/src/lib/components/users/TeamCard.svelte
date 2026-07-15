@@ -5,44 +5,18 @@
   import * as AlertDialog from '$lib/components/ui/alert-dialog/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { getInitials } from '$lib/utils/formatting.js';
+  import { _ } from '$lib/i18n';
 
-  /**
-   * @typedef {Object} TeamMember
-   * @property {string} id
-   * @property {Object} [user_details]
-   * @property {string} [user_details.email]
-   * @property {string} [user_details.profile_pic]
-   */
-
-  /**
-   * @typedef {Object} Team
-   * @property {string} id
-   * @property {string} name
-   * @property {string} [description]
-   * @property {TeamMember[]} [users]
-   * @property {string} [created_at]
-   */
-
-  /**
-   * @type {{
-   *   team: Team,
-   *   onEdit?: (team: Team) => void,
-   *   onDelete?: (teamId: string) => void,
-   *   maxAvatars?: number
-   * }}
-   */
   let { team, onEdit, onDelete, maxAvatars = 4 } = $props();
 
   const members = $derived(team.users || []);
   const displayMembers = $derived(members.slice(0, maxAvatars));
   const remainingCount = $derived(members.length > maxAvatars ? members.length - maxAvatars : 0);
 
-  /** @param {TeamMember} member */
   function getMemberName(member) {
-    return member.user_details?.email?.split('@')[0] || 'User';
+    return member.user_details?.name || member.user_details?.phone || member.user_details?.email?.split('@')[0] || $_('users.unknown_user');
   }
 
-  /** @param {TeamMember} member */
   function getMemberAvatar(member) {
     return member.user_details?.profile_pic || '';
   }
@@ -61,7 +35,7 @@
           {team.name}
         </h3>
         <p class="text-[12px] text-[color:var(--text-muted)]">
-          {members.length} member{members.length !== 1 ? 's' : ''}
+          {members.length} {$_('users.member')}{members.length !== 1 ? 's' : ''}
         </p>
       </div>
     </div>
@@ -80,15 +54,14 @@
         </AlertDialog.Trigger>
         <AlertDialog.Content>
           <AlertDialog.Header>
-            <AlertDialog.Title>Delete Team</AlertDialog.Title>
+            <AlertDialog.Title>{$_('users.team_card_delete_title')}</AlertDialog.Title>
             <AlertDialog.Description>
-              Are you sure you want to delete <strong>{team.name}</strong>? This will remove the team
-              from all assigned records. This action cannot be undone.
+              {$_('users.team_card_delete_desc_before')} <strong>{team.name}</strong>{$_('users.team_card_delete_desc_after')}
             </AlertDialog.Description>
           </AlertDialog.Header>
           <AlertDialog.Footer>
-            <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-            <Button variant="destructive" onclick={() => onDelete?.(team.id)}>Delete</Button>
+            <AlertDialog.Cancel>{$_('common.cancel')}</AlertDialog.Cancel>
+            <Button variant="destructive" onclick={() => onDelete?.(team.id)}>{$_('users.team_card_delete_confirm')}</Button>
           </AlertDialog.Footer>
         </AlertDialog.Content>
       </AlertDialog.Root>
@@ -122,7 +95,7 @@
       {/if}
     </div>
     {#if members.length === 0}
-      <span class="text-muted-foreground text-sm italic">No members assigned</span>
+      <span class="text-muted-foreground text-sm italic">{ $_('users.team_card_no_members') }</span>
     {/if}
   </div>
 </SectionCard>

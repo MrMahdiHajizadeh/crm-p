@@ -350,3 +350,9 @@ SWAGGER_ROOT_URL = os.environ.get("SWAGGER_ROOT_URL", "http://localhost:8000")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")
+
+# SMS Configuration (sms-webservice.com)
+SMS_API_KEY = os.environ.get("SMS_API_KEY", "")
+SMS_SENDER_NUMBER = os.environ.get("SMS_SENDER_NUMBER", "9850004075016142")
+SMS_API_BASE_URL = os.environ.get("SMS_API_BASE_URL", "http://api.sms-webservice.com/api/V3")
+SMS_OTP_TEMPLATE = os.environ.get("SMS_OTP_TEMPLATE", "")  # Optional template key

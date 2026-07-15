@@ -226,23 +226,26 @@
             No matches for "{query}"
           </div>
         {:else}
-          <DropdownMenu.CheckboxGroup value={value}>
-            {#each filteredOptions as opt (opt.id)}
-              <DropdownMenu.CheckboxItem
-                checked={value.includes(opt.id)}
-                onCheckedChange={() => toggleOption(opt.id)}
-                closeOnSelect={false}
-                class=""
-              >
-                <div class="flex flex-col">
-                  <span>{opt.name}</span>
-                  {#if opt.email && opt.email !== opt.name}
-                    <span class="text-muted-foreground text-xs">{opt.email}</span>
-                  {/if}
-                </div>
-              </DropdownMenu.CheckboxItem>
-            {/each}
-          </DropdownMenu.CheckboxGroup>
+          {#each filteredOptions as opt (opt.id)}
+            <DropdownMenu.CheckboxItem
+              checked={value.includes(opt.id)}
+              onCheckedChange={() => {
+                const newValue = value.includes(opt.id)
+                  ? value.filter((v) => v !== opt.id)
+                  : [...value, opt.id];
+                onchange?.(newValue);
+              }}
+              closeOnSelect={false}
+              class=""
+            >
+              <div class="flex flex-col">
+                <span>{opt.name}</span>
+                {#if opt.email && opt.email !== opt.name}
+                  <span class="text-muted-foreground text-xs">{opt.email}</span>
+                {/if}
+              </div>
+            </DropdownMenu.CheckboxItem>
+          {/each}
         {/if}
       </div>
     </DropdownMenu.Content>

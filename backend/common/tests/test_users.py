@@ -23,8 +23,8 @@ class TestUsersListView:
         assert "active_users" in response.data
 
     def test_list_users_unauthenticated(self, unauthenticated_client):
-        with pytest.raises(PermissionDenied):
-            unauthenticated_client.get(self.url)
+        response = unauthenticated_client.get(self.url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_list_users_no_cross_org_leak(
         self, org_b_client, admin_user, admin_profile
@@ -79,15 +79,15 @@ class TestUsersListView:
         assert all(r == "ADMIN" for r in roles)
 
     def test_create_user_validation_error(self, admin_client, org_a):
-        """Creating user with duplicate email returns 400."""
+        """Creating user with duplicate phone returns 400."""
         # First create a user that exists
         from common.models import User
 
-        User.objects.create_user(email="existing@test.com", password="pass123")
+        User.objects.create_user(email="existing@test.com", password="pass123", phone="+1111111111")
         from common.models import Profile as ProfileModel
 
         ProfileModel.objects.create(
-            user=User.objects.get(email="existing@test.com"),
+            user=User.objects.get(phone="+1111111111"),
             org=org_a,
             role="USER",
             is_active=True,
@@ -126,18 +126,18 @@ class TestUsersListView:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_create_user_minimal_payload(self, admin_client, org_a):
-        """Admin can create a user with just email and role."""
+        """Admin can create a user with phone and role."""
         response = admin_client.post(
             self.url,
             {
-                "email": "new-member@test.com",
+                "phone": "+1999888777",
                 "role": "USER",
             },
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED
         assert Profile.objects.filter(
-            user__email="new-member@test.com", org=org_a
+            user__phone="+1999888777", org=org_a
         ).exists()
 
 

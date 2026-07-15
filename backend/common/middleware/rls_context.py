@@ -115,6 +115,8 @@ class RequireOrgContext:
         "/api/auth/magic-link/request/",
         "/api/auth/magic-link/verify/",
         "/api/auth/magic-link/verify-code/",
+        "/api/auth/request-phone-code/",
+        "/api/auth/verify-phone-code/",
         "/api/org/",
         "/admin/",
         "/swagger-ui/",

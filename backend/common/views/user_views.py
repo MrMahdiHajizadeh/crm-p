@@ -156,11 +156,7 @@ class UsersListView(APIView, LimitOffsetPagination):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
-            return Response(
-                {"error": True, "errors": "Permission Denied"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # All authenticated org members can list users (needed for assignment dropdowns)
         queryset = Profile.objects.filter(org=request.profile.org).order_by("-id")
         params = request.query_params
         if params:
@@ -312,7 +308,7 @@ class UserDetailView(APIView):
         serializer = CreateUserSerializer(
             data=params, instance=profile.user, org=request.profile.org
         )
-        address_serializer = BillingAddressSerializer(data=params, instance=address_obj)
+        address_serializer = BillingAddressSerializer(data=params, instance=address_obj, partial=True)
         profile_serializer = CreateProfileSerializer(data=params, instance=profile)
         data = {}
         if not serializer.is_valid():

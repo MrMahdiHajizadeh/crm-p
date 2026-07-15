@@ -10,15 +10,17 @@ class TestUserNameAutoFill:
     """User.save() / UserManager.create_user() set name from email-local-part."""
 
     def test_create_user_without_name_falls_back_to_email_prefix(self):
-        user = User.objects.create(email="aswin.1231@example.com")
+        user = User.objects.create(email="aswin.1231@example.com", phone="+000-aswin")
         assert user.name == "aswin.1231"
 
     def test_create_user_with_explicit_name_is_preserved(self):
-        user = User.objects.create(email="x@example.com", name="Alex Carter")
+        user = User.objects.create(email="x@example.com", name="Alex Carter", phone="+000-x")
         assert user.name == "Alex Carter"
 
     def test_get_or_create_falls_back_when_creating(self):
-        user, created = User.objects.get_or_create(email="foo.bar@example.com")
+        user, created = User.objects.get_or_create(
+            email="foo.bar@example.com", defaults={"phone": "+000-foobar"}
+        )
         assert created is True
         assert user.name == "foo.bar"
 
@@ -28,7 +30,7 @@ class TestUserNameAutoFill:
 
     def test_subsequent_save_does_not_overwrite_cleared_name(self):
         """If a user PATCHes name to "", the next save() must keep it empty."""
-        user = User.objects.create(email="keep.empty@example.com")
+        user = User.objects.create(email="keep.empty@example.com", phone="+000-keepempty")
         assert user.name == "keep.empty"  # auto-filled on creation
         user.name = ""
         user.save()
@@ -37,5 +39,7 @@ class TestUserNameAutoFill:
 
     def test_long_email_local_part_is_truncated_to_255(self):
         long_local = "a" * 300
-        user = User.objects.create(email=f"{long_local}@example.com")
+        user = User.objects.create(
+            email=f"{long_local}@example.com", phone="+000-long"
+        )
         assert len(user.name) == 255

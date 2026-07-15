@@ -2,7 +2,6 @@
   import { _ } from '$lib/i18n';
   import { AlertCircle, Calendar, Phone, Flame, Zap } from '@lucide/svelte';
 
-  /** @type {Props} */
   let { overdueCount = 0, todayCount = 0, followupsCount = 0, hotLeadsCount = 0 } = $props();
 
   const items = $derived([

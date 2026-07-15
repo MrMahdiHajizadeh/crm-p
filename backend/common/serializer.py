@@ -436,7 +436,10 @@ class CreateUserSerializer(serializers.ModelSerializer):
     def validate_email(self, email):
         if email:
             email = email.lower()
-            if Profile.objects.filter(user__email=email, org=self.org).exists():
+            qs = Profile.objects.filter(user__email=email, org=self.org)
+            if self.instance:
+                qs = qs.exclude(user=self.instance)
+            if qs.exists():
                 raise serializers.ValidationError("Email already exists")
         return email
 
@@ -815,8 +818,12 @@ class ActivityUserSerializer(serializers.Serializer):
 
     @extend_schema_field(str)
     def get_name(self, obj):
-        """Get display name from email"""
-        return obj.user.email.split("@")[0]
+        """Get display name from email or user name"""
+        if obj.user.name:
+            return obj.user.name
+        if obj.user.email:
+            return obj.user.email.split("@")[0]
+        return obj.user.phone or f"User {obj.user.id}"
 
 
 class ActivitySerializer(serializers.ModelSerializer):

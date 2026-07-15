@@ -35,6 +35,9 @@ class GetProfileAndOrg:
             "/api/auth/phone-login/",
             "/api/auth/magic-link/request/",
             "/api/auth/magic-link/verify/",
+            "/api/auth/magic-link/verify-code/",
+            "/api/auth/request-phone-code/",
+            "/api/auth/verify-phone-code/",
         ]
         if request.path in auth_skip_paths:
             return

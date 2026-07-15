@@ -186,59 +186,59 @@
       ? [
           {
             key: 'accountDisplay',
-            label: 'common.account',
+            label: $_('common.account'),
             type: 'readonly',
             icon: Building2,
             getValue: () => accountName || 'Loading...'
           }
         ]
       : []),
-    { key: 'firstName', label: 'common.first_name', type: 'text', icon: User, placeholder: 'First name' },
-    { key: 'lastName', label: 'common.last_name', type: 'text', placeholder: 'Last name' },
-    { key: 'email', label: 'common.email', type: 'email', icon: Mail, placeholder: 'email@example.com' },
-    { key: 'phone', label: 'common.phone', type: 'text', icon: Phone, placeholder: '+1 (555) 000-0000' },
+    { key: 'firstName', label: $_('common.first_name'), type: 'text', icon: User, placeholder: 'First name' },
+    { key: 'lastName', label: $_('common.last_name'), type: 'text', placeholder: 'Last name' },
+    { key: 'email', label: $_('common.email'), type: 'email', icon: Mail, placeholder: 'email@example.com' },
+    { key: 'phone', label: $_('common.phone'), type: 'text', icon: Phone, placeholder: '+1 (555) 000-0000' },
     {
       key: 'organization',
-      label: 'common.company',
+      label: $_('common.company'),
       type: 'text',
       icon: Building2,
       placeholder: 'Company name'
     },
-    { key: 'title', label: 'contacts.job_title', type: 'text', icon: Briefcase, placeholder: 'Job title' },
-    { key: 'department', label: 'contacts.department', type: 'text', placeholder: 'Department' },
+    { key: 'title', label: $_('contacts.job_title'), type: 'text', icon: Briefcase, placeholder: 'Job title' },
+    { key: 'department', label: $_('contacts.department'), type: 'text', placeholder: 'Department' },
     {
       key: 'doNotCall',
-      label: 'contacts.do_not_call',
+      label: $_('contacts.do_not_call'),
       type: 'checkbox',
       icon: PhoneOff
     },
     {
       key: 'linkedInUrl',
-      label: 'common.linkedin',
+      label: $_('common.linkedin'),
       type: 'text',
       icon: Linkedin,
       placeholder: 'https://linkedin.com/in/...'
     },
     {
       key: 'addressLine',
-      label: 'common.address',
+      label: $_('common.address'),
       type: 'text',
       icon: MapPin,
       placeholder: 'Street address'
     },
-    { key: 'city', label: 'common.city', type: 'text', placeholder: 'City' },
-    { key: 'state', label: 'common.state', type: 'text', placeholder: 'State/Province' },
-    { key: 'postcode', label: 'common.postal_code', type: 'text', placeholder: 'Postal code' },
+    { key: 'city', label: $_('common.city'), type: 'text', placeholder: 'City' },
+    { key: 'state', label: $_('common.state'), type: 'text', placeholder: 'State/Province' },
+    { key: 'postcode', label: $_('common.postal_code'), type: 'text', placeholder: 'Postal code' },
     {
       key: 'country',
-      label: 'common.country',
+      label: $_('common.country'),
       type: 'select',
       options: countryOptions,
       placeholder: 'Select country'
     },
     {
       key: 'tags',
-      label: 'common.tags',
+      label: $_('common.tags'),
       type: 'multiselect',
       icon: Tag,
       options: allTags.map((/** @type {any} */ t) => ({ id: t.id, name: t.name })),
@@ -246,7 +246,7 @@
     },
     {
       key: 'description',
-      label: 'common.notes',
+      label: $_('common.notes'),
       type: 'textarea',
       icon: FileText,
       placeholder: 'Add notes about this contact...'

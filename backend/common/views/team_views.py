@@ -69,14 +69,7 @@ class TeamsListView(APIView, LimitOffsetPagination):
         },
     )
     def get(self, *args, **kwargs):
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            return Response(
-                {
-                    "error": True,
-                    "errors": "You don't have permission to perform this action.",
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        # All authenticated org members can list teams (needed for assignment dropdowns)
         context = self.get_context_data(**kwargs)
         return Response(context)
 
