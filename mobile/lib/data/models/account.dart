@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
 import 'comment.dart';
 import 'attachment.dart';
-import 'lookup_models.dart';
 
 /// Industry choices matching backend INDCHOICES
 enum AccountIndustry {

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../core/theme/theme.dart';
 import '../../data/models/invoice.dart';
 import '../../providers/invoices_provider.dart';
-import '../../widgets/common/common.dart';
 
 /// Invoice detail screen
 class InvoiceDetailScreen extends ConsumerStatefulWidget {
@@ -131,7 +129,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: _statusColor(inv.status.value).withOpacity(0.15),
+                      color: _statusColor(inv.status.value).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(

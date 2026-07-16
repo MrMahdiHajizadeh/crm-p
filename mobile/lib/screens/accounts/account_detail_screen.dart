@@ -6,8 +6,6 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/account.dart';
 import '../../providers/accounts_provider.dart';
-import '../../widgets/common/common.dart';
-
 /// Account detail screen
 class AccountDetailScreen extends ConsumerStatefulWidget {
   final String accountId;
@@ -88,6 +86,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
   }
 
   void _confirmDelete() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -175,7 +174,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
           // Address
           _section(theme, 'Address', [
             _infoRow(theme, LucideIcons.mapPin, 'Street', a.addressLine ?? '—'),
-            _infoRow(theme, LucideIcons.city, 'City', a.city ?? '—'),
+            _infoRow(theme, LucideIcons.mapPin, 'City', a.city ?? '—'),
             _infoRow(theme, LucideIcons.map, 'State', a.state ?? '—'),
             _infoRow(theme, LucideIcons.mail, 'Postcode', a.postcode ?? '—'),
             _infoRow(theme, LucideIcons.flag, 'Country', a.country ?? '—'),

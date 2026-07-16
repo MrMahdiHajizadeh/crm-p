@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../core/theme/theme.dart';
 import '../../providers/accounts_provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../widgets/common/common.dart';
 
 /// Accounts list screen
 class AccountsListScreen extends ConsumerStatefulWidget {
@@ -45,7 +41,6 @@ class _AccountsListScreenState extends ConsumerState<AccountsListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accountsAsync = ref.watch(accountsProvider);
-    final authState = ref.watch(authProvider);
 
     return Scaffold(
       appBar: AppBar(

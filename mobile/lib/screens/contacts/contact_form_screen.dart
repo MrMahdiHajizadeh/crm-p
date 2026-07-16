@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/contact.dart';
 import '../../providers/contacts_provider.dart';
-import '../../providers/lookup_provider.dart';
+import '../../providers/lookup_provider.dart' hide contactsProvider;
 import '../../widgets/common/common.dart';
 
 /// Contact create/edit form screen

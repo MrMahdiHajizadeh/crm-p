@@ -82,6 +82,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
   }
 
   void _confirmDelete() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -176,7 +177,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
           _section(theme, 'Address', [
             _infoRow(theme, LucideIcons.mapPin, 'Street',
                 c.addressLine ?? '—'),
-            _infoRow(theme, LucideIcons.city, 'City', c.city ?? '—'),
+            _infoRow(theme, LucideIcons.mapPin, 'City', c.city ?? '—'),
             _infoRow(theme, LucideIcons.map, 'State', c.state ?? '—'),
             _infoRow(theme, LucideIcons.mail, 'Postcode',
                 c.postcode ?? '—'),

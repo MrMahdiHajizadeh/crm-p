@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../core/theme/theme.dart';
 import '../../providers/invoices_provider.dart';
-import '../../widgets/common/common.dart';
 
 /// Invoices list screen
 class InvoicesListScreen extends ConsumerStatefulWidget {
@@ -124,7 +122,7 @@ class _InvoicesListScreenState extends ConsumerState<InvoicesListScreen> {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: _statusColor(invoice.status.value)
-                          .withOpacity(0.15),
+                          .withValues(alpha: 0.15),
                       child: Icon(
                         invoice.status.icon,
                         color: _statusColor(invoice.status.value),
@@ -157,7 +155,7 @@ class _InvoicesListScreenState extends ConsumerState<InvoicesListScreen> {
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: _statusColor(invoice.status.value)
-                                    .withOpacity(0.15),
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
