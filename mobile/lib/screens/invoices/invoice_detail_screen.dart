@@ -153,7 +153,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
             _infoRow(
                 theme, LucideIcons.mail, 'Email', inv.clientEmail),
             if (inv.accountName != null)
-              _infoRow(theme, LucideIcons.building2, 'Account',
+              _infoRow(theme, LucideIcons.building_2, 'Account',
                   inv.accountName!),
           ]),
           const SizedBox(height: 16),
@@ -186,7 +186,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
             _infoRow(theme, LucideIcons.calendar, 'Issue Date',
                 dateFormat.format(inv.issueDate)),
             if (inv.dueDate != null)
-              _infoRow(theme, LucideIcons.calendarDays, 'Due Date',
+              _infoRow(theme, LucideIcons.calendar_days, 'Due Date',
                   dateFormat.format(inv.dueDate!)),
             if (inv.isOverdue)
               Padding(

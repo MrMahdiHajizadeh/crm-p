@@ -434,12 +434,12 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
               formatButtonVisible: false,
               titleTextStyle: AppTypography.h3,
               leftChevronIcon: Icon(
-                LucideIcons.chevronLeft,
+                LucideIcons.chevron_left,
                 size: 22,
                 color: AppColors.textSecondary,
               ),
               rightChevronIcon: Icon(
-                LucideIcons.chevronRight,
+                LucideIcons.chevron_right,
                 size: 22,
                 color: AppColors.textSecondary,
               ),
@@ -657,7 +657,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                LucideIcons.calendarCheck,
+                LucideIcons.calendar_check,
                 size: 28,
                 color: AppColors.gray400,
               ),
@@ -701,7 +701,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isFiltered ? LucideIcons.search : LucideIcons.check_circle2,
+                isFiltered ? LucideIcons.search : LucideIcons.check_circle_2,
                 size: 40,
                 color: AppColors.success600,
               ),
@@ -1009,7 +1009,7 @@ class _TaskFilterChip extends StatelessWidget {
             ),
             const SizedBox(width: 3),
             Icon(
-              LucideIcons.chevronDown,
+              LucideIcons.chevron_down,
               size: 13,
               color: isActive ? AppColors.primary700 : AppColors.textTertiary,
             ),

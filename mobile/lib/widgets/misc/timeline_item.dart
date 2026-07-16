@@ -147,7 +147,7 @@ class TimelineItem extends StatelessWidget {
       case ActivityType.stageChange:
         return LucideIcons.arrow_right;
       case ActivityType.taskCompleted:
-        return LucideIcons.check_circle2;
+        return LucideIcons.check_circle_2;
       case ActivityType.dealCreated:
         return LucideIcons.plus;
       case ActivityType.dealWon:

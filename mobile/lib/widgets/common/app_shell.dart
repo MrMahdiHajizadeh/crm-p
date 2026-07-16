@@ -27,7 +27,7 @@ class _NavBranch {
 const _navBranches = <_NavBranch>[
   _NavBranch(
     label: 'Home',
-    icon: LucideIcons.layoutDashboard,
+    icon: LucideIcons.layout_dashboard,
     branches: [0],
   ),
   _NavBranch(label: 'Leads', icon: LucideIcons.users, branches: [1]),
@@ -35,7 +35,7 @@ const _navBranches = <_NavBranch>[
   _NavBranch(label: 'Tickets', icon: LucideIcons.ticket, branches: [3]),
   _NavBranch(
     label: 'More',
-    icon: LucideIcons.moreHorizontal,
+    icon: LucideIcons.more_horizontal,
     branches: [5, 4],
     opensSheet: true,
   ),
@@ -151,7 +151,7 @@ class _MoreSheet extends ConsumerWidget {
             ),
           const Divider(height: 1),
           _SheetItem(
-            icon: LucideIcons.checkSquare,
+            icon: LucideIcons.check_square,
             label: 'Tasks',
             onTap: () {
               Navigator.pop(context);
@@ -167,7 +167,7 @@ class _MoreSheet extends ConsumerWidget {
             },
           ),
           _SheetItem(
-            icon: LucideIcons.logOut,
+            icon: LucideIcons.log_out,
             label: 'Sign out',
             destructive: true,
             onTap: () => _confirmSignOut(context, ref),
@@ -242,7 +242,7 @@ class _SheetItem extends StatelessWidget {
             ),
             if (!destructive)
               Icon(
-                LucideIcons.chevronRight,
+                LucideIcons.chevron_right,
                 size: 18,
                 color: AppColors.textTertiary,
               ),

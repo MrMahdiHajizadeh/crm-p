@@ -706,7 +706,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
-                      LucideIcons.plusCircle,
+                      LucideIcons.plus_circle,
                       color: AppColors.success600,
                       size: 20,
                     ),
@@ -727,7 +727,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
-                      LucideIcons.checkSquare,
+                      LucideIcons.check_square,
                       color: AppColors.warning600,
                       size: 20,
                     ),

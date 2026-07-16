@@ -144,7 +144,7 @@ class _ContactsListScreenState extends ConsumerState<ContactsListScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: const Icon(LucideIcons.chevronRight),
+                    trailing: const Icon(LucideIcons.chevron_right),
                     onTap: () => context.push('/contacts/${contact.id}'),
                   ),
                 );

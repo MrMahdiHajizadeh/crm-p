@@ -349,7 +349,7 @@ int _suggestedProbabilityForStatus(LeadStatus status) {
 IconData _statusIcon(LeadStatus s) {
   switch (s) {
     case LeadStatus.assigned:
-      return LucideIcons.userCheck;
+      return LucideIcons.user_check;
     case LeadStatus.inProcess:
       return LucideIcons.activity;
     case LeadStatus.converted:
@@ -1036,7 +1036,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           elevation: 0,
           scrolledUnderElevation: 1,
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: _isLoading
                 ? null
                 : () async {
@@ -1163,9 +1163,9 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
     final chips = <({String label, GlobalKey key, IconData icon})>[
       (label: 'Identity', key: _identitySectionKey, icon: LucideIcons.user),
       (label: 'Contact', key: _contactSectionKey, icon: LucideIcons.mail),
-      (label: 'Company', key: _companySectionKey, icon: LucideIcons.building2),
+      (label: 'Company', key: _companySectionKey, icon: LucideIcons.building_2),
       (label: 'Pipeline', key: _pipelineSectionKey, icon: LucideIcons.activity),
-      (label: 'Address', key: _addressSectionKey, icon: LucideIcons.mapPin),
+      (label: 'Address', key: _addressSectionKey, icon: LucideIcons.map_pin),
       (label: 'Activity', key: _activitySectionKey, icon: LucideIcons.calendar),
       (
         label: 'Relations',
@@ -1176,7 +1176,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         (
           label: 'Custom',
           key: _customFieldsSectionKey,
-          icon: LucideIcons.settings2,
+          icon: LucideIcons.settings_2,
         ),
       (label: 'Notes', key: _notesSectionKey, icon: LucideIcons.file_text),
     ];
@@ -1557,7 +1557,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           label: 'Company *',
           hint: 'Acme Inc.',
           controller: _companyController,
-          prefixIcon: LucideIcons.building2,
+          prefixIcon: LucideIcons.building_2,
           maxLength: 255,
           textCapitalization: TextCapitalization.words,
           textInputAction: TextInputAction.next,
@@ -1632,7 +1632,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           label: 'Source',
           value: _source?.displayName ?? 'None',
           leading: Icon(
-            _source?.icon ?? LucideIcons.helpCircle,
+            _source?.icon ?? LucideIcons.help_circle,
             size: 20,
             color: AppColors.textSecondary,
           ),
@@ -1744,7 +1744,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           label: 'Street (Optional)',
           hint: '123 Market St',
           controller: _addressLineController,
-          prefixIcon: LucideIcons.mapPin,
+          prefixIcon: LucideIcons.map_pin,
           maxLength: 255,
           textInputAction: TextInputAction.next,
         ),
@@ -1795,7 +1795,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                 label: 'Country',
                 value: _countryLabel(_countryController.text) ?? 'Select',
                 leading: Icon(
-                  LucideIcons.globe2,
+                  LucideIcons.globe_2,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
@@ -2110,7 +2110,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                   const SizedBox(width: 8),
                 ],
                 Icon(
-                  LucideIcons.chevronDown,
+                  LucideIcons.chevron_down,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
@@ -2508,7 +2508,7 @@ class _PickerField extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  LucideIcons.chevronDown,
+                  LucideIcons.chevron_down,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),

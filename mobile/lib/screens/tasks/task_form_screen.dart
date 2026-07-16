@@ -17,10 +17,10 @@ import '../../widgets/forms/multi_select_sheet.dart';
 /// One of the four parent entities a task can be linked to. The backend's
 /// `Task.clean()` invariant enforces at most one is set.
 enum _RelatedKind {
-  account('account', 'Account', LucideIcons.building2),
+  account('account', 'Account', LucideIcons.building_2),
   lead('lead', 'Lead', LucideIcons.user),
-  opportunity('opportunity', 'Opportunity', LucideIcons.trendingUp),
-  ticket('case', 'Ticket', LucideIcons.lifeBuoy);
+  opportunity('opportunity', 'Opportunity', LucideIcons.trending_up),
+  ticket('case', 'Ticket', LucideIcons.life_buoy);
 
   final String apiValue;
   final String label;
@@ -308,7 +308,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           elevation: 0,
           scrolledUnderElevation: 1,
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () async {
               if (_hasUnsavedChanges) {
                 final shouldPop = await _onWillPop();
@@ -464,7 +464,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       label: 'Task Title',
       hint: 'What needs to be done?',
       controller: _titleController,
-      prefixIcon: LucideIcons.checkSquare,
+      prefixIcon: LucideIcons.check_square,
       textInputAction: TextInputAction.next,
       textCapitalization: TextCapitalization.sentences,
       maxLength: 200,
@@ -549,7 +549,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       case TaskStatus.inProgress:
         return LucideIcons.clock;
       case TaskStatus.completed:
-        return LucideIcons.check_circle2;
+        return LucideIcons.check_circle_2;
     }
   }
 
@@ -564,11 +564,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         const SizedBox(height: 10),
         Row(
           children: [
-            _buildPriorityChip(Priority.low, LucideIcons.arrowDown),
+            _buildPriorityChip(Priority.low, LucideIcons.arrow_down),
             const SizedBox(width: 10),
             _buildPriorityChip(Priority.medium, LucideIcons.minus),
             const SizedBox(width: 10),
-            _buildPriorityChip(Priority.high, LucideIcons.arrowUp),
+            _buildPriorityChip(Priority.high, LucideIcons.arrow_up),
           ],
         ),
       ],
@@ -697,7 +697,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
               )
             else
               Icon(
-                LucideIcons.chevronRight,
+                LucideIcons.chevron_right,
                 size: 20,
                 color: AppColors.textTertiary,
               ),
@@ -807,7 +807,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         : '${_relatedKind!.label}: ${label ?? "Selected"}';
     return _PickerRow(
       label: 'Linked record',
-      icon: _relatedKind?.icon ?? LucideIcons.link2,
+      icon: _relatedKind?.icon ?? LucideIcons.link_2,
       placeholder: 'Not linked',
       onTap: _pickRelated,
       onClear: _relatedKind == null
@@ -886,7 +886,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           title: 'Select Account',
           items: accounts,
           labelOf: (a) => a.name,
-          icon: LucideIcons.building2,
+          icon: LucideIcons.building_2,
         );
         if (pick != null) {
           setState(() {
@@ -919,7 +919,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           title: 'Select Opportunity',
           items: deals,
           labelOf: (d) => d.title,
-          icon: LucideIcons.trendingUp,
+          icon: LucideIcons.trending_up,
         );
         if (pick != null) {
           setState(() {
@@ -934,7 +934,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
           title: 'Select Ticket',
           items: tickets,
           labelOf: (t) => t.name,
-          icon: LucideIcons.lifeBuoy,
+          icon: LucideIcons.life_buoy,
         );
         if (pick != null) {
           setState(() {
@@ -1131,7 +1131,7 @@ class _PickerRow extends StatelessWidget {
                   )
                 else
                   Icon(
-                    LucideIcons.chevronRight,
+                    LucideIcons.chevron_right,
                     size: 20,
                     color: AppColors.textTertiary,
                   ),

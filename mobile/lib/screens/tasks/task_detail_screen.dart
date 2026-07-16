@@ -79,7 +79,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       return Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () => context.pop(),
           ),
         ),
@@ -92,7 +92,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       return Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () => context.pop(),
           ),
         ),
@@ -100,7 +100,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.fileX, size: 48, color: AppColors.gray400),
+              Icon(LucideIcons.file_x, size: 48, color: AppColors.gray400),
               const SizedBox(height: 16),
               Text('Task not found', style: AppTypography.h3),
               const SizedBox(height: 8),
@@ -153,7 +153,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  LucideIcons.chevronLeft,
+                  LucideIcons.chevron_left,
                   size: 20,
                   color: AppColors.textPrimary,
                 ),
@@ -191,7 +191,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    LucideIcons.moreVertical,
+                    LucideIcons.more_vertical,
                     size: 18,
                     color: AppColors.textPrimary,
                   ),
@@ -317,7 +317,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       case TaskStatus.inProgress:
         return LucideIcons.clock;
       case TaskStatus.completed:
-        return LucideIcons.check_circle2;
+        return LucideIcons.check_circle_2;
     }
   }
 
@@ -405,7 +405,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           if (defs.any((d) => _cfValueOf(d).isNotEmpty)) ...[
             _buildCard(
               title: 'Custom Fields',
-              icon: LucideIcons.listChecks,
+              icon: LucideIcons.list_checks,
               child: Column(
                 children: _buildCustomFieldRows(defs),
               ),
@@ -519,7 +519,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       }
       return _RelatedRef(
         typeLabel: 'Opportunity',
-        icon: LucideIcons.trendingUp,
+        icon: LucideIcons.trending_up,
         label: label,
         path: '/deals/${t.opportunityId}',
       );
@@ -534,7 +534,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       }
       return _RelatedRef(
         typeLabel: 'Ticket',
-        icon: LucideIcons.lifeBuoy,
+        icon: LucideIcons.life_buoy,
         label: label,
         path: '/tickets/${t.caseId}',
       );
@@ -545,7 +545,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
   Widget _buildRelatedCard(_RelatedRef r) {
     return _buildCard(
       title: 'Related To',
-      icon: LucideIcons.link2,
+      icon: LucideIcons.link_2,
       child: InkWell(
         onTap: r.path == null ? null : () => context.push(r.path!),
         borderRadius: BorderRadius.circular(8),
@@ -579,7 +579,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               ),
               if (r.path != null)
                 Icon(
-                  LucideIcons.chevronRight,
+                  LucideIcons.chevron_right,
                   size: 20,
                   color: AppColors.textTertiary,
                 ),
@@ -661,7 +661,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
     // viewport pushed it offscreen on tap.
     return _buildCard(
       title: 'Comments',
-      icon: LucideIcons.messageCircle,
+      icon: LucideIcons.message_circle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -731,7 +731,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 icon: Icon(
-                  LucideIcons.trash2,
+                  LucideIcons.trash_2,
                   size: 14,
                   color: AppColors.textTertiary,
                 ),
@@ -848,7 +848,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
             IconButton(
               visualDensity: VisualDensity.compact,
               icon: Icon(
-                LucideIcons.trash2,
+                LucideIcons.trash_2,
                 size: 16,
                 color: AppColors.textTertiary,
               ),
@@ -947,13 +947,13 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                         : _task!.completed
                         ? SecondaryButton(
                             label: 'Reopen',
-                            icon: LucideIcons.rotateCcw,
+                            icon: LucideIcons.rotate_ccw,
                             onPressed: _toggleTaskStatus,
                             isFullWidth: true,
                           )
                         : PrimaryButton(
                             label: 'Complete',
-                            icon: LucideIcons.check_circle2,
+                            icon: LucideIcons.check_circle_2,
                             onPressed: _toggleTaskStatus,
                             isFullWidth: true,
                           ),
@@ -1041,8 +1041,8 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
             ListTile(
               leading: Icon(
                 _task!.completed
-                    ? LucideIcons.rotateCcw
-                    : LucideIcons.check_circle2,
+                    ? LucideIcons.rotate_ccw
+                    : LucideIcons.check_circle_2,
               ),
               title: Text(_task!.completed ? 'Reopen Task' : 'Complete Task'),
               onTap: () {
@@ -1051,7 +1051,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               },
             ),
             ListTile(
-              leading: Icon(LucideIcons.trash2, color: AppColors.danger600),
+              leading: Icon(LucideIcons.trash_2, color: AppColors.danger600),
               title: Text(
                 'Delete Task',
                 style: TextStyle(color: AppColors.danger600),

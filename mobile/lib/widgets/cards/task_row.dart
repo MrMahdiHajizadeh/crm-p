@@ -50,7 +50,7 @@ class TaskRow extends StatelessWidget {
         color: AppColors.danger500,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        child: const Icon(LucideIcons.trash2, color: Colors.white, size: 22),
+        child: const Icon(LucideIcons.trash_2, color: Colors.white, size: 22),
       ),
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
@@ -443,7 +443,7 @@ class _TaskGroupState extends State<TaskGroup> {
                   turns: _expanded ? 0 : -0.25,
                   duration: AppDurations.fast,
                   child: Icon(
-                    LucideIcons.chevronDown,
+                    LucideIcons.chevron_down,
                     size: 20,
                     color: AppColors.textTertiary,
                   ),

@@ -39,7 +39,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             // Workspace Section — destinations that aren't on the bottom nav.
             _buildSectionHeader('Workspace'),
             _MenuItem(
-              icon: LucideIcons.building2,
+              icon: LucideIcons.building_2,
               label: 'Accounts',
               description: 'Manage companies and organizations',
               onTap: () => context.push(AppRoutes.accounts),
@@ -57,7 +57,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
               onTap: () => context.push(AppRoutes.invoices),
             ),
             _MenuItem(
-              icon: LucideIcons.checkSquare,
+              icon: LucideIcons.check_square,
               label: 'Tasks',
               description: 'Your to-dos across leads, deals and tickets',
               onTap: () => context.go(AppRoutes.tasks),
@@ -108,7 +108,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             // Support Section
             _buildSectionHeader('Support'),
             _MenuItem(
-              icon: LucideIcons.helpCircle,
+              icon: LucideIcons.help_circle,
               label: 'Help Center',
               onTap: () => _showComingSoon('Help Center'),
             ),
@@ -217,7 +217,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             ),
 
             Icon(
-              LucideIcons.chevronRight,
+              LucideIcons.chevron_right,
               size: 22,
               color: AppColors.textSecondary,
             ),
@@ -255,7 +255,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.logOut, size: 20, color: AppColors.danger600),
+            Icon(LucideIcons.log_out, size: 20, color: AppColors.danger600),
             const SizedBox(width: 10),
             Text(
               'Sign Out',
@@ -445,7 +445,7 @@ class _MenuItem extends StatelessWidget {
 
             // Chevron
             Icon(
-              LucideIcons.chevronRight,
+              LucideIcons.chevron_right,
               size: 20,
               color: AppColors.textTertiary,
             ),

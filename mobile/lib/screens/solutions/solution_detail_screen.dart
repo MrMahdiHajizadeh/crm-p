@@ -175,14 +175,14 @@ class _SolutionDetailScreenState extends ConsumerState<SolutionDetailScreen> {
         backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft),
+          icon: const Icon(LucideIcons.chevron_left),
           onPressed: () => context.pop(),
         ),
         actions: [
           if (!widget.isCreate && _existing != null)
             IconButton(
               tooltip: 'Delete',
-              icon: const Icon(LucideIcons.trash2),
+              icon: const Icon(LucideIcons.trash_2),
               onPressed: _isLoading ? null : _delete,
             ),
         ],

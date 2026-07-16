@@ -125,7 +125,7 @@ class TicketCard extends StatelessWidget {
 
     if (ticketItem.isProblem) {
       pills.add(_pill(
-        icon: LucideIcons.alertOctagon,
+        icon: LucideIcons.alert_octagon,
         label: 'Problem',
         bg: AppColors.warning100,
         fg: AppColors.warning700,
@@ -133,7 +133,7 @@ class TicketCard extends StatelessWidget {
     }
     if (ticketItem.parentSummary != null) {
       pills.add(_pill(
-        icon: LucideIcons.cornerDownRight,
+        icon: LucideIcons.corner_down_right,
         label: 'Sub-ticket',
         bg: AppColors.primary100,
         fg: AppColors.primary700,
@@ -141,7 +141,7 @@ class TicketCard extends StatelessWidget {
     }
     if (ticketItem.childCount > 0) {
       pills.add(_pill(
-        icon: LucideIcons.gitBranch,
+        icon: LucideIcons.git_branch,
         label: '${ticketItem.childCount} '
             'child${ticketItem.childCount == 1 ? '' : 'ren'}',
         bg: AppColors.gray100,

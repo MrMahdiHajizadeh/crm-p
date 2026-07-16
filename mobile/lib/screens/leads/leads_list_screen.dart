@@ -531,7 +531,7 @@ class _FilterChip extends StatelessWidget {
             ),
             const SizedBox(width: 3),
             Icon(
-              onClear != null ? LucideIcons.x : LucideIcons.chevronDown,
+              onClear != null ? LucideIcons.x : LucideIcons.chevron_down,
               size: 12,
               color: isActive ? AppColors.primary700 : AppColors.gray600,
             ),

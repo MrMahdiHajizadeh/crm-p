@@ -86,7 +86,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         elevation: 0,
         scrolledUnderElevation: 1,
         leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft),
+          icon: const Icon(LucideIcons.chevron_left),
           onPressed: () => context.pop(),
         ),
         actions: [
@@ -95,7 +95,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               padding: const EdgeInsets.only(right: 8),
               child: IconButton(
                 onPressed: () => _enterEdit(async.value!),
-                icon: const Icon(LucideIcons.edit3, size: 20),
+                icon: const Icon(LucideIcons.edit_3, size: 20),
                 tooltip: 'Edit profile',
                 color: AppColors.primary600,
               ),
@@ -210,7 +210,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: () => _enterEdit(profile),
-              icon: const Icon(LucideIcons.edit3, size: 16),
+              icon: const Icon(LucideIcons.edit_3, size: 16),
               label: const Text('Edit profile'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary700,
@@ -256,7 +256,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _sectionHeader('Organization'),
         if (profile.org != null)
           _InfoRow(
-            icon: LucideIcons.building2,
+            icon: LucideIcons.building_2,
             label: 'Organization',
             value: profile.org!.name,
           ),

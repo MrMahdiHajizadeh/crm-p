@@ -65,7 +65,7 @@ class _TicketAnalyticsScreenState extends ConsumerState<TicketAnalyticsScreen> {
         elevation: 0,
         scrolledUnderElevation: 1,
         leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft),
+          icon: const Icon(LucideIcons.chevron_left),
           onPressed: () => context.pop(),
         ),
       ),

@@ -462,7 +462,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
           icon: Icon(
             _viewMode == ViewMode.kanban
                 ? LucideIcons.list
-                : LucideIcons.layoutGrid,
+                : LucideIcons.layout_grid,
             size: 22,
           ),
           onPressed: _toggleViewMode,
@@ -492,12 +492,12 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
       title: Text('${_selectedIds.length} selected'),
       actions: [
         IconButton(
-          icon: const Icon(LucideIcons.arrow_rightLeft, size: 20),
+          icon: const Icon(LucideIcons.arrow_right_left, size: 20),
           tooltip: 'Change stage',
           onPressed: _bulkChangeStage,
         ),
         IconButton(
-          icon: Icon(LucideIcons.trash2, size: 20, color: AppColors.danger600),
+          icon: Icon(LucideIcons.trash_2, size: 20, color: AppColors.danger600),
           tooltip: 'Delete',
           onPressed: _bulkDelete,
         ),
@@ -599,7 +599,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
             const SizedBox(width: 6),
             // Rotten
             _QuickChip(
-              icon: LucideIcons.alertOctagon,
+              icon: LucideIcons.alert_octagon,
               label: 'Stale',
               selected: filters.rottenOnly,
               onTap: () {
@@ -612,7 +612,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
             const SizedBox(width: 6),
             // Filter sheet
             _QuickChip(
-              icon: LucideIcons.slidersHorizontal,
+              icon: LucideIcons.sliders_horizontal,
               label: filters.badgeCount == 0
                   ? 'Filters'
                   : 'Filters · ${filters.badgeCount}',
@@ -622,7 +622,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
             const SizedBox(width: 6),
             // Sort
             _QuickChip(
-              icon: LucideIcons.arrowDownUp,
+              icon: LucideIcons.arrow_down_up,
               label: _sort.label,
               selected: false,
               onTap: _openSortSheet,

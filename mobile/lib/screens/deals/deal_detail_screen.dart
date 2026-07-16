@@ -100,7 +100,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
         backgroundColor: AppColors.surfaceDim,
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () => context.pop(),
           ),
         ),
@@ -112,7 +112,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
       return Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () => context.pop(),
           ),
         ),
@@ -148,7 +148,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
             pinned: true,
             backgroundColor: AppColors.primary50,
             leading: IconButton(
-              icon: _headerIconBackground(LucideIcons.chevronLeft),
+              icon: _headerIconBackground(LucideIcons.chevron_left),
               onPressed: () => context.pop(),
             ),
             actions: [
@@ -157,7 +157,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
                 onPressed: _navigateToEdit,
               ),
               IconButton(
-                icon: _headerIconBackground(LucideIcons.moreVertical),
+                icon: _headerIconBackground(LucideIcons.more_vertical),
                 onPressed: _showMoreOptions,
               ),
             ],
@@ -253,7 +253,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
               Row(
                 children: [
                   Icon(
-                    LucideIcons.building2,
+                    LucideIcons.building_2,
                     size: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -332,7 +332,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
             label: 'Closes in ${deal.daysUntilClose}d',
             bg: AppColors.warning100,
             fg: AppColors.warning600,
-            icon: LucideIcons.alarmClock,
+            icon: LucideIcons.alarm_clock,
           ),
         );
       }
@@ -776,7 +776,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
     if (deal.assignedToRaw.isEmpty) {
       return Row(
         children: [
-          Icon(LucideIcons.userX, size: 20, color: AppColors.gray400),
+          Icon(LucideIcons.user_x, size: 20, color: AppColors.gray400),
           const SizedBox(width: 12),
           Text(
             'Unassigned',
@@ -1344,7 +1344,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
               },
             ),
             ListTile(
-              leading: Icon(LucideIcons.trash2, color: AppColors.danger600),
+              leading: Icon(LucideIcons.trash_2, color: AppColors.danger600),
               title: Text(
                 'Delete Deal',
                 style: TextStyle(color: AppColors.danger600),
@@ -1773,7 +1773,7 @@ class _NoteCard extends StatelessWidget {
               ),
             if (onDelete != null)
               ListTile(
-                leading: Icon(LucideIcons.trash2, color: AppColors.danger600),
+                leading: Icon(LucideIcons.trash_2, color: AppColors.danger600),
                 title: Text(
                   'Delete Note',
                   style: TextStyle(color: AppColors.danger600),
@@ -1847,7 +1847,7 @@ class _NoteCard extends StatelessWidget {
                       iconSize: 18,
                       visualDensity: VisualDensity.compact,
                       icon: Icon(
-                        LucideIcons.moreVertical,
+                        LucideIcons.more_vertical,
                         color: AppColors.textTertiary,
                       ),
                       tooltip: 'Note options',
@@ -1904,10 +1904,10 @@ class _AttachmentTile extends StatelessWidget {
       return LucideIcons.image;
     }
     if (RegExp(r'\.(xls|xlsx|csv)$').hasMatch(lower)) {
-      return LucideIcons.fileSpreadsheet;
+      return LucideIcons.file_spreadsheet;
     }
     if (RegExp(r'\.(zip|tar|gz|rar|7z)$').hasMatch(lower)) {
-      return LucideIcons.fileArchive;
+      return LucideIcons.file_archive;
     }
     return LucideIcons.file;
   }
@@ -1967,7 +1967,7 @@ class _AttachmentTile extends StatelessWidget {
                 ),
               ),
               Icon(
-                LucideIcons.externalLink,
+                LucideIcons.external_link,
                 size: 16,
                 color: AppColors.textTertiary,
               ),

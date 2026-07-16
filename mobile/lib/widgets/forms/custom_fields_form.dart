@@ -343,7 +343,7 @@ class _DropdownField extends StatelessWidget {
                   ),
                 ),
                 Icon(
-                  LucideIcons.chevronDown,
+                  LucideIcons.chevron_down,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),

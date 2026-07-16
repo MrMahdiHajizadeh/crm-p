@@ -212,7 +212,7 @@ class KanbanColumn extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              highlighted ? LucideIcons.arrowDownCircle : LucideIcons.inbox,
+              highlighted ? LucideIcons.arrow_down_circle : LucideIcons.inbox,
               size: 32,
               color: highlighted ? stage.color : AppColors.gray300,
             ),

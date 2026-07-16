@@ -69,7 +69,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
             ),
           if (_account != null)
             IconButton(
-              icon: const Icon(LucideIcons.trash2),
+              icon: const Icon(LucideIcons.trash_2),
               onPressed: () => _confirmDelete(),
             ),
         ],
@@ -172,8 +172,8 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
 
           // Address
           _section(theme, 'Address', [
-            _infoRow(theme, LucideIcons.mapPin, 'Street', a.addressLine ?? '—'),
-            _infoRow(theme, LucideIcons.mapPin, 'City', a.city ?? '—'),
+            _infoRow(theme, LucideIcons.map_pin, 'Street', a.addressLine ?? '—'),
+            _infoRow(theme, LucideIcons.map_pin, 'City', a.city ?? '—'),
             _infoRow(theme, LucideIcons.map, 'State', a.state ?? '—'),
             _infoRow(theme, LucideIcons.mail, 'Postcode', a.postcode ?? '—'),
             _infoRow(theme, LucideIcons.flag, 'Country', a.country ?? '—'),
@@ -207,7 +207,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
 
           // Assignee
           _section(theme, 'Assigned To', [
-            _infoRow(theme, LucideIcons.userCheck, 'Assignee',
+            _infoRow(theme, LucideIcons.user_check, 'Assignee',
                 a.assignedToName),
           ]),
           const SizedBox(height: 16),

@@ -174,7 +174,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
         elevation: 0,
         scrolledUnderElevation: 1,
         leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft),
+          icon: const Icon(LucideIcons.chevron_left),
           onPressed: () => context.pop(),
         ),
       ),
@@ -383,7 +383,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
             child: Row(
               children: [
                 Icon(
-                  LucideIcons.building2,
+                  LucideIcons.building_2,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
@@ -400,7 +400,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
                 ),
                 if (!readOnly)
                   Icon(
-                    LucideIcons.chevronDown,
+                    LucideIcons.chevron_down,
                     size: 20,
                     color: AppColors.textSecondary,
                   ),
@@ -444,7 +444,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
                 ],
                 Expanded(child: Text(value, style: AppTypography.body)),
                 Icon(
-                  LucideIcons.chevronDown,
+                  LucideIcons.chevron_down,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
@@ -503,7 +503,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
                         ),
                 ),
                 Icon(
-                  LucideIcons.chevronDown,
+                  LucideIcons.chevron_down,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
@@ -668,7 +668,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
               child: accounts.isEmpty
                   ? const Center(
                       child: EmptyState(
-                        icon: LucideIcons.building2,
+                        icon: LucideIcons.building_2,
                         title: 'No accounts',
                         description:
                             'Create an account on the web to link tickets to it.',
@@ -693,7 +693,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
                             child: Row(
                               children: [
                                 Icon(
-                                  LucideIcons.building2,
+                                  LucideIcons.building_2,
                                   size: 18,
                                   color: AppColors.textSecondary,
                                 ),

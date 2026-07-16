@@ -64,7 +64,7 @@ class _MagicLinkEmailScreenState extends ConsumerState<MagicLinkEmailScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft),
+          icon: const Icon(LucideIcons.chevron_left),
           onPressed: () => context.pop(),
         ),
       ),

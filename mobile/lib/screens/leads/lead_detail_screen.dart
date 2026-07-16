@@ -86,7 +86,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
       return Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () => context.pop(),
           ),
         ),
@@ -99,7 +99,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
       return Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () => context.pop(),
           ),
         ),
@@ -107,7 +107,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.userX, size: 48, color: AppColors.gray400),
+              Icon(LucideIcons.user_x, size: 48, color: AppColors.gray400),
               const SizedBox(height: 16),
               Text('Lead not found', style: AppTypography.h3),
               const SizedBox(height: 8),
@@ -149,7 +149,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  LucideIcons.chevronLeft,
+                  LucideIcons.chevron_left,
                   size: 20,
                   color: AppColors.textPrimary,
                 ),
@@ -187,7 +187,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    LucideIcons.moreVertical,
+                    LucideIcons.more_vertical,
                     size: 18,
                     color: AppColors.textPrimary,
                   ),
@@ -303,7 +303,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
                         StatusBadge.fromLeadStatus(lead.status),
                         const SizedBox(width: 2),
                         Icon(
-                          LucideIcons.chevronDown,
+                          LucideIcons.chevron_down,
                           size: 14,
                           color: AppColors.textTertiary,
                         ),
@@ -397,7 +397,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
             _buildCard(
               title: 'Address',
               child: _InfoRow(
-                icon: LucideIcons.mapPin,
+                icon: LucideIcons.map_pin,
                 label: 'LOCATION',
                 value: _formatAddress(lead),
               ),
@@ -634,7 +634,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
     if (lead.nextFollowUp != null) {
       addRow(
         _InfoRow(
-          icon: LucideIcons.calendarClock,
+          icon: LucideIcons.calendar_clock,
           label: 'NEXT FOLLOW-UP',
           value: _formatDate(lead.nextFollowUp!),
         ),
@@ -657,7 +657,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
     if (assignees.isEmpty) {
       return Row(
         children: [
-          Icon(LucideIcons.userX, size: 20, color: AppColors.gray400),
+          Icon(LucideIcons.user_x, size: 20, color: AppColors.gray400),
           const SizedBox(width: 12),
           Text(
             'Unassigned',
@@ -1297,7 +1297,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
               },
             ),
             ListTile(
-              leading: const Icon(LucideIcons.calendarClock),
+              leading: const Icon(LucideIcons.calendar_clock),
               title: const Text('Set Follow-up'),
               onTap: () {
                 Navigator.pop(context);
@@ -1305,7 +1305,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
               },
             ),
             ListTile(
-              leading: const Icon(LucideIcons.share2),
+              leading: const Icon(LucideIcons.share_2),
               title: const Text('Share'),
               onTap: () {
                 Navigator.pop(context);
@@ -1314,7 +1314,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
             ),
             if (!isConverted)
               ListTile(
-                leading: Icon(LucideIcons.gitBranch, color: AppColors.success600),
+                leading: Icon(LucideIcons.git_branch, color: AppColors.success600),
                 title: Text(
                   'Convert Lead',
                   style: TextStyle(color: AppColors.success700),
@@ -1325,7 +1325,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
                 },
               ),
             ListTile(
-              leading: Icon(LucideIcons.trash2, color: AppColors.danger600),
+              leading: Icon(LucideIcons.trash_2, color: AppColors.danger600),
               title: Text(
                 'Delete Lead',
                 style: TextStyle(color: AppColors.danger600),
@@ -1832,7 +1832,7 @@ class _InfoRow extends StatelessWidget {
           ),
           if (onTap != null)
             Icon(
-              LucideIcons.externalLink,
+              LucideIcons.external_link,
               size: 16,
               color: AppColors.primary600,
             ),
@@ -1946,7 +1946,7 @@ class _NoteCard extends StatelessWidget {
               ),
             if (onDelete != null)
               ListTile(
-                leading: Icon(LucideIcons.trash2, color: AppColors.danger600),
+                leading: Icon(LucideIcons.trash_2, color: AppColors.danger600),
                 title: Text(
                   'Delete Note',
                   style: TextStyle(color: AppColors.danger600),
@@ -2023,7 +2023,7 @@ class _NoteCard extends StatelessWidget {
                       iconSize: 18,
                       visualDensity: VisualDensity.compact,
                       icon: Icon(
-                        LucideIcons.moreVertical,
+                        LucideIcons.more_vertical,
                         color: AppColors.textTertiary,
                       ),
                       tooltip: 'Note options',
@@ -2217,10 +2217,10 @@ class _AttachmentTile extends StatelessWidget {
       return LucideIcons.image;
     }
     if (RegExp(r'\.(xls|xlsx|csv)$').hasMatch(lower)) {
-      return LucideIcons.fileSpreadsheet;
+      return LucideIcons.file_spreadsheet;
     }
     if (RegExp(r'\.(zip|tar|gz|rar|7z)$').hasMatch(lower)) {
-      return LucideIcons.fileArchive;
+      return LucideIcons.file_archive;
     }
     return LucideIcons.file;
   }
@@ -2280,7 +2280,7 @@ class _AttachmentTile extends StatelessWidget {
                 ),
               ),
               Icon(
-                LucideIcons.externalLink,
+                LucideIcons.external_link,
                 size: 16,
                 color: AppColors.textTertiary,
               ),

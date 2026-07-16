@@ -64,7 +64,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
         actions: [
           if (_contact != null)
             IconButton(
-              icon: const Icon(LucideIcons.trash2),
+              icon: const Icon(LucideIcons.trash_2),
               onPressed: () => _confirmDelete(),
             ),
         ],
@@ -162,7 +162,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
           _section(theme, 'Contact Information', [
             _infoRow(theme, LucideIcons.mail, 'Email', c.email ?? '—'),
             _infoRow(theme, LucideIcons.phone, 'Phone', c.phone ?? '—'),
-            _infoRow(theme, LucideIcons.building2, 'Company',
+            _infoRow(theme, LucideIcons.building_2, 'Company',
                 c.organization ?? '—'),
             _infoRow(theme, LucideIcons.briefcase, 'Department',
                 c.department ?? '—'),
@@ -173,9 +173,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
 
           // Address
           _section(theme, 'Address', [
-            _infoRow(theme, LucideIcons.mapPin, 'Street',
+            _infoRow(theme, LucideIcons.map_pin, 'Street',
                 c.addressLine ?? '—'),
-            _infoRow(theme, LucideIcons.mapPin, 'City', c.city ?? '—'),
+            _infoRow(theme, LucideIcons.map_pin, 'City', c.city ?? '—'),
             _infoRow(theme, LucideIcons.map, 'State', c.state ?? '—'),
             _infoRow(theme, LucideIcons.mail, 'Postcode',
                 c.postcode ?? '—'),
@@ -187,7 +187,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
           // Account
           if (c.accountName != null)
             _section(theme, 'Account', [
-              _infoRow(theme, LucideIcons.building2, 'Account',
+              _infoRow(theme, LucideIcons.building_2, 'Account',
                   c.accountName!),
             ]),
           const SizedBox(height: 16),
@@ -205,7 +205,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
 
           // Assignee
           _section(theme, 'Assigned To', [
-            _infoRow(theme, LucideIcons.userCheck, 'Assignee',
+            _infoRow(theme, LucideIcons.user_check, 'Assignee',
                 c.assignedToName),
           ]),
           const SizedBox(height: 16),

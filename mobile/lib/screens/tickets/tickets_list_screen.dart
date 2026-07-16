@@ -127,7 +127,7 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
         actions: [
           IconButton(
             tooltip: 'Analytics',
-            icon: const Icon(LucideIcons.barChart3),
+            icon: const Icon(LucideIcons.bar_chart_3),
             onPressed: () => context.push(AppRoutes.ticketAnalytics),
           ),
           IconButton(
@@ -741,7 +741,7 @@ class _FilterChip extends StatelessWidget {
             ),
             const SizedBox(width: 3),
             Icon(
-              LucideIcons.chevronDown,
+              LucideIcons.chevron_down,
               size: 12,
               color: isActive ? AppColors.primary700 : AppColors.gray600,
             ),

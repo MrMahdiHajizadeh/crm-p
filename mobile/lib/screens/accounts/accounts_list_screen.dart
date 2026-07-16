@@ -90,7 +90,7 @@ class _AccountsListScreenState extends ConsumerState<AccountsListScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(LucideIcons.building2,
+                  Icon(LucideIcons.building_2,
                       size: 64, color: theme.colorScheme.outline),
                   const SizedBox(height: 16),
                   Text('No accounts found',
@@ -146,7 +146,7 @@ class _AccountsListScreenState extends ConsumerState<AccountsListScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    trailing: const Icon(LucideIcons.chevronRight),
+                    trailing: const Icon(LucideIcons.chevron_right),
                     onTap: () => context.push('/accounts/${account.id}'),
                   ),
                 );

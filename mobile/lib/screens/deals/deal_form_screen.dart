@@ -553,7 +553,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
           elevation: 0,
           scrolledUnderElevation: 1,
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: _isLoading
                 ? null
                 : () async {
@@ -798,7 +798,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
                     ),
                     const SizedBox(width: 4),
                     Icon(
-                      LucideIcons.chevronDown,
+                      LucideIcons.chevron_down,
                       size: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -966,7 +966,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
                     ?.name
               : null,
           placeholder: 'Select account',
-          icon: LucideIcons.building2,
+          icon: LucideIcons.building_2,
           isLoading: accountsAsync.isLoading,
           onTap: _showAccountPicker,
           onClear: _selectedAccountId != null
@@ -1009,7 +1009,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
               .where((name) => name.isNotEmpty)
               .toList(),
           placeholder: 'Select assignees',
-          icon: LucideIcons.userCheck,
+          icon: LucideIcons.user_check,
           isLoading: usersAsync.isLoading,
           onTap: _showAssignedToPicker,
         ),
@@ -1027,7 +1027,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
               .where((name) => name.isNotEmpty)
               .toList(),
           placeholder: 'Select teams',
-          icon: LucideIcons.users2,
+          icon: LucideIcons.users_2,
           isLoading: teamsAsync.isLoading,
           onTap: _showTeamsPicker,
         ),
@@ -1115,7 +1115,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
                 ],
                 Expanded(child: Text(value, style: AppTypography.body)),
                 Icon(
-                  LucideIcons.chevronDown,
+                  LucideIcons.chevron_down,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
@@ -1200,7 +1200,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
                   const SizedBox(width: 8),
                 ],
                 Icon(
-                  LucideIcons.chevronDown,
+                  LucideIcons.chevron_down,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
@@ -1287,7 +1287,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
                         ),
                 ),
                 Icon(
-                  LucideIcons.chevronDown,
+                  LucideIcons.chevron_down,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),

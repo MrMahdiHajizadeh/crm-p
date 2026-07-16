@@ -170,7 +170,7 @@ class _InvoicesListScreenState extends ConsumerState<InvoicesListScreen> {
                         ),
                       ],
                     ),
-                    trailing: const Icon(LucideIcons.chevronRight),
+                    trailing: const Icon(LucideIcons.chevron_right),
                     onTap: () => context.push('/invoices/${invoice.id}'),
                   ),
                 );

@@ -82,7 +82,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
       return Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () => context.pop(),
           ),
         ),
@@ -93,7 +93,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
       return Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(LucideIcons.chevronLeft),
+            icon: const Icon(LucideIcons.chevron_left),
             onPressed: () => context.pop(),
           ),
         ),
@@ -101,7 +101,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.fileX, size: 48, color: AppColors.gray400),
+              Icon(LucideIcons.file_x, size: 48, color: AppColors.gray400),
               const SizedBox(height: 16),
               Text('Ticket not found', style: AppTypography.h3),
               const SizedBox(height: 8),
@@ -128,7 +128,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
         elevation: 0,
         scrolledUnderElevation: 1,
         leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft),
+          icon: const Icon(LucideIcons.chevron_left),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -164,7 +164,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
           ),
           IconButton(
             tooltip: 'More',
-            icon: const Icon(LucideIcons.moreVertical),
+            icon: const Icon(LucideIcons.more_vertical),
             onPressed: _openActionSheet,
           ),
         ],
@@ -342,7 +342,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
                 ),
                 const Divider(height: 24),
                 _InfoRow(
-                  icon: LucideIcons.building2,
+                  icon: LucideIcons.building_2,
                   label: 'ACCOUNT',
                   value: c.accountName ?? 'No account linked',
                 ),
@@ -564,7 +564,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
           children: [
             IconButton(
               tooltip: 'Mention',
-              icon: const Icon(LucideIcons.atSign, size: 20),
+              icon: const Icon(LucideIcons.at_sign, size: 20),
               color: AppColors.textSecondary,
               onPressed: _isAddingComment ? null : _pickMention,
             ),
@@ -880,7 +880,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
               },
             ),
             _actionRow(
-              icon: LucideIcons.circleDot,
+              icon: LucideIcons.circle_dot,
               label: 'Change status',
               onTap: () {
                 Navigator.pop(context);
@@ -906,7 +906,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
                 },
               ),
             _actionRow(
-              icon: LucideIcons.gitMerge,
+              icon: LucideIcons.git_merge,
               label: 'Merge into another ticket',
               onTap: () {
                 Navigator.pop(context);
@@ -925,7 +925,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
             ),
             if (c.childCount > 0 && c.status != TicketStatus.closed)
               _actionRow(
-                icon: LucideIcons.checkCheck,
+                icon: LucideIcons.check_check,
                 iconColor: AppColors.success600,
                 label: 'Close with children',
                 onTap: () {
@@ -935,7 +935,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
               ),
             if (_isAdmin)
               _actionRow(
-                icon: LucideIcons.trash2,
+                icon: LucideIcons.trash_2,
                 iconColor: AppColors.danger600,
                 label: 'Delete ticket',
                 labelColor: AppColors.danger600,
@@ -1370,7 +1370,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
         children: [
           Row(
             children: [
-              Icon(LucideIcons.gitBranch, size: 16, color: AppColors.gray600),
+              Icon(LucideIcons.git_branch, size: 16, color: AppColors.gray600),
               const SizedBox(width: 8),
               Text(
                 'LINKED TICKETS',
@@ -1409,7 +1409,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
                   children: [
-                    Icon(LucideIcons.arrowUp, size: 14, color: AppColors.gray500),
+                    Icon(LucideIcons.arrow_up, size: 14, color: AppColors.gray500),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -1481,7 +1481,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
             child: Row(
               children: [
                 Icon(
-                  LucideIcons.cornerDownRight,
+                  LucideIcons.corner_down_right,
                   size: 14,
                   color: AppColors.gray400,
                 ),
@@ -1724,7 +1724,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
         children: [
           Row(
             children: [
-              Icon(LucideIcons.gitMerge, size: 16, color: AppColors.gray600),
+              Icon(LucideIcons.git_merge, size: 16, color: AppColors.gray600),
               const SizedBox(width: 8),
               Text(
                 'MERGED FROM',
@@ -2106,8 +2106,8 @@ class _EmailTile extends StatelessWidget {
                   children: [
                     Icon(
                       isInbound
-                          ? LucideIcons.arrowDownLeft
-                          : LucideIcons.arrowUpRight,
+                          ? LucideIcons.arrow_down_left
+                          : LucideIcons.arrow_up_right,
                       size: 11,
                       color: isInbound
                           ? AppColors.primary700
@@ -2355,7 +2355,7 @@ class _ActivityTile extends StatelessWidget {
       case 'CREATE':
         return LucideIcons.plus;
       case 'STATUS_CHANGED':
-        return LucideIcons.circleDot;
+        return LucideIcons.circle_dot;
       case 'PRIORITY_CHANGED':
         return LucideIcons.flag;
       case 'COMMENT':
@@ -2367,12 +2367,12 @@ class _ActivityTile extends StatelessWidget {
         return LucideIcons.book_open;
       case 'LINKED_PARENT':
       case 'UNLINKED_PARENT':
-        return LucideIcons.gitBranch;
+        return LucideIcons.git_branch;
       case 'WATCHED':
       case 'UNWATCHED':
         return LucideIcons.eye;
       case 'MENTIONED':
-        return LucideIcons.atSign;
+        return LucideIcons.at_sign;
       case 'APPROVAL_REQUESTED':
       case 'APPROVED':
       case 'REJECTED':
@@ -2386,11 +2386,11 @@ class _ActivityTile extends StatelessWidget {
       case 'MERGE_TARGET':
       case 'UNMERGED':
       case 'UNMERGE_TARGET':
-        return LucideIcons.gitMerge;
+        return LucideIcons.git_merge;
       case 'TIME_LOGGED':
         return LucideIcons.clock;
       case 'DELETE':
-        return LucideIcons.trash2;
+        return LucideIcons.trash_2;
       default:
         return LucideIcons.activity;
     }
