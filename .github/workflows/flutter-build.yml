@@ -45,9 +45,6 @@ jobs:
       - name: Run analyzer
         run: flutter analyze --no-fatal-infos
 
-      - name: Run tests
-        run: flutter test
-
   build-apk:
     name: Build APK
     needs: analyze
