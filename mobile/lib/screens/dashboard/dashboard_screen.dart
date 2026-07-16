@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/dashboard_data.dart';
@@ -112,7 +112,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.alertCircle, size: 48, color: Colors.grey[400]),
+              Icon(LucideIcons.alert_circle, size: 48, color: Colors.grey[400]),
               const SizedBox(height: 16),
               Text(
                 'Failed to load dashboard',
@@ -216,7 +216,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _KpiCard(
         title: 'Pipeline',
         value: currencyFormat.format(data.revenueMetrics.pipelineValue),
-        icon: LucideIcons.dollarSign,
+        icon: LucideIcons.dollar_sign,
         color: AppColors.success500,
       ),
       _KpiCard(
@@ -269,7 +269,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             Row(
               children: [
                 Icon(
-                  LucideIcons.alertTriangle,
+                  LucideIcons.alert_triangle,
                   size: 16,
                   color: AppColors.warning600,
                 ),
@@ -634,7 +634,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       child: Column(
                         children: [
                           Icon(
-                            LucideIcons.checkCircle,
+                            LucideIcons.check_circle,
                             size: 24,
                             color: Colors.grey[300],
                           ),
@@ -685,7 +685,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
-                      LucideIcons.userPlus,
+                      LucideIcons.user_plus,
                       color: AppColors.primary600,
                       size: 20,
                     ),

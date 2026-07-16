@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../data/models/account.dart';
 import '../../providers/accounts_provider.dart';
 /// Account detail screen
@@ -183,7 +183,7 @@ class _AccountDetailScreenState extends ConsumerState<AccountDetailScreen> {
           // Business details
           _section(theme, 'Business Details', [
             if (a.annualRevenue != null)
-              _infoRow(theme, LucideIcons.dollarSign, 'Annual Revenue',
+              _infoRow(theme, LucideIcons.dollar_sign, 'Annual Revenue',
                   '\$${NumberFormat('#,##0.00').format(a.annualRevenue!)}'),
             if (a.numberOfEmployees != null)
               _infoRow(theme, LucideIcons.users, 'Employees',

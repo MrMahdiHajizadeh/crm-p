@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../core/theme/theme.dart';
 import '../../data/models/ticket.dart';
@@ -142,7 +142,7 @@ class _TicketAnalyticsScreenState extends ConsumerState<TicketAnalyticsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alertCircle, size: 48, color: Colors.grey[400]),
+            Icon(LucideIcons.alert_circle, size: 48, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(data.error!, style: AppTypography.body),
             const SizedBox(height: 16),
@@ -184,7 +184,7 @@ class _TicketAnalyticsScreenState extends ConsumerState<TicketAnalyticsScreen> {
                 value: _hours(mttr?['median_hours']),
                 subtitle:
                     'p90 ${_hours(mttr?['p90_hours'])} · ${mttr?['count'] ?? 0} resolved',
-                icon: LucideIcons.checkCircle,
+                icon: LucideIcons.check_circle,
                 color: AppColors.success600,
               ),
               _MetricTile(
@@ -199,7 +199,7 @@ class _TicketAnalyticsScreenState extends ConsumerState<TicketAnalyticsScreen> {
                 title: 'SLA breach rate',
                 value: _rate(sla?['frt_breach_rate']),
                 subtitle: 'Resolution ${_rate(sla?['resolution_breach_rate'])}',
-                icon: LucideIcons.alertTriangle,
+                icon: LucideIcons.alert_triangle,
                 color: AppColors.danger600,
               ),
             ],

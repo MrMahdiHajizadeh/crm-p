@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
@@ -333,7 +333,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
                   ),
                   const SizedBox(width: 24),
                   _QuickActionButton(
-                    icon: LucideIcons.messageSquare,
+                    icon: LucideIcons.message_square,
                     label: 'Message',
                     enabled: _hasPhone,
                     onTap: () => _launchSms(lead.phone),
@@ -470,7 +470,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
     if (lead.opportunityAmount != null && lead.opportunityAmount! > 0) {
       rows.add(
         _InfoRow(
-          icon: LucideIcons.dollarSign,
+          icon: LucideIcons.dollar_sign,
           label: 'DEAL VALUE',
           value: _formatMoney(lead.opportunityAmount!, lead.currency),
         ),
@@ -643,7 +643,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
     if (lead.updatedAt != null) {
       addRow(
         _InfoRow(
-          icon: LucideIcons.refreshCw,
+          icon: LucideIcons.refresh_cw,
           label: 'UPDATED',
           value: _formatDate(lead.updatedAt!),
         ),
@@ -977,7 +977,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
         Expanded(
           child: comments.isEmpty
               ? const EmptyState(
-                  icon: LucideIcons.fileText,
+                  icon: LucideIcons.file_text,
                   title: 'No notes yet',
                   description: 'Add a note to keep track of important details',
                 )
@@ -2212,7 +2212,7 @@ class _AttachmentTile extends StatelessWidget {
 
   IconData get _iconForName {
     final lower = attachment.fileName.toLowerCase();
-    if (lower.endsWith('.pdf')) return LucideIcons.fileText;
+    if (lower.endsWith('.pdf')) return LucideIcons.file_text;
     if (RegExp(r'\.(png|jpg|jpeg|gif|webp|bmp)$').hasMatch(lower)) {
       return LucideIcons.image;
     }
@@ -2365,7 +2365,7 @@ class _TimelineRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, tint) = switch (event.kind) {
       _TimelineKind.created => (LucideIcons.sparkles, AppColors.success600),
-      _TimelineKind.comment => (LucideIcons.messageSquare, AppColors.primary600),
+      _TimelineKind.comment => (LucideIcons.message_square, AppColors.primary600),
       _TimelineKind.attachment => (LucideIcons.paperclip, AppColors.warning600),
     };
     return IntrinsicHeight(

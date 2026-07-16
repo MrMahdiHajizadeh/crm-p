@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../data/models/invoice.dart';
 import '../../providers/invoices_provider.dart';
 
@@ -162,17 +162,17 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
           _section(theme, 'Summary', [
             _infoRow(
                 theme,
-                LucideIcons.dollarSign,
+                LucideIcons.dollar_sign,
                 'Total',
                 currencyFormat.format(inv.totalAmount)),
             _infoRow(
                 theme,
-                LucideIcons.checkCircle,
+                LucideIcons.check_circle,
                 'Paid',
                 currencyFormat.format(inv.amountPaid)),
             _infoRow(
                 theme,
-                LucideIcons.alertCircle,
+                LucideIcons.alert_circle,
                 'Due',
                 currencyFormat.format(inv.amountDue),
                 valueColor: inv.isOverdue

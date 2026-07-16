@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/ticket.dart';
 import '../../data/models/comment.dart';
@@ -145,7 +145,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
             icon: Icon(
               (_watchers?.isCurrentUserWatching ?? false)
                   ? LucideIcons.eye
-                  : LucideIcons.eyeOff,
+                  : LucideIcons.eye_off,
               color: (_watchers?.isCurrentUserWatching ?? false)
                   ? AppColors.primary600
                   : AppColors.textSecondary,
@@ -281,7 +281,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    LucideIcons.alertTriangle,
+                    LucideIcons.alert_triangle,
                     size: 12,
                     color: AppColors.danger600,
                   ),
@@ -336,7 +336,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
             child: Column(
               children: [
                 _InfoRow(
-                  icon: LucideIcons.fileText,
+                  icon: LucideIcons.file_text,
                   label: 'NAME',
                   value: c.name,
                 ),
@@ -355,7 +355,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
                 if (c.closedOn != null) ...[
                   const Divider(height: 24),
                   _InfoRow(
-                    icon: LucideIcons.checkCircle,
+                    icon: LucideIcons.check_circle,
                     label: 'CLOSED',
                     value: _formatDate(c.closedOn!),
                   ),
@@ -498,7 +498,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
       ),
       child: Row(
         children: [
-          chip(_ThreadSegment.public, 'Public', LucideIcons.messageSquare,
+          chip(_ThreadSegment.public, 'Public', LucideIcons.message_square,
               publicCount),
           chip(_ThreadSegment.internal, 'Internal', LucideIcons.lock,
               internalCount),
@@ -513,7 +513,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
       return EmptyState(
         icon: _segment == _ThreadSegment.internal
             ? LucideIcons.lock
-            : LucideIcons.messageSquare,
+            : LucideIcons.message_square,
         title: _segment == _ThreadSegment.internal
             ? 'No internal notes'
             : 'No comments yet',
@@ -897,7 +897,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
             ),
             if (c.status != TicketStatus.closed)
               _actionRow(
-                icon: LucideIcons.checkCircle,
+                icon: LucideIcons.check_circle,
                 iconColor: AppColors.success600,
                 label: 'Close ticket',
                 onTap: () {
@@ -2359,12 +2359,12 @@ class _ActivityTile extends StatelessWidget {
       case 'PRIORITY_CHANGED':
         return LucideIcons.flag;
       case 'COMMENT':
-        return LucideIcons.messageSquare;
+        return LucideIcons.message_square;
       case 'ASSIGN':
         return LucideIcons.users;
       case 'LINKED_SOLUTION':
       case 'UNLINKED_SOLUTION':
-        return LucideIcons.bookOpen;
+        return LucideIcons.book_open;
       case 'LINKED_PARENT':
       case 'UNLINKED_PARENT':
         return LucideIcons.gitBranch;
@@ -2377,11 +2377,11 @@ class _ActivityTile extends StatelessWidget {
       case 'APPROVED':
       case 'REJECTED':
       case 'APPROVAL_CANCELLED':
-        return LucideIcons.shieldCheck;
+        return LucideIcons.shield_check;
       case 'ESCALATED':
-        return LucideIcons.alertTriangle;
+        return LucideIcons.alert_triangle;
       case 'REOPENED':
-        return LucideIcons.refreshCw;
+        return LucideIcons.refresh_cw;
       case 'MERGED':
       case 'MERGE_TARGET':
       case 'UNMERGED':

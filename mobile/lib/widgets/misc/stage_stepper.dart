@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
 
@@ -28,9 +28,9 @@ class StageStepper extends StatelessWidget {
 
   static const List<_StageConfig> _stages = [
     _StageConfig(DealStage.prospecting, 'Prospect', LucideIcons.search),
-    _StageConfig(DealStage.qualified, 'Qualified', LucideIcons.checkCircle),
-    _StageConfig(DealStage.proposal, 'Proposal', LucideIcons.fileText),
-    _StageConfig(DealStage.negotiation, 'Negotiate', LucideIcons.messageSquare),
+    _StageConfig(DealStage.qualified, 'Qualified', LucideIcons.check_circle),
+    _StageConfig(DealStage.proposal, 'Proposal', LucideIcons.file_text),
+    _StageConfig(DealStage.negotiation, 'Negotiate', LucideIcons.message_square),
     _StageConfig(DealStage.closedWon, 'Won', LucideIcons.trophy),
   ];
 
@@ -70,7 +70,7 @@ class StageStepper extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    LucideIcons.xCircle,
+                    LucideIcons.x_circle,
                     size: 16,
                     color: AppColors.danger600,
                   ),

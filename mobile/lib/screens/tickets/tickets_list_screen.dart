@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/lookup_models.dart';
@@ -132,12 +132,12 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
           ),
           IconButton(
             tooltip: 'Approvals',
-            icon: const Icon(LucideIcons.shieldCheck),
+            icon: const Icon(LucideIcons.shield_check),
             onPressed: () => context.push(AppRoutes.approvalsInbox),
           ),
           IconButton(
             tooltip: 'Knowledge base',
-            icon: const Icon(LucideIcons.bookOpen),
+            icon: const Icon(LucideIcons.book_open),
             onPressed: () => context.push(AppRoutes.solutions),
           ),
           IconButton(
@@ -255,7 +255,7 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alertCircle, size: 48, color: Colors.grey[400]),
+            Icon(LucideIcons.alert_circle, size: 48, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'Failed to load tickets',
@@ -434,7 +434,7 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
             const SizedBox(width: 6),
             _ToggleChip(
               label: 'Breaching SLA',
-              icon: LucideIcons.alertTriangle,
+              icon: LucideIcons.alert_triangle,
               isActive: _filters.slaBreached,
               onTap: () => _applyFilters(
                 _filters.copyWith(slaBreached: !_filters.slaBreached),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
@@ -323,7 +323,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
             label: 'Overdue',
             bg: AppColors.danger100,
             fg: AppColors.danger600,
-            icon: LucideIcons.alertTriangle,
+            icon: LucideIcons.alert_triangle,
           ),
         );
       } else if (deal.isClosingSoon) {
@@ -798,7 +798,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
   Widget _buildMetadataContent(Deal deal) {
     final rows = <Widget>[
       _InfoRow(
-        icon: LucideIcons.userPlus,
+        icon: LucideIcons.user_plus,
         label: 'CREATED BY',
         value: deal.createdByName ?? deal.createdByEmail ?? '—',
       ),
@@ -811,7 +811,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
     if (deal.stage.isClosed) {
       rows.add(
         _InfoRow(
-          icon: deal.stage.isWon ? LucideIcons.trophy : LucideIcons.xCircle,
+          icon: deal.stage.isWon ? LucideIcons.trophy : LucideIcons.x_circle,
           label: deal.stage.isWon ? 'WON BY' : 'CLOSED BY',
           value: deal.closedByName ?? deal.closedByEmail ?? '—',
         ),
@@ -925,7 +925,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
         Expanded(
           child: comments.isEmpty
               ? const EmptyState(
-                  icon: LucideIcons.fileText,
+                  icon: LucideIcons.file_text,
                   title: 'No notes yet',
                   description: 'Add a note to keep track of important details',
                 )
@@ -1155,7 +1155,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
     if (isClosed) {
       final bg = isWon ? AppColors.success100 : AppColors.danger100;
       final fg = isWon ? AppColors.success600 : AppColors.danger600;
-      final icon = isWon ? LucideIcons.trophy : LucideIcons.xCircle;
+      final icon = isWon ? LucideIcons.trophy : LucideIcons.x_circle;
       final label = isWon ? 'Deal Won!' : 'Deal Lost';
       return Container(
         decoration: BoxDecoration(
@@ -1208,7 +1208,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
                   label: _isUpdatingStage
                       ? 'Updating...'
                       : 'Move to ${_nextStage!.displayName}',
-                  icon: LucideIcons.arrowRight,
+                  icon: LucideIcons.arrow_right,
                   iconRight: true,
                   onPressed: _isUpdatingStage
                       ? null
@@ -1217,7 +1217,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
               if (_nextStage != null) const SizedBox(height: 12),
               GhostButton(
                 label: 'Mark as Lost',
-                icon: LucideIcons.xCircle,
+                icon: LucideIcons.x_circle,
                 color: AppColors.danger600,
                 onPressed:
                     _isUpdatingStage ? null : () => _handleMarkLost(),
@@ -1899,7 +1899,7 @@ class _AttachmentTile extends StatelessWidget {
 
   IconData get _iconForName {
     final lower = attachment.fileName.toLowerCase();
-    if (lower.endsWith('.pdf')) return LucideIcons.fileText;
+    if (lower.endsWith('.pdf')) return LucideIcons.file_text;
     if (RegExp(r'\.(png|jpg|jpeg|gif|webp|bmp)$').hasMatch(lower)) {
       return LucideIcons.image;
     }
@@ -2015,7 +2015,7 @@ class _TimelineRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, tint) = switch (event.kind) {
       _TimelineKind.created => (LucideIcons.sparkles, AppColors.success600),
-      _TimelineKind.comment => (LucideIcons.messageSquare, AppColors.primary600),
+      _TimelineKind.comment => (LucideIcons.message_square, AppColors.primary600),
       _TimelineKind.attachment => (LucideIcons.paperclip, AppColors.warning600),
     };
     return IntrinsicHeight(

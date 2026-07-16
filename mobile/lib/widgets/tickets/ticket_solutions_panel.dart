@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../core/theme/theme.dart';
 import '../../data/models/solution.dart';
@@ -134,7 +134,7 @@ class _TicketSolutionsPanelState extends ConsumerState<TicketSolutionsPanel> {
         children: [
           Row(
             children: [
-              Icon(LucideIcons.bookOpen, size: 16, color: AppColors.gray600),
+              Icon(LucideIcons.book_open, size: 16, color: AppColors.gray600),
               const SizedBox(width: 8),
               Text(
                 'SOLUTIONS',
@@ -213,7 +213,7 @@ class _LinkedSolutionRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            Icon(LucideIcons.fileText, size: 14, color: AppColors.gray500),
+            Icon(LucideIcons.file_text, size: 14, color: AppColors.gray500),
             const SizedBox(width: 10),
             Expanded(
               child: Text(

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
@@ -492,7 +492,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
       title: Text('${_selectedIds.length} selected'),
       actions: [
         IconButton(
-          icon: const Icon(LucideIcons.arrowRightLeft, size: 20),
+          icon: const Icon(LucideIcons.arrow_rightLeft, size: 20),
           tooltip: 'Change stage',
           onPressed: _bulkChangeStage,
         ),
@@ -729,7 +729,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
           children: [
             if (primary != null) ...[
               _SummaryChip(
-                icon: LucideIcons.dollarSign,
+                icon: LucideIcons.dollar_sign,
                 label: _formatCurrency(primary.totalValue, primary.currency.symbol),
                 sublabel: summary.loadedSubset
                     ? '~ Pipeline'
@@ -1001,7 +1001,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(LucideIcons.alertCircle, size: 48, color: AppColors.danger500),
+          Icon(LucideIcons.alert_circle, size: 48, color: AppColors.danger500),
           const SizedBox(height: 16),
           Text(
             error,

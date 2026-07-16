@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
@@ -192,7 +192,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                LucideIcons.alertCircle,
+                LucideIcons.alert_circle,
                 size: 48,
                 color: AppColors.danger500,
               ),
@@ -209,7 +209,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
               const SizedBox(height: 24),
               PrimaryButton(
                 label: 'Retry',
-                icon: LucideIcons.refreshCw,
+                icon: LucideIcons.refresh_cw,
                 onPressed: () {
                   ref.read(tasksProvider.notifier).refresh();
                 },
@@ -701,7 +701,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isFiltered ? LucideIcons.search : LucideIcons.checkCircle2,
+                isFiltered ? LucideIcons.search : LucideIcons.check_circle2,
                 size: 40,
                 color: AppColors.success600,
               ),

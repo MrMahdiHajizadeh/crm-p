@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../core/theme/theme.dart';
 import '../../data/models/ticket.dart';
@@ -63,7 +63,7 @@ class TicketPropertiesCard extends StatelessWidget {
           if (ticket.escalationCount > 0) ...[
             const Divider(height: 20),
             _iconRow(
-              icon: LucideIcons.alertTriangle,
+              icon: LucideIcons.alert_triangle,
               iconColor: AppColors.danger600,
               label: 'Escalated',
               trailing: '${ticket.escalationCount}x',
@@ -73,7 +73,7 @@ class TicketPropertiesCard extends StatelessWidget {
           if (watcherCount != null) ...[
             const Divider(height: 20),
             _iconRow(
-              icon: isWatching ? LucideIcons.eye : LucideIcons.eyeOff,
+              icon: isWatching ? LucideIcons.eye : LucideIcons.eye_off,
               iconColor: isWatching
                   ? AppColors.primary600
                   : AppColors.textSecondary,
@@ -101,17 +101,17 @@ class TicketPropertiesCard extends StatelessWidget {
     final Color stateColor;
 
     if (met) {
-      icon = LucideIcons.checkCircle;
+      icon = LucideIcons.check_circle;
       iconColor = AppColors.success600;
       stateText = 'Met';
       stateColor = AppColors.success600;
     } else if (breached) {
-      icon = LucideIcons.alertCircle;
+      icon = LucideIcons.alert_circle;
       iconColor = AppColors.danger600;
       stateText = deadline != null ? 'Breached' : 'Overdue';
       stateColor = AppColors.danger600;
     } else if (paused) {
-      icon = LucideIcons.pauseCircle;
+      icon = LucideIcons.pause_circle;
       iconColor = AppColors.warning600;
       stateText = 'Paused';
       stateColor = AppColors.warning600;
@@ -128,7 +128,7 @@ class TicketPropertiesCard extends StatelessWidget {
         stateColor = AppColors.textPrimary;
       }
     } else {
-      icon = LucideIcons.minusCircle;
+      icon = LucideIcons.minus_circle;
       iconColor = AppColors.gray400;
       stateText = 'Not set';
       stateColor = AppColors.textSecondary;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
@@ -297,7 +297,7 @@ class _ValuePill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.dollarSign, size: 11, color: AppColors.success700),
+          Icon(LucideIcons.dollar_sign, size: 11, color: AppColors.success700),
           const SizedBox(width: 2),
           Text(
             _format(amount),

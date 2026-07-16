@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
@@ -353,11 +353,11 @@ IconData _statusIcon(LeadStatus s) {
     case LeadStatus.inProcess:
       return LucideIcons.activity;
     case LeadStatus.converted:
-      return LucideIcons.checkCircle;
+      return LucideIcons.check_circle;
     case LeadStatus.recycled:
-      return LucideIcons.refreshCw;
+      return LucideIcons.refresh_cw;
     case LeadStatus.closed:
-      return LucideIcons.xCircle;
+      return LucideIcons.x_circle;
   }
 }
 
@@ -1069,7 +1069,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alertCircle, size: 48, color: AppColors.danger500),
+            Icon(LucideIcons.alert_circle, size: 48, color: AppColors.danger500),
             const SizedBox(height: 16),
             Text(
               _fetchError!,
@@ -1178,7 +1178,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           key: _customFieldsSectionKey,
           icon: LucideIcons.settings2,
         ),
-      (label: 'Notes', key: _notesSectionKey, icon: LucideIcons.fileText),
+      (label: 'Notes', key: _notesSectionKey, icon: LucideIcons.file_text),
     ];
 
     return Container(
@@ -1454,7 +1454,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         child: Row(
           children: [
             Icon(
-              LucideIcons.alertTriangle,
+              LucideIcons.alert_triangle,
               size: 16,
               color: AppColors.warning600,
             ),
@@ -1656,7 +1656,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                 label: 'Estimated Value',
                 hint: '0.00',
                 controller: _opportunityAmountController,
-                prefixIcon: LucideIcons.dollarSign,
+                prefixIcon: LucideIcons.dollar_sign,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../core/theme/theme.dart';
 import '../../providers/auth_provider.dart';
@@ -164,7 +164,7 @@ class _MagicLinkCodeScreenState extends ConsumerState<MagicLinkCodeScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
-                  LucideIcons.shieldCheck,
+                  LucideIcons.shield_check,
                   size: 32,
                   color: AppColors.primary600,
                 ),

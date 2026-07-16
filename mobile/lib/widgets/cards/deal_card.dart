@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
 import '../../providers/lookup_provider.dart';
@@ -98,7 +98,7 @@ class DealCard extends ConsumerWidget {
                       children: [
                         if (isSelected) ...[
                           Icon(
-                            LucideIcons.checkCircle2,
+                            LucideIcons.check_circle2,
                             size: 18,
                             color: AppColors.primary600,
                           ),
@@ -176,7 +176,7 @@ class DealCard extends ConsumerWidget {
                               Padding(
                                 padding: const EdgeInsets.only(right: 4),
                                 child: Icon(
-                                  LucideIcons.alertCircle,
+                                  LucideIcons.alert_circle,
                                   size: 14,
                                   color: closeDateColor,
                                 ),

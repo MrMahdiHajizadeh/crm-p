@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../config/api_config.dart';
 import '../../core/theme/theme.dart';
@@ -210,7 +210,7 @@ class _TicketApprovalPanelState extends ConsumerState<TicketApprovalPanel> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _isBusy ? null : _request,
-              icon: const Icon(LucideIcons.shieldCheck, size: 16),
+              icon: const Icon(LucideIcons.shield_check, size: 16),
               label: const Text('Request approval'),
             ),
           ),
@@ -300,7 +300,7 @@ class _TicketApprovalPanelState extends ConsumerState<TicketApprovalPanel> {
               IconButton(
                 tooltip: 'Cancel request',
                 onPressed: _isBusy ? null : () => _cancel(latest),
-                icon: const Icon(LucideIcons.minusCircle, size: 16),
+                icon: const Icon(LucideIcons.minus_circle, size: 16),
               ),
             ],
           )
@@ -309,7 +309,7 @@ class _TicketApprovalPanelState extends ConsumerState<TicketApprovalPanel> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _isBusy ? null : _request,
-              icon: const Icon(LucideIcons.refreshCw, size: 16),
+              icon: const Icon(LucideIcons.refresh_cw, size: 16),
               label: const Text('Request again'),
             ),
           ),
@@ -332,7 +332,7 @@ class _TicketApprovalPanelState extends ConsumerState<TicketApprovalPanel> {
           Row(
             children: [
               Icon(
-                LucideIcons.shieldCheck,
+                LucideIcons.shield_check,
                 size: 16,
                 color: AppColors.gray600,
               ),

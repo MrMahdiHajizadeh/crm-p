@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../core/theme/theme.dart';
 import '../../data/models/solution.dart';
@@ -197,7 +197,7 @@ class _SolutionDetailScreenState extends ConsumerState<SolutionDetailScreen> {
                   FloatingLabelInput(
                     label: 'Title',
                     controller: _titleController,
-                    prefixIcon: LucideIcons.bookOpen,
+                    prefixIcon: LucideIcons.book_open,
                   ),
                   const SizedBox(height: 16),
                   TextAreaField(
@@ -244,7 +244,7 @@ class _SolutionDetailScreenState extends ConsumerState<SolutionDetailScreen> {
                           Icon(
                             _isPublished
                                 ? LucideIcons.globe
-                                : LucideIcons.eyeOff,
+                                : LucideIcons.eye_off,
                             color: _isPublished
                                 ? AppColors.primary600
                                 : AppColors.textSecondary,

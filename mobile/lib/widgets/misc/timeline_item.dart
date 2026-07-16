@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
 
@@ -143,19 +143,19 @@ class TimelineItem extends StatelessWidget {
       case ActivityType.meeting:
         return LucideIcons.calendar;
       case ActivityType.note:
-        return LucideIcons.fileText;
+        return LucideIcons.file_text;
       case ActivityType.stageChange:
-        return LucideIcons.arrowRight;
+        return LucideIcons.arrow_right;
       case ActivityType.taskCompleted:
-        return LucideIcons.checkCircle2;
+        return LucideIcons.check_circle2;
       case ActivityType.dealCreated:
         return LucideIcons.plus;
       case ActivityType.dealWon:
         return LucideIcons.trophy;
       case ActivityType.dealLost:
-        return LucideIcons.xCircle;
+        return LucideIcons.x_circle;
       case ActivityType.leadCreated:
-        return LucideIcons.userPlus;
+        return LucideIcons.user_plus;
     }
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../core/theme/theme.dart';
 import '../../data/models/approval.dart';
@@ -226,7 +226,7 @@ class _ApprovalsInboxScreenState extends ConsumerState<ApprovalsInboxScreen>
   Widget _body(List<Approval> approvals) {
     if (approvals.isEmpty) {
       return EmptyState(
-        icon: LucideIcons.shieldCheck,
+        icon: LucideIcons.shield_check,
         title: 'No approvals',
         description: _state == 'pending' && _mineTab
             ? "You don't have any pending approvals to act on."
@@ -389,7 +389,7 @@ class _ApprovalTile extends StatelessWidget {
                 IconButton(
                   tooltip: 'Cancel request',
                   onPressed: isBusy ? null : onCancel,
-                  icon: const Icon(LucideIcons.minusCircle, size: 16),
+                  icon: const Icon(LucideIcons.minus_circle, size: 16),
                 ),
               ],
             ),

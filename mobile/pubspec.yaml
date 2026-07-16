@@ -24,7 +24,7 @@ dependencies:
   firebase_crashlytics: ^4.2.0
   # Icons
   cupertino_icons: ^1.0.6
-  lucide_icons: ^0.257.0
+  flutter_lucide: ^1.11.0
 
   # Navigation
   go_router: ^16.0.0
@@ -44,9 +44,6 @@ dependencies:
 
   # Google Fonts for distinctive typography
   google_fonts: ^6.2.0
-
-dependency_overrides:
-  lucide_icons: {sdk: any}
 
 dev_dependencies:
 

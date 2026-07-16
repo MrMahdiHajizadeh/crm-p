@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/models.dart';
@@ -317,7 +317,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       case TaskStatus.inProgress:
         return LucideIcons.clock;
       case TaskStatus.completed:
-        return LucideIcons.checkCircle2;
+        return LucideIcons.check_circle2;
     }
   }
 
@@ -346,7 +346,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
           if (task.description != null && task.description!.isNotEmpty) ...[
             _buildCard(
               title: 'Description',
-              icon: LucideIcons.fileText,
+              icon: LucideIcons.file_text,
               child: Text(
                 task.description!,
                 style: AppTypography.body.copyWith(
@@ -504,7 +504,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       }
       return _RelatedRef(
         typeLabel: 'Lead',
-        icon: LucideIcons.userPlus,
+        icon: LucideIcons.user_plus,
         label: label,
         path: '/leads/${t.leadId}',
       );
@@ -953,7 +953,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                           )
                         : PrimaryButton(
                             label: 'Complete',
-                            icon: LucideIcons.checkCircle2,
+                            icon: LucideIcons.check_circle2,
                             onPressed: _toggleTaskStatus,
                             isFullWidth: true,
                           ),
@@ -1042,7 +1042,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               leading: Icon(
                 _task!.completed
                     ? LucideIcons.rotateCcw
-                    : LucideIcons.checkCircle2,
+                    : LucideIcons.check_circle2,
               ),
               title: Text(_task!.completed ? 'Reopen Task' : 'Complete Task'),
               onTap: () {

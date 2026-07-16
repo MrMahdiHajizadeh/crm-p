@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 
 import '../../core/theme/theme.dart';
 import '../../data/models/time_entry.dart';
@@ -389,7 +389,7 @@ class _EntryRow extends StatelessWidget {
       child: Row(
         children: [
           if (entry.billable)
-            Icon(LucideIcons.dollarSign, size: 14, color: AppColors.success600)
+            Icon(LucideIcons.dollar_sign, size: 14, color: AppColors.success600)
           else
             Icon(LucideIcons.minus, size: 14, color: AppColors.gray400),
           const SizedBox(width: 8),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/ticket.dart';
 import '../common/avatar.dart';
@@ -291,7 +291,7 @@ class TicketCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.alertTriangle, size: 11, color: AppColors.danger600),
+          Icon(LucideIcons.alert_triangle, size: 11, color: AppColors.danger600),
           const SizedBox(width: 3),
           Text(
             isResolution ? 'SLA · Resolve' : 'SLA',

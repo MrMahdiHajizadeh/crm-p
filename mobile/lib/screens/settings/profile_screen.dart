@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/profile.dart';
 import '../../providers/profile_provider.dart';
@@ -115,7 +115,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.alertCircle, size: 40, color: AppColors.gray400),
+          Icon(LucideIcons.alert_circle, size: 40, color: AppColors.gray400),
           const SizedBox(height: 12),
           Text('Could not load profile', style: AppTypography.label),
           const SizedBox(height: 4),

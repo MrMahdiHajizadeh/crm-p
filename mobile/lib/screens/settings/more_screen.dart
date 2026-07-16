@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_router.dart';
@@ -51,7 +51,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
               onTap: () => context.push(AppRoutes.contacts),
             ),
             _MenuItem(
-              icon: LucideIcons.fileText,
+              icon: LucideIcons.file_text,
               label: 'Invoices',
               description: 'Track invoices and payments',
               onTap: () => context.push(AppRoutes.invoices),
@@ -113,7 +113,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
               onTap: () => _showComingSoon('Help Center'),
             ),
             _MenuItem(
-              icon: LucideIcons.fileText,
+              icon: LucideIcons.file_text,
               label: 'Terms of Service',
               onTap: () => _showComingSoon('Terms of Service'),
             ),

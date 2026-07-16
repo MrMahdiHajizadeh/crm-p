@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_lucide/flutter_lucide.dart';
 import '../../core/theme/theme.dart';
 import '../../data/models/ticket.dart';
 import '../../data/models/lookup_models.dart';
@@ -189,7 +189,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alertCircle, size: 48, color: AppColors.danger500),
+            Icon(LucideIcons.alert_circle, size: 48, color: AppColors.danger500),
             const SizedBox(height: 16),
             Text(
               _fetchError!,
@@ -220,7 +220,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
               label: 'Ticket name',
               hint: 'e.g. Login fails on Safari',
               controller: _nameController,
-              prefixIcon: LucideIcons.fileText,
+              prefixIcon: LucideIcons.file_text,
               textInputAction: TextInputAction.next,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {
