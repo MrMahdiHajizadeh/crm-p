@@ -36,9 +36,12 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.6'
+          flutter-version: '3.29.2'
           channel: 'stable'
           cache: true
+
+      - name: Disable Flutter analytics
+        run: flutter config --no-analytics
 
       - name: Disable Flutter analytics
         run: flutter config --no-analytics
@@ -64,9 +67,12 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.6'
+          flutter-version: '3.29.2'
           channel: 'stable'
           cache: true
+
+      - name: Disable Flutter analytics
+        run: flutter config --no-analytics
 
       - name: Disable Flutter analytics
         run: flutter config --no-analytics
@@ -110,3 +116,4 @@ jobs:
           tags: bottlecrm-backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+

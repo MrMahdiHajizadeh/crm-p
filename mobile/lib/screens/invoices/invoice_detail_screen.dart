@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../data/models/invoice.dart';
 import '../../providers/invoices_provider.dart';
 
