@@ -43,7 +43,7 @@ dependencies:
   url_launcher: ^6.3.1
 
   # Google Fonts for distinctive typography
-  google_fonts: ^8.1.0
+  google_fonts: ^6.2.0
 
 dev_dependencies:
   flutter_test:
