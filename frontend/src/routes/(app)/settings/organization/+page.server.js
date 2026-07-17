@@ -24,7 +24,9 @@ export const actions = {
       domain: formData.get('domain') || null,
       description: formData.get('description') || null,
       default_currency: formData.get('default_currency'),
-      default_country: formData.get('default_country') || null
+      default_country: formData.get('default_country') || null,
+      opportunities_enabled: formData.get('opportunities_enabled') === 'on',
+      invoices_enabled: formData.get('invoices_enabled') === 'on'
     };
 
     try {

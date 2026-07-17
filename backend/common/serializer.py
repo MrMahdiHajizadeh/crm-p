@@ -73,7 +73,7 @@ class OrgAwareRefreshToken(RefreshToken):
             # Add org_name for display (avoids /api/auth/profile call)
             if hasattr(org, "name"):
                 token["org_name"] = org.name
-            # Add org settings for currency/locale
+            # Add org settings for currency/locale and feature flags
             if hasattr(org, "default_currency"):
                 token["org_settings"] = {
                     "default_currency": org.default_currency or "USD",
@@ -81,6 +81,10 @@ class OrgAwareRefreshToken(RefreshToken):
                         org.default_currency or "USD", "$"
                     ),
                     "default_country": org.default_country,
+                    "opportunities_enabled": getattr(
+                        org, "opportunities_enabled", False
+                    ),
+                    "invoices_enabled": getattr(org, "invoices_enabled", False),
                 }
 
         # Add role if profile provided (avoids /api/auth/profile call)
@@ -124,6 +128,9 @@ class OrgSettingsSerializer(serializers.ModelSerializer):
             "default_currency",
             "default_country",
             "currency_symbol",
+            # Feature flags
+            "opportunities_enabled",
+            "invoices_enabled",
         ]
         read_only_fields = ["id", "currency_symbol", "logo_url"]
 

@@ -192,7 +192,9 @@ export const handle = sequence(Sentry.sentryHandle(), async function _handle({ e
         event.locals.org_settings = jwtPayload.org_settings || {
           default_currency: 'USD',
           currency_symbol: '$',
-          default_country: null
+          default_country: null,
+          opportunities_enabled: false,
+          invoices_enabled: false
         };
       } else {
         // Token doesn't have org context, need to switch (1 API call)
@@ -227,7 +229,9 @@ export const handle = sequence(Sentry.sentryHandle(), async function _handle({ e
           event.locals.org_settings = newPayload?.org_settings || {
             default_currency: 'USD',
             currency_symbol: '$',
-            default_country: null
+            default_country: null,
+            opportunities_enabled: false,
+            invoices_enabled: false
           };
         } else {
           // Org switch failed, clear org cookie and redirect

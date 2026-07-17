@@ -5,13 +5,17 @@ import { writable } from 'svelte/store';
  * @property {string} default_currency - Default currency code (e.g., 'USD', 'EUR')
  * @property {string} currency_symbol - Currency symbol (e.g., '$', '€')
  * @property {string|null} default_country - Default country code or null
+ * @property {boolean} opportunities_enabled - Show Opportunities section in sidebar
+ * @property {boolean} invoices_enabled - Show Invoices section in sidebar
  */
 
 /** @type {import('svelte/store').Writable<OrgSettings>} */
 export const orgSettings = writable({
   default_currency: 'USD',
   currency_symbol: '$',
-  default_country: null
+  default_country: null,
+  opportunities_enabled: false,
+  invoices_enabled: false
 });
 
 /**
@@ -22,6 +26,8 @@ export function initOrgSettings(settings) {
   orgSettings.set({
     default_currency: settings.default_currency || 'USD',
     currency_symbol: settings.currency_symbol || '$',
-    default_country: settings.default_country || null
+    default_country: settings.default_country || null,
+    opportunities_enabled: settings.opportunities_enabled ?? false,
+    invoices_enabled: settings.invoices_enabled ?? false
   });
 }

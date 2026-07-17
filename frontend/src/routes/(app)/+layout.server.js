@@ -7,7 +7,9 @@ export async function load({ locals }) {
     org_settings: locals.org_settings || {
       default_currency: 'USD',
       currency_symbol: '$',
-      default_country: null
+      default_country: null,
+      opportunities_enabled: false,
+      invoices_enabled: false
     }
   };
 }

@@ -141,6 +141,11 @@ class Org(BaseModel):
     # explicit confirmation; this flag only controls the default state.
     auto_close_children_on_parent_close = models.BooleanField(default=False)
 
+    # Feature flags – sidebar visibility toggles.
+    # When False (default), the corresponding nav section is hidden.
+    opportunities_enabled = models.BooleanField(default=False)
+    invoices_enabled = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = "Organization"
         verbose_name_plural = "Organizations"

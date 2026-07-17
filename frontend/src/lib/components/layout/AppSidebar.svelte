@@ -53,6 +53,7 @@
     KeyRound
   } from '@lucide/svelte';
   import { Bell } from '$lib/components/notifications/index.js';
+  import { orgSettings as orgSettingsStore } from '$lib/stores/org.js';
 
   /**
    * @typedef {Object} Props
@@ -63,6 +64,12 @@
 
   /** @type {Props} */
   let { user = {}, org_name = 'BottleCRM', org_settings = {} } = $props();
+
+  // Merge props-based org_settings with the reactive store so live updates
+  // from the settings page (e.g. feature flag toggles) take effect without
+  // requiring a JWT refresh or full page reload.
+  // Using $ prefix auto-subscribes to the Svelte store in runes mode.
+  let mergedSettings = $derived({ ...org_settings, ...$orgSettingsStore });
 
   // Tier badge — hidden when JWT doesn't carry one (spec §8 "No tier in JWT")
   const tier = $derived(org_settings?.tier ?? null);
@@ -184,7 +191,7 @@
     { href: '/leads', label: 'sidebar.leads', icon: Target, type: 'link', preload: 'off', count: undefined },
     { href: '/contacts', label: 'sidebar.contacts', icon: Users, type: 'link', preload: 'off', count: undefined },
     { href: '/accounts', label: 'sidebar.accounts', icon: Building, type: 'link', preload: 'off', count: undefined },
-    { href: '/opportunities', label: 'sidebar.deals', icon: Sparkles, type: 'link', preload: 'off', count: undefined }
+    { href: '/opportunities', label: 'sidebar.deals', icon: Sparkles, type: 'link', preload: 'off', count: undefined, featureFlag: 'opportunities_enabled' }
   ];
 
   const workItems = [
@@ -213,6 +220,7 @@
       icon: FileText,
       type: 'dropdown',
       count: undefined,
+      featureFlag: 'invoices_enabled',
       children: [
         { href: '/invoices', label: 'sidebar.all_invoices', icon: FileText, preload: 'off', count: undefined },
         { href: '/invoices/estimates', label: 'sidebar.estimates', icon: FileEdit, preload: 'off', count: undefined },
@@ -446,7 +454,7 @@
       </Sidebar.GroupLabel>
       <Sidebar.GroupContent>
         <Sidebar.Menu class="space-y-px">
-          {#each recordsItems as item}
+          {#each recordsItems.filter(item => !item.featureFlag || mergedSettings[item.featureFlag]) as item}
             {#if item.type === 'dropdown' && item.children}
               <Collapsible.Root
                 open={openDropdowns[item.key ?? ''] || false}
@@ -732,7 +740,7 @@
       </Sidebar.GroupLabel>
       <Sidebar.GroupContent>
         <Sidebar.Menu class="space-y-px">
-          {#each revenueItems as item}
+          {#each revenueItems.filter(item => !item.featureFlag || mergedSettings[item.featureFlag]) as item}
             {#if item.type === 'dropdown' && item.children}
               <Collapsible.Root
                 open={openDropdowns[item.key ?? ''] || false}
