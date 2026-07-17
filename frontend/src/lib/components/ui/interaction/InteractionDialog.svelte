@@ -1,12 +1,13 @@
 <script>
   import { _ } from '$lib/i18n';
+  import { enhance } from '$app/forms';
+  import { invalidateAll } from '$app/navigation';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
   import { Label } from '$lib/components/ui/label/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
-  import { apiRequest } from '$lib/api-helpers.js';
   import { toast } from '$lib/components/ui/toast/index.js';
   import { Calendar, Clock, Phone, Mail, Users, FileText } from '@lucide/svelte';
 
@@ -45,64 +46,39 @@
   let description = $state('');
   let result = $state(undefined);
   let followUpDate = $state('');
-  let saving = $state(false);
+  // Hidden form ref for use:enhance
+  let interactionForm = $state(null);
 
-  function resetForm() {
-    interactionType = 'call';
-    interactionDate = new Date().toISOString().slice(0, 16);
-    durationMinutes = 0;
-    subject = '';
-    description = '';
-    result = undefined;
-    followUpDate = '';
-  }
-
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!subject.trim() && !description.trim()) {
       toast.error($_('interaction.form.required'));
       return;
     }
-
-    saving = true;
-    try {
-      const payload = {
-        entity_type: entityType,
-        entity_id: entityId,
-        interaction_type: interactionType,
-        interaction_date: new Date(interactionDate).toISOString(),
-        duration_minutes: durationMinutes > 0 ? durationMinutes : null,
-        subject: subject.trim(),
-        description: description.trim(),
-        result: result || null,
-        follow_up_date: followUpDate ? new Date(followUpDate).toISOString() : null,
-      };
-
-      await apiRequest('/leads/interactions/', {
-        method: 'POST',
-        body: payload,
-      });
-
-      toast.success($_('interaction.form.saved'));
-      resetForm();
-      onSuccess?.();
-      onClose?.();
-    } catch (err) {
-      toast.error(/** @type {any} */ (err)?.message || $_('interaction.form.error'));
-    } finally {
-      saving = false;
-    }
+    interactionForm?.requestSubmit();
   }
 
   function handleClose() {
-    resetForm();
     onClose?.();
+  }
+
+  function handleEnhance() {
+    return async ({ result }) => {
+      if (result.type === 'success') {
+        toast.success($_('interaction.form.saved'));
+        onSuccess?.();
+        onClose?.();
+      } else if (result.type === 'failure') {
+        const data = /** @type {any} */ (result).data;
+        toast.error(data?.error || $_('interaction.form.error'));
+      }
+    };
   }
 </script>
 
 <Dialog.Root open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
   <Dialog.Portal>
     <Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-    <Dialog.Content class="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-6 shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+    <Dialog.Content class="fixed start-1/2 top-[50%] z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-6 shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-h-[85vh] overflow-y-auto">
       <Dialog.Header>
         <Dialog.Title class="text-[15px] font-semibold text-[var(--text)]">
           {$_('interaction.form.title')}
@@ -112,9 +88,9 @@
         </Dialog.Description>
       </Dialog.Header>
 
-      <div class="mt-4 flex flex-col gap-4">
+      <div class="flex flex-col gap-3">
         <!-- Interaction Type -->
-        <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-1">
           <Label for="interaction-type" class="text-[12px] font-medium text-[var(--text)]">
             {$_('interaction.form.type')}
           </Label>
@@ -185,7 +161,7 @@
             id="description"
             bind:value={description}
             placeholder={$_('interaction.form.description_placeholder')}
-            rows="3"
+            rows="2"
             class="text-[13px] resize-none"
           />
         </div>
@@ -221,14 +197,33 @@
         </div>
       </div>
 
-      <Dialog.Footer class="mt-6 flex justify-end gap-2">
+      <Dialog.Footer class="mt-4 flex justify-end gap-2 pt-2 border-t border-[var(--border-faint)]">
         <Button variant="ghost" size="sm" onclick={handleClose}>
           {$_('common.cancel')}
         </Button>
-        <Button variant="default" size="sm" onclick={handleSubmit} disabled={saving}>
-          {saving ? $_('common.saving') : $_('interaction.form.save')}
+        <Button variant="default" size="sm" onclick={handleSubmit}>
+          {$_('interaction.form.save')}
         </Button>
       </Dialog.Footer>
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>
+
+<!-- Hidden form for server action -->
+<form
+  method="POST"
+  action="?/createInteraction"
+  use:enhance={handleEnhance}
+  bind:this={interactionForm}
+  class="hidden"
+>
+  <input type="hidden" name="entity_type" value={entityType} />
+  <input type="hidden" name="entity_id" value={entityId} />
+  <input type="hidden" name="interaction_type" value={interactionType} />
+  <input type="hidden" name="interaction_date" value={new Date(interactionDate).toISOString()} />
+  <input type="hidden" name="duration_minutes" value={durationMinutes > 0 ? String(durationMinutes) : ''} />
+  <input type="hidden" name="subject" value={subject} />
+  <input type="hidden" name="description" value={description} />
+  <input type="hidden" name="result" value={result || ''} />
+  <input type="hidden" name="follow_up_date" value={followUpDate || ''} />
+</form>

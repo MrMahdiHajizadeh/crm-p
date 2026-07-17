@@ -476,15 +476,6 @@ class FollowUpListView(APIView):
         for interaction in base_qs.order_by("follow_up_date"):
             fud = interaction.follow_up_date
             data = InteractionLogSerializer(interaction).data
-            # Fetch entity display name
-            entity_name = ""
-            if interaction.entity_type == "Lead":
-                try:
-                    lead = Lead.objects.get(id=interaction.entity_id)
-                    entity_name = str(lead)
-                except Lead.DoesNotExist:
-                    entity_name = "[Deleted Lead]"
-            data["entity_name"] = entity_name
 
             if fud < today_start:
                 result["overdue"].append(data)

@@ -181,7 +181,8 @@ export async function apiRequest(endpoint, options = {}) {
   /** @type {RequestInit} */
   const fetchOptions = {
     method,
-    headers: requestHeaders
+    headers: requestHeaders,
+    credentials: 'include'
   };
 
   if (body && method !== 'GET') {

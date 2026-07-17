@@ -26,6 +26,7 @@ class InteractionLogSerializer(serializers.ModelSerializer):
     created_by = UserSerializer(read_only=True)
     interaction_type_display = serializers.SerializerMethodField()
     result_display = serializers.SerializerMethodField()
+    entity_name = serializers.SerializerMethodField()
 
     class Meta:
         model = InteractionLog
@@ -33,6 +34,7 @@ class InteractionLogSerializer(serializers.ModelSerializer):
             "id",
             "entity_type",
             "entity_id",
+            "entity_name",
             "interaction_type",
             "interaction_type_display",
             "interaction_date",
@@ -52,6 +54,29 @@ class InteractionLogSerializer(serializers.ModelSerializer):
 
     def get_result_display(self, obj):
         return obj.get_result_display() if obj.result else None
+
+    def get_entity_name(self, obj):
+        """Resolve the display name of the linked entity."""
+        from accounts.models import Account
+        from contacts.models import Contact
+        from leads.models import Lead
+        from opportunity.models import Opportunity
+        try:
+            if obj.entity_type == "Lead":
+                lead = Lead.objects.get(id=obj.entity_id)
+                return lead.title or lead.email or str(lead) or f"Lead {lead.id}"
+            elif obj.entity_type == "Contact":
+                contact = Contact.objects.get(id=obj.entity_id)
+                return str(contact) or contact.email or f"Contact {contact.id}"
+            elif obj.entity_type == "Account":
+                account = Account.objects.get(id=obj.entity_id)
+                return account.name or f"Account {account.id}"
+            elif obj.entity_type == "Opportunity":
+                opp = Opportunity.objects.get(id=obj.entity_id)
+                return opp.name or f"Opportunity {opp.id}"
+        except Exception:
+            pass
+        return f"[Deleted {obj.entity_type}]"
 
 
 class InteractionLogCreateSerializer(serializers.ModelSerializer):

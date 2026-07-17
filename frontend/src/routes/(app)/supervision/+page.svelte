@@ -229,7 +229,7 @@
               <td class="px-4 py-3">
                 {#if act.entity_name}
                   <a
-                    href="/{act.entity_type.toLowerCase()}/{act.entity_id}"
+                    href="/{{Lead:'leads',Contact:'contacts',Account:'accounts',Opportunity:'opportunities',Case:'tickets',Task:'tasks',Invoice:'invoices'}[act.entity_type] || act.entity_type.toLowerCase()}/{act.entity_id}"
                     class="text-[var(--color-primary-default)] hover:underline"
                   >
                     {act.entity_name}

@@ -153,7 +153,10 @@
                         <button
                           type="button"
                           class="truncate text-[13px] font-medium text-[var(--color-primary-default)] hover:underline"
-                          onclick={() => goto(`/${item.entity_type.toLowerCase()}/${item.entity_id}`)}
+                          onclick={() => {
+                            const routeMap = { Lead: 'leads', Contact: 'contacts', Account: 'accounts', Opportunity: 'opportunities' };
+                            goto(`/${routeMap[item.entity_type] || item.entity_type.toLowerCase()}/${item.entity_id}`);
+                          }}
                         >
                           {item.entity_name || '—'}
                         </button>
