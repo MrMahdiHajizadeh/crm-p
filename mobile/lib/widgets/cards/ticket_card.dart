@@ -125,7 +125,7 @@ class TicketCard extends StatelessWidget {
 
     if (ticketItem.isProblem) {
       pills.add(_pill(
-        icon: LucideIcons.alert_octagon,
+        icon: LucideIcons.octagon_alert,
         label: 'Problem',
         bg: AppColors.warning100,
         fg: AppColors.warning700,
@@ -291,7 +291,7 @@ class TicketCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.alert_triangle, size: 11, color: AppColors.danger600),
+          Icon(LucideIcons.triangle_alert, size: 11, color: AppColors.danger600),
           const SizedBox(width: 3),
           Text(
             isResolution ? 'SLA · Resolve' : 'SLA',

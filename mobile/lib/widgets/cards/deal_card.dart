@@ -98,7 +98,7 @@ class DealCard extends ConsumerWidget {
                       children: [
                         if (isSelected) ...[
                           Icon(
-                            LucideIcons.check_circle_2,
+                            LucideIcons.circle_check,
                             size: 18,
                             color: AppColors.primary600,
                           ),
@@ -176,7 +176,7 @@ class DealCard extends ConsumerWidget {
                               Padding(
                                 padding: const EdgeInsets.only(right: 4),
                                 child: Icon(
-                                  LucideIcons.alert_circle,
+                                  LucideIcons.circle_alert,
                                   size: 14,
                                   color: closeDateColor,
                                 ),
@@ -324,7 +324,7 @@ class _AgingPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            isRotten ? LucideIcons.alert_octagon : LucideIcons.clock,
+            isRotten ? LucideIcons.octagon_alert : LucideIcons.clock,
             size: 11,
             color: color,
           ),

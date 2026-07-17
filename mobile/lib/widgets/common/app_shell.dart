@@ -35,7 +35,7 @@ const _navBranches = <_NavBranch>[
   _NavBranch(label: 'Tickets', icon: LucideIcons.ticket, branches: [3]),
   _NavBranch(
     label: 'More',
-    icon: LucideIcons.more_horizontal,
+    icon: LucideIcons.ellipsis,
     branches: [5, 4],
     opensSheet: true,
   ),
@@ -151,7 +151,7 @@ class _MoreSheet extends ConsumerWidget {
             ),
           const Divider(height: 1),
           _SheetItem(
-            icon: LucideIcons.check_square,
+            icon: LucideIcons.square_check,
             label: 'Tasks',
             onTap: () {
               Navigator.pop(context);

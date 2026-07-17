@@ -599,7 +599,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
             const SizedBox(width: 6),
             // Rotten
             _QuickChip(
-              icon: LucideIcons.alert_octagon,
+              icon: LucideIcons.octagon_alert,
               label: 'Stale',
               selected: filters.rottenOnly,
               onTap: () {
@@ -1001,7 +1001,7 @@ class _DealsListScreenState extends ConsumerState<DealsListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(LucideIcons.alert_circle, size: 48, color: AppColors.danger500),
+          Icon(LucideIcons.circle_alert, size: 48, color: AppColors.danger500),
           const SizedBox(height: 16),
           Text(
             error,

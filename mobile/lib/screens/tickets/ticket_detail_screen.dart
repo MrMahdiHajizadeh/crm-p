@@ -164,7 +164,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
           ),
           IconButton(
             tooltip: 'More',
-            icon: const Icon(LucideIcons.more_vertical),
+            icon: const Icon(LucideIcons.ellipsis_vertical),
             onPressed: _openActionSheet,
           ),
         ],
@@ -281,7 +281,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    LucideIcons.alert_triangle,
+                    LucideIcons.triangle_alert,
                     size: 12,
                     color: AppColors.danger600,
                   ),
@@ -355,7 +355,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
                 if (c.closedOn != null) ...[
                   const Divider(height: 24),
                   _InfoRow(
-                    icon: LucideIcons.check_circle,
+                    icon: LucideIcons.circle_check,
                     label: 'CLOSED',
                     value: _formatDate(c.closedOn!),
                   ),
@@ -897,7 +897,7 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen>
             ),
             if (c.status != TicketStatus.closed)
               _actionRow(
-                icon: LucideIcons.check_circle,
+                icon: LucideIcons.circle_check,
                 iconColor: AppColors.success600,
                 label: 'Close ticket',
                 onTap: () {
@@ -2379,7 +2379,7 @@ class _ActivityTile extends StatelessWidget {
       case 'APPROVAL_CANCELLED':
         return LucideIcons.shield_check;
       case 'ESCALATED':
-        return LucideIcons.alert_triangle;
+        return LucideIcons.triangle_alert;
       case 'REOPENED':
         return LucideIcons.refresh_cw;
       case 'MERGED':

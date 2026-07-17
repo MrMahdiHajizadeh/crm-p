@@ -57,7 +57,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
               onTap: () => context.push(AppRoutes.invoices),
             ),
             _MenuItem(
-              icon: LucideIcons.check_square,
+              icon: LucideIcons.square_check,
               label: 'Tasks',
               description: 'Your to-dos across leads, deals and tickets',
               onTap: () => context.go(AppRoutes.tasks),
@@ -108,7 +108,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             // Support Section
             _buildSectionHeader('Support'),
             _MenuItem(
-              icon: LucideIcons.help_circle,
+              icon: LucideIcons.circle_question_mark,
               label: 'Help Center',
               onTap: () => _showComingSoon('Help Center'),
             ),
@@ -498,7 +498,7 @@ class _ToggleMenuItem extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeTrackColor: AppColors.primary200,
-            activeThumbColor: AppColors.primary600,
+            thumbColor: WidgetStatePropertyAll(AppColors.primary600),
           ),
         ],
       ),

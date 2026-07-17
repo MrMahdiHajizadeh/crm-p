@@ -187,7 +187,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    LucideIcons.more_vertical,
+                    LucideIcons.ellipsis_vertical,
                     size: 18,
                     color: AppColors.textPrimary,
                   ),
@@ -582,7 +582,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
     if (lead.linkedinUrl != null && lead.linkedinUrl!.trim().isNotEmpty) {
       addRow(
         _InfoRow(
-          icon: LucideIcons.linkedin,
+          icon: LucideIcons.external_link,
           label: 'LINKEDIN',
           value: lead.linkedinUrl!,
           onTap: () => _launchWeb(lead.linkedinUrl!),
@@ -1249,7 +1249,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen>
                   color: AppColors.textSecondary,
                 ),
               ),
-              ?action,
+              if (action != null) action,
             ],
           ),
           const SizedBox(height: 12),
@@ -2023,7 +2023,7 @@ class _NoteCard extends StatelessWidget {
                       iconSize: 18,
                       visualDensity: VisualDensity.compact,
                       icon: Icon(
-                        LucideIcons.more_vertical,
+                        LucideIcons.ellipsis_vertical,
                         color: AppColors.textTertiary,
                       ),
                       tooltip: 'Note options',

@@ -50,7 +50,6 @@
     ShieldCheck,
     BookOpen,
     Activity,
-    Smartphone,
     KeyRound
   } from '@lucide/svelte';
   import { Bell } from '$lib/components/notifications/index.js';
@@ -1013,39 +1012,6 @@
 
   <Sidebar.Footer class="border-t border-[color:var(--sidebar-border)] px-2 py-2">
     <Sidebar.Menu class="space-y-px">
-      <!-- Download mobile app -->
-      <Sidebar.MenuItem>
-        <Sidebar.MenuButton
-          tooltipContent={$_('sidebar.download_mobile')}
-          class="h-[30px] rounded-md pl-[18px] pr-[10px] text-[color:var(--sidebar-muted)] transition-colors duration-150 hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]
-            group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0"
-        >
-          {#snippet child({ props })}
-            <a
-              {...props}
-              href="https://play.google.com/store/apps/details?id=io.bottlecrm&hl=en"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span class="relative inline-flex shrink-0">
-                <Smartphone
-                  class="size-[15px] text-[color:var(--sidebar-subtle)]"
-                  strokeWidth={1.6}
-                  aria-hidden="true"
-                />
-                <span class="pointer-events-none absolute -right-0.5 -top-0.5 inline-flex size-1.5">
-                  <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex size-1.5 rounded-full bg-emerald-500"></span>
-                </span>
-              </span>
-              <span class="flex-1 text-[13px] font-medium group-data-[collapsible=icon]:hidden">
-                {$_('sidebar.download_app')}
-              </span>
-            </a>
-          {/snippet}
-        </Sidebar.MenuButton>
-      </Sidebar.MenuItem>
-
       <!-- Collapse/Expand Toggle -->
       <Sidebar.MenuItem>
         <Sidebar.MenuButton

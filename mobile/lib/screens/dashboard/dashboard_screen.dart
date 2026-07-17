@@ -112,7 +112,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(LucideIcons.alert_circle, size: 48, color: Colors.grey[400]),
+              Icon(LucideIcons.circle_alert, size: 48, color: Colors.grey[400]),
               const SizedBox(height: 16),
               Text(
                 'Failed to load dashboard',
@@ -269,7 +269,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             Row(
               children: [
                 Icon(
-                  LucideIcons.alert_triangle,
+                  LucideIcons.triangle_alert,
                   size: 16,
                   color: AppColors.warning600,
                 ),
@@ -634,7 +634,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       child: Column(
                         children: [
                           Icon(
-                            LucideIcons.check_circle,
+                            LucideIcons.circle_check,
                             size: 24,
                             color: Colors.grey[300],
                           ),
@@ -706,7 +706,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
-                      LucideIcons.plus_circle,
+                      LucideIcons.circle_plus,
                       color: AppColors.success600,
                       size: 20,
                     ),
@@ -727,7 +727,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
-                      LucideIcons.check_square,
+                      LucideIcons.square_check,
                       color: AppColors.warning600,
                       size: 20,
                     ),

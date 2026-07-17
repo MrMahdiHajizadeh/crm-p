@@ -95,7 +95,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               padding: const EdgeInsets.only(right: 8),
               child: IconButton(
                 onPressed: () => _enterEdit(async.value!),
-                icon: const Icon(LucideIcons.edit_3, size: 20),
+                icon: const Icon(LucideIcons.pen, size: 20),
                 tooltip: 'Edit profile',
                 color: AppColors.primary600,
               ),
@@ -115,7 +115,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(LucideIcons.alert_circle, size: 40, color: AppColors.gray400),
+          Icon(LucideIcons.circle_alert, size: 40, color: AppColors.gray400),
           const SizedBox(height: 12),
           Text('Could not load profile', style: AppTypography.label),
           const SizedBox(height: 4),
@@ -210,7 +210,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: () => _enterEdit(profile),
-              icon: const Icon(LucideIcons.edit_3, size: 16),
+              icon: const Icon(LucideIcons.pen, size: 16),
               label: const Text('Edit profile'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary700,

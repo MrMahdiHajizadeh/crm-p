@@ -191,7 +191,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    LucideIcons.more_vertical,
+                    LucideIcons.ellipsis_vertical,
                     size: 18,
                     color: AppColors.textPrimary,
                   ),
@@ -317,7 +317,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
       case TaskStatus.inProgress:
         return LucideIcons.clock;
       case TaskStatus.completed:
-        return LucideIcons.check_circle_2;
+        return LucideIcons.circle_check;
     }
   }
 
@@ -953,7 +953,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
                           )
                         : PrimaryButton(
                             label: 'Complete',
-                            icon: LucideIcons.check_circle_2,
+                            icon: LucideIcons.circle_check,
                             onPressed: _toggleTaskStatus,
                             isFullWidth: true,
                           ),
@@ -1042,7 +1042,7 @@ class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
               leading: Icon(
                 _task!.completed
                     ? LucideIcons.rotate_ccw
-                    : LucideIcons.check_circle_2,
+                    : LucideIcons.circle_check,
               ),
               title: Text(_task!.completed ? 'Reopen Task' : 'Complete Task'),
               onTap: () {

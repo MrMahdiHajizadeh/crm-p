@@ -167,12 +167,12 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
                 currencyFormat.format(inv.totalAmount)),
             _infoRow(
                 theme,
-                LucideIcons.check_circle,
+                LucideIcons.circle_check,
                 'Paid',
                 currencyFormat.format(inv.amountPaid)),
             _infoRow(
                 theme,
-                LucideIcons.alert_circle,
+                LucideIcons.circle_alert,
                 'Due',
                 currencyFormat.format(inv.amountDue),
                 valueColor: inv.isOverdue

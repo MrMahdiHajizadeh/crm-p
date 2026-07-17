@@ -638,7 +638,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alert_circle, size: 48, color: AppColors.danger500),
+            Icon(LucideIcons.circle_alert, size: 48, color: AppColors.danger500),
             const SizedBox(height: 16),
             Text(
               _fetchError!,
@@ -1027,7 +1027,7 @@ class _DealFormScreenState extends ConsumerState<DealFormScreen> {
               .where((name) => name.isNotEmpty)
               .toList(),
           placeholder: 'Select teams',
-          icon: LucideIcons.users_2,
+          icon: LucideIcons.users,
           isLoading: teamsAsync.isLoading,
           onTap: _showTeamsPicker,
         ),

@@ -77,7 +77,7 @@
       </div>
 
       {#if loginMode === 'password'}
-        <form method="POST" use:enhance class="login-form">
+        <form method="POST" action="?/password" use:enhance class="login-form">
           <div class="input-group">
             <label for="phone" class="input-label">تلفن همراه</label>
             <div class="input-wrapper">

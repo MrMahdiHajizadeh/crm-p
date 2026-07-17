@@ -189,7 +189,7 @@ class _TicketFormScreenState extends ConsumerState<TicketFormScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alert_circle, size: 48, color: AppColors.danger500),
+            Icon(LucideIcons.circle_alert, size: 48, color: AppColors.danger500),
             const SizedBox(height: 16),
             Text(
               _fetchError!,

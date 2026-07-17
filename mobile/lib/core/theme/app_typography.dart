@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 /// BottleCRM Typography System
-/// Using Inter - a font designed specifically for screens
-/// with excellent readability at small sizes
+/// Using system fonts (Roboto on Android, SF on iOS) as fallback
+/// when Google Fonts CDN is unreachable.
 class AppTypography {
   AppTypography._();
+
+  static const String _fontFamily = 'Roboto'; // Fallback system font
 
   // ============================================
   // DISPLAY & HEADINGS
@@ -14,7 +15,8 @@ class AppTypography {
 
   /// Display - KPIs, large numbers, hero text
   /// 28px, Bold, 1.2 line height
-  static TextStyle get display => GoogleFonts.inter(
+  static TextStyle get display => TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 28,
     fontWeight: FontWeight.w700,
     height: 1.2,
@@ -24,7 +26,8 @@ class AppTypography {
 
   /// H1 - Main page titles
   /// 22px, Semi-bold, 1.3 line height
-  static TextStyle get h1 => GoogleFonts.inter(
+  static TextStyle get h1 => TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 22,
     fontWeight: FontWeight.w600,
     height: 1.3,
@@ -34,7 +37,7 @@ class AppTypography {
 
   /// H2 - Section titles
   /// 18px, Semi-bold, 1.4 line height
-  static TextStyle get h2 => GoogleFonts.inter(
+  static TextStyle get h2 => TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w600,
     height: 1.4,
@@ -44,7 +47,7 @@ class AppTypography {
 
   /// H3 - Card titles, subsections
   /// 16px, Semi-bold, 1.4 line height
-  static TextStyle get h3 => GoogleFonts.inter(
+  static TextStyle get h3 => TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     height: 1.4,
@@ -57,7 +60,7 @@ class AppTypography {
 
   /// Body Large - Important body text
   /// 16px, Regular, 1.5 line height
-  static TextStyle get bodyLarge => GoogleFonts.inter(
+  static TextStyle get bodyLarge => TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w400,
     height: 1.5,
@@ -66,7 +69,7 @@ class AppTypography {
 
   /// Body - Default body text
   /// 15px, Regular, 1.5 line height
-  static TextStyle get body => GoogleFonts.inter(
+  static TextStyle get body => TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w400,
     height: 1.5,
@@ -75,7 +78,7 @@ class AppTypography {
 
   /// Body Small - Secondary body text
   /// 14px, Regular, 1.4 line height
-  static TextStyle get bodySmall => GoogleFonts.inter(
+  static TextStyle get bodySmall => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.4,
@@ -88,7 +91,7 @@ class AppTypography {
 
   /// Label - Input labels, list item titles
   /// 15px, Medium, 1.4 line height
-  static TextStyle get label => GoogleFonts.inter(
+  static TextStyle get label => TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w500,
     height: 1.4,
@@ -97,7 +100,7 @@ class AppTypography {
 
   /// Label Small - Small labels, nav items
   /// 13px, Medium, 1.3 line height
-  static TextStyle get labelSmall => GoogleFonts.inter(
+  static TextStyle get labelSmall => TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.3,
@@ -110,7 +113,7 @@ class AppTypography {
 
   /// Caption - Timestamps, helper text
   /// 12px, Regular, 1.3 line height, Secondary color
-  static TextStyle get caption => GoogleFonts.inter(
+  static TextStyle get caption => TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.3,
@@ -119,7 +122,7 @@ class AppTypography {
 
   /// Overline - Section labels, category headers
   /// 11px, Semi-bold, 0.5 letter spacing
-  static TextStyle get overline => GoogleFonts.inter(
+  static TextStyle get overline => TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w600,
     height: 1.3,
@@ -133,7 +136,7 @@ class AppTypography {
 
   /// Number Large - Dashboard KPIs, large metrics
   /// 28px, Bold, Tabular figures
-  static TextStyle get numberLarge => GoogleFonts.inter(
+  static TextStyle get numberLarge => TextStyle(
     fontSize: 28,
     fontWeight: FontWeight.w700,
     height: 1.2,
@@ -143,7 +146,7 @@ class AppTypography {
 
   /// Number Medium - Card metrics
   /// 20px, Semi-bold, Tabular figures
-  static TextStyle get numberMedium => GoogleFonts.inter(
+  static TextStyle get numberMedium => TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.3,
@@ -153,7 +156,7 @@ class AppTypography {
 
   /// Number Small - Inline numbers
   /// 14px, Medium, Tabular figures
-  static TextStyle get numberSmall => GoogleFonts.inter(
+  static TextStyle get numberSmall => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.3,
@@ -167,7 +170,7 @@ class AppTypography {
 
   /// Button Large - Primary action buttons
   /// 15px, Semi-bold
-  static TextStyle get buttonLarge => GoogleFonts.inter(
+  static TextStyle get buttonLarge => TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w600,
     height: 1.0,
@@ -176,7 +179,7 @@ class AppTypography {
 
   /// Button - Standard buttons
   /// 14px, Semi-bold
-  static TextStyle get button => GoogleFonts.inter(
+  static TextStyle get button => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.0,
@@ -185,7 +188,7 @@ class AppTypography {
 
   /// Button Small - Compact buttons
   /// 13px, Semi-bold
-  static TextStyle get buttonSmall => GoogleFonts.inter(
+  static TextStyle get buttonSmall => TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w600,
     height: 1.0,
@@ -198,7 +201,7 @@ class AppTypography {
 
   /// Link - Clickable text links
   /// 14px, Medium, Primary color
-  static TextStyle get link => GoogleFonts.inter(
+  static TextStyle get link => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.4,
@@ -207,7 +210,7 @@ class AppTypography {
 
   /// Link Small - Small clickable links (e.g., "View all")
   /// 13px, Medium, Primary color
-  static TextStyle get linkSmall => GoogleFonts.inter(
+  static TextStyle get linkSmall => TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.3,

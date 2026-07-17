@@ -119,7 +119,7 @@ class _LeadsListScreenState extends ConsumerState<LeadsListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alert_circle, size: 48, color: Colors.grey[400]),
+            Icon(LucideIcons.circle_alert, size: 48, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'Failed to load leads',

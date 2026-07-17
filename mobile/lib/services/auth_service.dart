@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../config/api_config.dart';
@@ -10,15 +9,13 @@ import 'crash_reporting.dart';
 
 /// Authentication service for BottleCRM
 ///
-/// Handles Google Sign-In using ID token flow (same as old app),
+/// Handles phone-based login (phone+password or phone OTP),
 /// token storage, and authentication state management.
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
   AuthService._internal();
 
-  // Initialize GoogleSignIn instance (singleton in v7.1.1)
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final ApiService _apiService = ApiService();
 
   // Storage keys
@@ -58,23 +55,20 @@ class AuthService {
     }
   }
 
+  /// Normalize Iranian phone number: strip leading 0, add 98 prefix
+  static String normalizePhone(String phone) {
+    var p = phone.trim();
+    if (p.startsWith('0')) {
+      p = '98${p.substring(1)}';
+    } else if (!p.startsWith('98')) {
+      p = '98$p';
+    }
+    return p;
+  }
+
   /// Initialize the auth service - call on app startup
   Future<void> initialize() async {
     debugPrint('AuthService: Initializing...');
-
-    // Initialize Google Sign-In (required in v7.1.1).
-    // serverClientId is the Web OAuth client (client_type: 3 in google-services.json)
-    // — this is the audience the Django backend's GOOGLE_CLIENT_ID verifies against,
-    // and it's what makes Android return a usable ID token.
-    try {
-      await _googleSignIn.initialize(
-        serverClientId:
-            '1072513761792-p59rct7b1c3go7l58e51r3geuqff2tfl.apps.googleusercontent.com',
-      );
-      debugPrint('AuthService: Google Sign-In initialized successfully');
-    } catch (e) {
-      debugPrint('AuthService: Google Sign-In initialization failed: $e');
-    }
 
     await _loadFromStorage();
 
@@ -104,71 +98,62 @@ class AuthService {
     debugPrint('AuthService: Initialized, isLoggedIn: $isLoggedIn');
   }
 
-  /// Sign in with Google using ID token flow (same as old app)
-  Future<bool> signInWithGoogle() async {
+  /// Sign in with phone number and password.
+  Future<bool> signInWithPhone({required String phone, required String password}) async {
     try {
-      debugPrint('AuthService: Initiating Google Sign-In...');
-
-      // Check if platform supports authenticate method
-      if (!_googleSignIn.supportsAuthenticate()) {
-        debugPrint(
-          'AuthService: Platform does not support authenticate method',
-        );
-        return false;
-      }
-
-      // Authenticate with Google (v7.1.1 method)
-      final googleUser = await _googleSignIn.authenticate();
-
-      debugPrint('AuthService: Authentication successful');
-      debugPrint('AuthService: User email: ${googleUser.email}');
-
-      // Get authentication token from Google
-      final authentication = googleUser.authentication;
-      final idToken = authentication.idToken;
-
-      if (idToken == null) {
-        debugPrint('AuthService: Failed to get ID token');
-        return false;
-      }
-
-      debugPrint('AuthService: Got ID token, sending to backend...');
-
-      // Send Google ID token to backend
-      final response = await _apiService.post(ApiConfig.googleLogin, {
-        'idToken': idToken,
-      }, requiresAuth: false);
-
-      if (!response.success || response.data == null) {
-        debugPrint(
-          'AuthService: Backend authentication failed: ${response.message}',
-        );
-        return false;
-      }
-
-      debugPrint('AuthService: Backend returned tokens, storing...');
-
-      // Handle the response
+      debugPrint('AuthService: Signing in with phone...');
+      final normalized = normalizePhone(phone);
+      final response = await _apiService.post(
+        ApiConfig.phoneLogin,
+        {'phone': normalized, 'password': password},
+        requiresAuth: false,
+      );
+      if (!response.success || response.data == null) return false;
       await _handleAuthResponse(response.data!);
-
       return true;
     } catch (e, stack) {
-      debugPrint('AuthService: Google Sign-In error: $e');
-      debugPrint('Stack: $stack');
+      debugPrint('AuthService: Phone login error: $e');
       return false;
     }
   }
 
-  /// Request a 6-digit sign-in code by email (mobile OTP flow).
-  ///
-  /// Backend always returns 200 to prevent email enumeration, so a `true`
-  /// return value means "the request was accepted," not "an email was sent."
+  /// Request a 6-digit OTP code via SMS.
+  Future<bool> requestPhoneCode(String phone) async {
+    try {
+      final normalized = normalizePhone(phone);
+      final response = await _apiService.post(
+        ApiConfig.phoneCodeRequest, {'phone': normalized},
+        requiresAuth: false,
+      );
+      return response.success;
+    } catch (e) {
+      debugPrint('AuthService: requestPhoneCode error: $e');
+      return false;
+    }
+  }
+
+  /// Verify a 6-digit OTP code sent via SMS and exchange for JWT tokens.
+  Future<bool> signInWithPhoneCode({required String phone, required String code}) async {
+    try {
+      final normalized = normalizePhone(phone);
+      final response = await _apiService.post(
+        ApiConfig.phoneCodeVerify, {'phone': normalized, 'code': code},
+        requiresAuth: false,
+      );
+      if (!response.success || response.data == null) return false;
+      await _handleAuthResponse(response.data!);
+      return true;
+    } catch (e, stack) {
+      debugPrint('AuthService: signInWithPhoneCode error: $e');
+      return false;
+    }
+  }
+
+  /// Request a 6-digit sign-in code by email.
   Future<bool> requestMagicCode(String email) async {
     try {
-      debugPrint('AuthService: Requesting magic code for $email...');
       final response = await _apiService.post(
-        ApiConfig.magicLinkRequest,
-        {'email': email, 'delivery': 'code'},
+        ApiConfig.magicLinkRequest, {'email': email, 'delivery': 'code'},
         requiresAuth: false,
       );
       return response.success;
@@ -179,120 +164,95 @@ class AuthService {
   }
 
   /// Verify a 6-digit OTP code and exchange it for JWT tokens.
-  ///
-  /// Response shape matches `UserDetailSerializer` (see backend
-  /// `MagicLinkVerifyCodeView`), which is different from the Google sign-in
-  /// shape — hence the separate parser instead of `_handleAuthResponse`.
-  Future<bool> signInWithMagicCode({
-    required String email,
-    required String code,
-  }) async {
+  Future<bool> signInWithMagicCode({required String email, required String code}) async {
     try {
-      debugPrint('AuthService: Verifying magic code for $email...');
       final response = await _apiService.post(
-        ApiConfig.magicLinkVerifyCode,
-        {'email': email, 'code': code},
+        ApiConfig.magicLinkVerifyCode, {'email': email, 'code': code},
         requiresAuth: false,
       );
-
-      if (!response.success || response.data == null) {
-        debugPrint(
-          'AuthService: Magic code verify failed: ${response.message}',
-        );
-        return false;
-      }
-
+      if (!response.success || response.data == null) return false;
       final data = response.data!;
       _accessToken = data['access_token'] as String?;
       _refreshToken = data['refresh_token'] as String?;
-
       final userData = data['user'] as Map<String, dynamic>?;
       if (userData != null) {
         _currentUser = AuthUser(
-          id: userData['id'] as String,
-          email: userData['email'] as String,
-          name: userData['name'] as String?,
-          profilePic: userData['profile_pic'] as String?,
+          id: userData['id'] as String, email: userData['email'] as String,
+          name: userData['name'] as String?, profilePic: userData['profile_pic'] as String?,
         );
         final orgsList = userData['organizations'] as List<dynamic>?;
-        _organizations = orgsList
-            ?.map((org) => Organization.fromJson(org as Map<String, dynamic>))
-            .toList();
+        _organizations = orgsList?.map((org) => Organization.fromJson(org as Map<String, dynamic>)).toList();
       }
-
-      // Backend returns `current_org` only when the user already belongs to an
-      // org and its claim is baked into the JWT. Pre-select it so the user
-      // skips org selection.
       final currentOrgData = data['current_org'] as Map<String, dynamic>?;
       if (currentOrgData != null && _organizations != null) {
         _selectedOrganization = _organizations!.firstWhere(
           (o) => o.id == currentOrgData['id'],
           orElse: () => Organization.fromJson(currentOrgData),
         );
-      } else {
-        _selectedOrganization = null;
-      }
-
+      } else { _selectedOrganization = null; }
       _apiService.setAccessToken(_accessToken);
       _apiService.setOrganizationId(_selectedOrganization?.id);
-
       await _saveToStorage();
-      if (_selectedOrganization != null) {
-        await _saveSelectedOrganization();
-      } else {
-        await _clearSelectedOrganization();
-      }
-
-      debugPrint('AuthService: Magic code sign-in successful');
+      if (_selectedOrganization != null) await _saveSelectedOrganization();
+      else await _clearSelectedOrganization();
       await CrashReporting.applyFromAuth(this);
       return true;
     } catch (e, stack) {
       debugPrint('AuthService: signInWithMagicCode error: $e');
-      debugPrint('Stack: $stack');
       return false;
     }
   }
 
   /// Handle authentication response from backend
   Future<void> _handleAuthResponse(Map<String, dynamic> data) async {
-    // Backend returns JWTtoken (matching old app response format) and a
-    // refresh_token alongside it — without the refresh token, the access
-    // token would die in 1 hour with no way to refresh until the user picks
-    // an org (which re-issues both via OrgSwitchView).
-    _accessToken = data['JWTtoken'] as String?;
+    // Backend returns access_token + refresh_token (phone-login, verify-phone-code)
+    // or JWTtoken + refresh_token (old Google flow, kept for compat).
+    _accessToken = (data['access_token'] as String?) ?? data['JWTtoken'] as String?;
     _refreshToken = data['refresh_token'] as String?;
 
     if (data['user'] != null) {
       final userData = data['user'] as Map<String, dynamic>;
       _currentUser = AuthUser(
         id: userData['id'] as String,
-        email: userData['email'] as String,
+        email: userData['email'] as String? ?? '',
         name: userData['name'] as String?,
-        profilePic: userData['profileImage'] as String?,
+        profilePic: (userData['profile_pic'] as String?) ?? userData['profileImage'] as String?,
       );
     }
 
+    // Organizations may be nested inside user or at top level
     if (data['organizations'] != null) {
       _organizations = (data['organizations'] as List<dynamic>)
           .map((org) => Organization.fromJson(org as Map<String, dynamic>))
           .toList();
+    } else if (data['user']?['organizations'] != null) {
+      _organizations = (data['user']['organizations'] as List<dynamic>)
+          .map((org) => Organization.fromJson(org as Map<String, dynamic>))
+          .toList();
     }
 
-    // Clear any previously selected organization on fresh login
-    _selectedOrganization = null;
+    // Check if backend returned a current_org (user already has a default org)
+    if (data['current_org'] != null) {
+      final orgData = data['current_org'] as Map<String, dynamic>;
+      _selectedOrganization = Organization(
+        id: orgData['id'] as String,
+        name: orgData['name'] as String? ?? '',
+      );
+    } else {
+      _selectedOrganization = null;
+    }
 
     // Sync with ApiService
     _apiService.setAccessToken(_accessToken);
-    _apiService.setOrganizationId(null);
+    _apiService.setOrganizationId(_selectedOrganization?.id);
 
-    // Persist to storage (including clearing selected org)
+    // Persist to storage
     await _saveToStorage();
-    await _clearSelectedOrganization();
-
-    debugPrint(
-      'AuthService: Auth response handled, user: ${_currentUser?.email}',
-    );
-    debugPrint('AuthService: Organizations: ${_organizations?.length ?? 0}');
+    if (_selectedOrganization != null) {
+      await _saveSelectedOrganization();
+    } else {
+      await _clearSelectedOrganization();
+    }
 
     await CrashReporting.applyFromAuth(this);
   }

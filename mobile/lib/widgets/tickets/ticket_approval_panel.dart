@@ -300,7 +300,7 @@ class _TicketApprovalPanelState extends ConsumerState<TicketApprovalPanel> {
               IconButton(
                 tooltip: 'Cancel request',
                 onPressed: _isBusy ? null : () => _cancel(latest),
-                icon: const Icon(LucideIcons.minus_circle, size: 16),
+                icon: const Icon(LucideIcons.circle_minus, size: 16),
               ),
             ],
           )

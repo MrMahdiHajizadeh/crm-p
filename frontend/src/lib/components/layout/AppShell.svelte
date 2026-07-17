@@ -1,6 +1,7 @@
 <script>
   import * as Sidebar from '$lib/components/ui/sidebar/index.js';
   import AppSidebar from './AppSidebar.svelte';
+  import MobileSidebarToggle from './MobileSidebarToggle.svelte';
 
   /**
    * @typedef {Object} Props
@@ -31,6 +32,7 @@
 <Sidebar.Provider open={defaultOpen} class="" style="">
   <AppSidebar {user} {org_name} {org_settings} />
   <Sidebar.Inset class="">
+    <MobileSidebarToggle />
     {@render children?.()}
   </Sidebar.Inset>
 </Sidebar.Provider>

@@ -192,7 +192,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                LucideIcons.alert_circle,
+                LucideIcons.circle_alert,
                 size: 48,
                 color: AppColors.danger500,
               ),
@@ -701,7 +701,7 @@ class _TasksListScreenState extends ConsumerState<TasksListScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isFiltered ? LucideIcons.search : LucideIcons.check_circle_2,
+                isFiltered ? LucideIcons.search : LucideIcons.circle_check,
                 size: 40,
                 color: AppColors.success600,
               ),

@@ -25,17 +25,23 @@ class ApiConfig {
   // AUTHENTICATION ENDPOINTS
   // ==========================================================================
 
-  /// Google Sign-In with ID token (same as old app)
-  static String get googleLogin => '$apiBaseUrl/auth/google/';
+  /// Phone + password login
+  static String get phoneLogin => '$apiBaseUrl/auth/phone-login/';
 
-  /// Request a passwordless sign-in code (OTP) by email
-  static String get magicLinkRequest => '$apiBaseUrl/auth/magic-link/request/';
+  /// Request a 6-digit OTP code via SMS for phone login
+  static String get phoneCodeRequest => '$apiBaseUrl/auth/request-phone-code/';
 
-  /// Verify a 6-digit OTP code and exchange it for JWT tokens
-  static String get magicLinkVerifyCode => '$apiBaseUrl/auth/magic-link/verify-code/';
+  /// Verify a 6-digit OTP code sent via SMS and exchange for JWT tokens
+  static String get phoneCodeVerify => '$apiBaseUrl/auth/verify-phone-code/';
 
   /// Refresh JWT token
   static String get refreshToken => '$apiBaseUrl/auth/refresh-token/';
+
+  /// Request a passwordless sign-in code (OTP) by email (legacy)
+  static String get magicLinkRequest => '$apiBaseUrl/auth/magic-link/request/';
+
+  /// Verify a 6-digit OTP code and exchange it for JWT tokens (legacy)
+  static String get magicLinkVerifyCode => '$apiBaseUrl/auth/magic-link/verify-code/';
 
   /// Get current user info
   static String get me => '$apiBaseUrl/auth/me/';

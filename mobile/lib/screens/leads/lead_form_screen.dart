@@ -353,11 +353,11 @@ IconData _statusIcon(LeadStatus s) {
     case LeadStatus.inProcess:
       return LucideIcons.activity;
     case LeadStatus.converted:
-      return LucideIcons.check_circle;
+      return LucideIcons.circle_check;
     case LeadStatus.recycled:
       return LucideIcons.refresh_cw;
     case LeadStatus.closed:
-      return LucideIcons.x_circle;
+      return LucideIcons.circle_x;
   }
 }
 
@@ -1069,7 +1069,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alert_circle, size: 48, color: AppColors.danger500),
+            Icon(LucideIcons.circle_alert, size: 48, color: AppColors.danger500),
             const SizedBox(height: 16),
             Text(
               _fetchError!,
@@ -1412,7 +1412,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           label: 'LinkedIn (Optional)',
           hint: 'https://linkedin.com/in/...',
           controller: _linkedinController,
-          prefixIcon: LucideIcons.linkedin,
+          prefixIcon: LucideIcons.external_link,
           keyboardType: TextInputType.url,
           maxLength: 255,
           textInputAction: TextInputAction.next,
@@ -1454,7 +1454,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
         child: Row(
           children: [
             Icon(
-              LucideIcons.alert_triangle,
+              LucideIcons.triangle_alert,
               size: 16,
               color: AppColors.warning600,
             ),
@@ -1632,7 +1632,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
           label: 'Source',
           value: _source?.displayName ?? 'None',
           leading: Icon(
-            _source?.icon ?? LucideIcons.help_circle,
+            _source?.icon ?? LucideIcons.circle_question_mark,
             size: 20,
             color: AppColors.textSecondary,
           ),
@@ -1795,7 +1795,7 @@ class _LeadFormScreenState extends ConsumerState<LeadFormScreen> {
                 label: 'Country',
                 value: _countryLabel(_countryController.text) ?? 'Select',
                 leading: Icon(
-                  LucideIcons.globe_2,
+                  LucideIcons.globe,
                   size: 20,
                   color: AppColors.textSecondary,
                 ),

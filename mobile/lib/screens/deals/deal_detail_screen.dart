@@ -157,7 +157,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
                 onPressed: _navigateToEdit,
               ),
               IconButton(
-                icon: _headerIconBackground(LucideIcons.more_vertical),
+                icon: _headerIconBackground(LucideIcons.ellipsis_vertical),
                 onPressed: _showMoreOptions,
               ),
             ],
@@ -323,7 +323,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
             label: 'Overdue',
             bg: AppColors.danger100,
             fg: AppColors.danger600,
-            icon: LucideIcons.alert_triangle,
+            icon: LucideIcons.triangle_alert,
           ),
         );
       } else if (deal.isClosingSoon) {
@@ -811,7 +811,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
     if (deal.stage.isClosed) {
       rows.add(
         _InfoRow(
-          icon: deal.stage.isWon ? LucideIcons.trophy : LucideIcons.x_circle,
+          icon: deal.stage.isWon ? LucideIcons.trophy : LucideIcons.circle_x,
           label: deal.stage.isWon ? 'WON BY' : 'CLOSED BY',
           value: deal.closedByName ?? deal.closedByEmail ?? '—',
         ),
@@ -1155,7 +1155,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
     if (isClosed) {
       final bg = isWon ? AppColors.success100 : AppColors.danger100;
       final fg = isWon ? AppColors.success600 : AppColors.danger600;
-      final icon = isWon ? LucideIcons.trophy : LucideIcons.x_circle;
+      final icon = isWon ? LucideIcons.trophy : LucideIcons.circle_x;
       final label = isWon ? 'Deal Won!' : 'Deal Lost';
       return Container(
         decoration: BoxDecoration(
@@ -1217,7 +1217,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
               if (_nextStage != null) const SizedBox(height: 12),
               GhostButton(
                 label: 'Mark as Lost',
-                icon: LucideIcons.x_circle,
+                icon: LucideIcons.circle_x,
                 color: AppColors.danger600,
                 onPressed:
                     _isUpdatingStage ? null : () => _handleMarkLost(),
@@ -1430,7 +1430,7 @@ class _DealDetailScreenState extends ConsumerState<DealDetailScreen>
                   color: AppColors.textSecondary,
                 ),
               ),
-              ?action,
+              if (action != null) action,
             ],
           ),
           const SizedBox(height: 12),
@@ -1847,7 +1847,7 @@ class _NoteCard extends StatelessWidget {
                       iconSize: 18,
                       visualDensity: VisualDensity.compact,
                       icon: Icon(
-                        LucideIcons.more_vertical,
+                        LucideIcons.ellipsis_vertical,
                         color: AppColors.textTertiary,
                       ),
                       tooltip: 'Note options',

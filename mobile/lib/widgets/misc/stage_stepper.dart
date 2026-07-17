@@ -28,7 +28,7 @@ class StageStepper extends StatelessWidget {
 
   static const List<_StageConfig> _stages = [
     _StageConfig(DealStage.prospecting, 'Prospect', LucideIcons.search),
-    _StageConfig(DealStage.qualified, 'Qualified', LucideIcons.check_circle),
+    _StageConfig(DealStage.qualified, 'Qualified', LucideIcons.circle_check),
     _StageConfig(DealStage.proposal, 'Proposal', LucideIcons.file_text),
     _StageConfig(DealStage.negotiation, 'Negotiate', LucideIcons.message_square),
     _StageConfig(DealStage.closedWon, 'Won', LucideIcons.trophy),
@@ -70,7 +70,7 @@ class StageStepper extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    LucideIcons.x_circle,
+                    LucideIcons.circle_x,
                     size: 16,
                     color: AppColors.danger600,
                   ),

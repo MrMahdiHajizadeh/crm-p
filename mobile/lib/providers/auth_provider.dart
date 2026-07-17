@@ -95,59 +95,45 @@ class AuthNotifier extends Notifier<AuthState> {
     );
   }
 
-  /// Sign in with Google
-  Future<bool> signInWithGoogle() async {
-    debugPrint('AuthNotifier: Starting Google sign-in...');
-
+  /// Sign in with phone number and password.
+  Future<bool> signInWithPhone({required String phone, required String password}) async {
+    debugPrint('AuthNotifier: Starting phone sign-in...');
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
-      final success = await _authService.signInWithGoogle();
+      final success = await _authService.signInWithPhone(phone: phone, password: password);
 
       if (success) {
-        // Fresh Google sign-in clears selected org - user must select again
         state = state.copyWith(
           isLoading: false,
           isAuthenticated: true,
           user: _authService.currentUser,
           organizations: _authService.organizations,
-          clearSelectedOrganization: true,
+          selectedOrganization: _authService.selectedOrganization,
         );
-
-        debugPrint('AuthNotifier: Google sign-in successful');
+        debugPrint('AuthNotifier: Phone sign-in successful');
         return true;
       } else {
         state = state.copyWith(
           isLoading: false,
-          error: 'Sign-in was cancelled or failed. Please try again.',
+          error: 'Invalid phone or password. Please try again.',
         );
-
-        debugPrint('AuthNotifier: Google sign-in failed');
         return false;
       }
     } catch (e) {
-      debugPrint('AuthNotifier: Google sign-in error: $e');
-
+      debugPrint('AuthNotifier: Phone sign-in error: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'An error occurred during sign-in: ${e.toString()}',
       );
-
       return false;
     }
   }
 
-  /// Sync the cached user's name after a successful profile PATCH so the
-  /// greeting/profile header updates without a re-login.
-  Future<void> updateUserName(String name) async {
-    await _authService.updateCachedUserName(name);
-    state = state.copyWith(user: _authService.currentUser);
-  }
-
-  /// Request a 6-digit sign-in code by email (mobile OTP flow).
-  Future<bool> requestMagicCode(String email) async {
+  /// Request a 6-digit OTP code via SMS for phone login.
+  Future<bool> requestPhoneCode(String phone) async {
     state = state.copyWith(isLoading: true, clearError: true);
-    final ok = await _authService.requestMagicCode(email);
+    final ok = await _authService.requestPhoneCode(phone);
     state = state.copyWith(
       isLoading: false,
       error: ok ? null : 'Could not send code. Check your connection and try again.',
@@ -155,14 +141,11 @@ class AuthNotifier extends Notifier<AuthState> {
     return ok;
   }
 
-  /// Verify a 6-digit OTP code and sign in.
-  Future<bool> signInWithMagicCode({
-    required String email,
-    required String code,
-  }) async {
+  /// Verify a 6-digit OTP code sent via SMS and sign in.
+  Future<bool> signInWithPhoneCode({required String phone, required String code}) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final ok = await _authService.signInWithMagicCode(email: email, code: code);
+      final ok = await _authService.signInWithPhoneCode(phone: phone, code: code);
       if (!ok) {
         state = state.copyWith(
           isLoading: false,
@@ -179,10 +162,48 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       return true;
     } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Sign-in failed: ${e.toString()}');
+      return false;
+    }
+  }
+
+  /// Sync the cached user's name after a successful profile PATCH so the
+  /// greeting/profile header updates without a re-login.
+  Future<void> updateUserName(String name) async {
+    await _authService.updateCachedUserName(name);
+    state = state.copyWith(user: _authService.currentUser);
+  }
+
+  /// Request a 6-digit sign-in code by email (legacy magic link flow).
+  Future<bool> requestMagicCode(String email) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    final ok = await _authService.requestMagicCode(email);
+    state = state.copyWith(
+      isLoading: false,
+      error: ok ? null : 'Could not send code. Check your connection and try again.',
+    );
+    return ok;
+  }
+
+  /// Verify a 6-digit OTP code and sign in (legacy magic link flow).
+  Future<bool> signInWithMagicCode({required String email, required String code}) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final ok = await _authService.signInWithMagicCode(email: email, code: code);
+      if (!ok) {
+        state = state.copyWith(isLoading: false, error: 'Invalid or expired code. Please try again.');
+        return false;
+      }
       state = state.copyWith(
         isLoading: false,
-        error: 'Sign-in failed: ${e.toString()}',
+        isAuthenticated: true,
+        user: _authService.currentUser,
+        organizations: _authService.organizations,
+        selectedOrganization: _authService.selectedOrganization,
       );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Sign-in failed: ${e.toString()}');
       return false;
     }
   }

@@ -127,7 +127,7 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
         actions: [
           IconButton(
             tooltip: 'Analytics',
-            icon: const Icon(LucideIcons.bar_chart_3),
+            icon: const Icon(LucideIcons.chart_bar),
             onPressed: () => context.push(AppRoutes.ticketAnalytics),
           ),
           IconButton(
@@ -255,7 +255,7 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alert_circle, size: 48, color: Colors.grey[400]),
+            Icon(LucideIcons.circle_alert, size: 48, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'Failed to load tickets',
@@ -434,7 +434,7 @@ class _TicketsListScreenState extends ConsumerState<TicketsListScreen> {
             const SizedBox(width: 6),
             _ToggleChip(
               label: 'Breaching SLA',
-              icon: LucideIcons.alert_triangle,
+              icon: LucideIcons.triangle_alert,
               isActive: _filters.slaBreached,
               onTap: () => _applyFilters(
                 _filters.copyWith(slaBreached: !_filters.slaBreached),

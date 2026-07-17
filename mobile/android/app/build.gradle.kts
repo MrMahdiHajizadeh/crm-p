@@ -7,8 +7,9 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    //id("com.google.firebase.crashlytics")
 }
+
 dependencies {
     // ...
     implementation("com.google.android.material:material:1.12.0")
@@ -64,6 +65,10 @@ android {
                 signingConfigs.getByName("release")
             else
                 signingConfigs.getByName("debug")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
         debug {
             // Sign debug builds with the upload key when available, so the

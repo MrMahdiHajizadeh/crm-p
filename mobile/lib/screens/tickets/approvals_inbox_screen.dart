@@ -389,7 +389,7 @@ class _ApprovalTile extends StatelessWidget {
                 IconButton(
                   tooltip: 'Cancel request',
                   onPressed: isBusy ? null : onCancel,
-                  icon: const Icon(LucideIcons.minus_circle, size: 16),
+                  icon: const Icon(LucideIcons.circle_minus, size: 16),
                 ),
               ],
             ),

@@ -63,7 +63,7 @@ class TicketPropertiesCard extends StatelessWidget {
           if (ticket.escalationCount > 0) ...[
             const Divider(height: 20),
             _iconRow(
-              icon: LucideIcons.alert_triangle,
+              icon: LucideIcons.triangle_alert,
               iconColor: AppColors.danger600,
               label: 'Escalated',
               trailing: '${ticket.escalationCount}x',
@@ -101,17 +101,17 @@ class TicketPropertiesCard extends StatelessWidget {
     final Color stateColor;
 
     if (met) {
-      icon = LucideIcons.check_circle;
+      icon = LucideIcons.circle_check;
       iconColor = AppColors.success600;
       stateText = 'Met';
       stateColor = AppColors.success600;
     } else if (breached) {
-      icon = LucideIcons.alert_circle;
+      icon = LucideIcons.circle_alert;
       iconColor = AppColors.danger600;
       stateText = deadline != null ? 'Breached' : 'Overdue';
       stateColor = AppColors.danger600;
     } else if (paused) {
-      icon = LucideIcons.pause_circle;
+      icon = LucideIcons.circle_pause;
       iconColor = AppColors.warning600;
       stateText = 'Paused';
       stateColor = AppColors.warning600;
@@ -128,7 +128,7 @@ class TicketPropertiesCard extends StatelessWidget {
         stateColor = AppColors.textPrimary;
       }
     } else {
-      icon = LucideIcons.minus_circle;
+      icon = LucideIcons.circle_minus;
       iconColor = AppColors.gray400;
       stateText = 'Not set';
       stateColor = AppColors.textSecondary;

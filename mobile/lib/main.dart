@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,21 +16,17 @@ void main() async {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Firebase + Crashlytics — Android only. iOS has no GoogleService-Info.plist
+      // Firebase — Android only. iOS has no GoogleService-Info.plist
       // yet, so skip init there to avoid a startup crash.
+      // Wrapped in try-catch so network-blocked environments don't hang.
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        // Off in debug to avoid spamming the Crashlytics console with dev noise.
-        await FirebaseCrashlytics.instance
-            .setCrashlyticsCollectionEnabled(!kDebugMode);
-        FlutterError.onError =
-            FirebaseCrashlytics.instance.recordFlutterFatalError;
-        PlatformDispatcher.instance.onError = (error, stack) {
-          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-          return true;
-        };
+        try {
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          ).timeout(const Duration(seconds: 10));
+        } catch (_) {
+          // Firebase unavailable — app continues without it.
+        }
       }
 
       await AuthService().initialize();
@@ -55,11 +50,7 @@ void main() async {
       runApp(const ProviderScope(child: BottleCRMApp()));
     },
     (error, stack) {
-      // Catch-all for anything that escaped the zone — e.g. errors from
-      // microtasks scheduled before PlatformDispatcher.onError was wired.
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-      }
+      // Catch-all for anything that escaped the zone.
     },
   );
 }

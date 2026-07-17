@@ -336,7 +336,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(LucideIcons.alert_circle, size: 48, color: AppColors.danger500),
+            Icon(LucideIcons.circle_alert, size: 48, color: AppColors.danger500),
             const SizedBox(height: 16),
             Text(
               _fetchError!,
@@ -464,7 +464,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       label: 'Task Title',
       hint: 'What needs to be done?',
       controller: _titleController,
-      prefixIcon: LucideIcons.check_square,
+      prefixIcon: LucideIcons.square_check,
       textInputAction: TextInputAction.next,
       textCapitalization: TextCapitalization.sentences,
       maxLength: 200,
@@ -549,7 +549,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       case TaskStatus.inProgress:
         return LucideIcons.clock;
       case TaskStatus.completed:
-        return LucideIcons.check_circle_2;
+        return LucideIcons.circle_check;
     }
   }
 

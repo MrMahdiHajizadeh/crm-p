@@ -147,13 +147,13 @@ class TimelineItem extends StatelessWidget {
       case ActivityType.stageChange:
         return LucideIcons.arrow_right;
       case ActivityType.taskCompleted:
-        return LucideIcons.check_circle_2;
+        return LucideIcons.circle_check;
       case ActivityType.dealCreated:
         return LucideIcons.plus;
       case ActivityType.dealWon:
         return LucideIcons.trophy;
       case ActivityType.dealLost:
-        return LucideIcons.x_circle;
+        return LucideIcons.circle_x;
       case ActivityType.leadCreated:
         return LucideIcons.user_plus;
     }

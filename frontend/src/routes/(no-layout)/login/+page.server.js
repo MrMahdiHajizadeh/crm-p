@@ -14,7 +14,7 @@ export async function load({ url, cookies }) {
 
 /** @type {import('@sveltejs/kit').Actions} */
 export const actions = {
-  default: async ({ request, cookies }) => {
+  password: async ({ request, cookies }) => {
     const formData = await request.formData();
     const phone = formData.get('phone');
     const password = formData.get('password');
