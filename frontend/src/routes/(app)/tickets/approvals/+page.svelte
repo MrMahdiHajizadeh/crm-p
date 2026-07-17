@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { goto, invalidateAll } from '$app/navigation';
   import { page } from '$app/state';
   import { toast } from 'svelte-sonner';
@@ -193,7 +193,7 @@
 
           <p class="mt-1 text-xs text-[var(--text-secondary)]">
             Requested by {a.requested_by?.email || 'unknown'} on
-            {new Date(a.created_at).toLocaleDateString()}
+            {new Date(a.created_at).toLocaleDateString('fa-IR-u-ca-persian')}
             {#if a.note}
               — <span class="italic">"{a.note}"</span>
             {/if}

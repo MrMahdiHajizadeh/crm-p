@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cases', '0014_routing'),
+        ('cases', '0013_inbound_email'),
         ('common', '0017_customfielddefinition'),
     ]
 

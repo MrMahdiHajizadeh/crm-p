@@ -32,7 +32,6 @@
     Sliders,
     Megaphone,
     Mail,
-    Route,
     FileText,
     FileEdit,
     Package,
@@ -213,6 +212,11 @@
     { href: '/goals', label: 'sidebar.goals', icon: Trophy, type: 'link', preload: 'off', count: undefined }
   ];
 
+  const managementItems = [
+    { href: '/follow-ups', label: 'sidebar.follow_ups', icon: Clock, type: 'link', preload: 'off', count: undefined },
+    { href: '/supervision', label: 'sidebar.supervision', icon: Activity, type: 'link', preload: 'off', count: undefined },
+  ];
+
   const revenueItems = [
     {
       key: 'invoices',
@@ -237,7 +241,7 @@
   ];
 
   // Combine for the auto-open-on-active effect (which scans dropdown items)
-  const navigationItems = [...workspaceItems, ...recordsItems, ...workItems, ...revenueItems, ...supportItems];
+  const navigationItems = [...workspaceItems, ...recordsItems, ...workItems, ...managementItems, ...revenueItems, ...supportItems];
 
   /**
    * Check if any child route is active
@@ -731,6 +735,54 @@
       </Sidebar.GroupContent>
     </Sidebar.Group>
 
+    <!-- Management Section -->
+    <Sidebar.Group class="mt-1.5">
+      <Sidebar.GroupLabel
+        class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
+      >
+        {$_('sidebar.management')}
+      </Sidebar.GroupLabel>
+      <Sidebar.GroupContent>
+        <Sidebar.Menu class="space-y-px">
+          {#each managementItems as item}
+            <Sidebar.MenuItem>
+              <Sidebar.MenuButton
+                isActive={currentPath === item.href}
+                tooltipContent={$_(item.label)}
+                class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
+                  group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
+                  {currentPath === item.href
+                  ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
+                  : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
+              >
+                {#snippet child({ props })}
+                  <a
+                    href={item.href}
+                    {...props}
+                    data-sveltekit-preload-data={item.preload || 'hover'}
+                  >
+                    {#if currentPath === item.href}
+                      <span
+                        aria-hidden="true"
+                        class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
+                      ></span>
+                    {/if}
+                    <item.icon
+                      class="size-[15px] shrink-0 {currentPath === item.href ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
+                      strokeWidth={1.6}
+                    />
+                    <span
+                      class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
+                    >{$_(item.label)}</span>
+                  </a>
+                {/snippet}
+              </Sidebar.MenuButton>
+            </Sidebar.MenuItem>
+          {/each}
+        </Sidebar.Menu>
+      </Sidebar.GroupContent>
+    </Sidebar.Group>
+
     <!-- Revenue Section -->
     <Sidebar.Group class="mt-1.5">
       <Sidebar.GroupLabel
@@ -1143,14 +1195,6 @@
               >
                 <Sliders class="size-4" />
                 <span>{$_('sidebar.custom_fields')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/routing')}
-                class="gap-2.5"
-              >
-                <Route class="size-4" />
-                <span>{$_('sidebar.auto_routing')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}

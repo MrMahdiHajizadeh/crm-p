@@ -250,6 +250,13 @@
       type: 'textarea',
       icon: FileText,
       placeholder: 'Add notes about this contact...'
+    },
+    {
+      key: 'createdBy',
+      label: $_('common.created_by'),
+      type: 'readonly',
+      icon: User,
+      getValue: (data) => data.createdBy?.name || data.createdBy?.email || '-'
     }
   ]);
 

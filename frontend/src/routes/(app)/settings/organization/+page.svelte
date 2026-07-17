@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
@@ -23,6 +23,7 @@
   import { Switch } from '$lib/components/ui/switch/index.js';
   import { CURRENCY_CODES } from '$lib/constants/filters.js';
   import { initOrgSettings } from '$lib/stores/org.js';
+  import * as Select from '$lib/components/ui/select/index.js';
 
   /** @type {{ data: any, form: any }} */
   let { data, form } = $props();
@@ -36,6 +37,7 @@
   // Country options with flag emojis
   const countryOptions = [
     { value: '', label: 'Select Country', flag: '' },
+    { value: 'IR', label: 'Iran', flag: '🇮🇷' },
     { value: 'US', label: 'United States', flag: '🇺🇸' },
     { value: 'GB', label: 'United Kingdom', flag: '🇬🇧' },
     { value: 'CA', label: 'Canada', flag: '🇨🇦' },
@@ -58,7 +60,7 @@
   let formName = $state('');
   let formDomain = $state('');
   let formDescription = $state('');
-  let formCurrency = $state('USD');
+  let formCurrency = $state('TOM');
   let formCountry = $state('');
   let formOpportunitiesEnabled = $state(false);
   let formInvoicesEnabled = $state(false);
@@ -68,8 +70,8 @@
     formName = settings.name || '';
     formDomain = settings.domain || '';
     formDescription = settings.description || '';
-    formCurrency = settings.default_currency || 'USD';
-    formCountry = settings.default_country || '';
+    formCurrency = settings.default_currency || 'TOM';
+    formCountry = settings.default_country || 'IR';
     formOpportunitiesEnabled = settings.opportunities_enabled ?? false;
     formInvoicesEnabled = settings.invoices_enabled ?? false;
   });
@@ -93,19 +95,49 @@
     countryOptions.find((c) => c.value === formCountry)?.flag || ''
   );
 
-  // Get currency symbol
-  const currencySymbol = $derived(() => {
-    try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: formCurrency
-      })
-        .format(0)
-        .replace(/[\d.,\s]/g, '');
-    } catch {
-      return '$';
+  // Get currency symbol (TOM is not ISO 4217, return manually)
+  const currencySymbol = $derived(
+    formCurrency === 'TOM' ? 'تومان' : (() => {
+      try {
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: formCurrency
+        })
+          .format(0)
+          .replace(/[\d.,\s]/g, '');
+      } catch {
+        return '$';
+      }
+    })()
+  );
+
+  // Format currency for preview (handles TOM which is not ISO 4217)
+  function formatPreview(amount) {
+    if (formCurrency === 'TOM') {
+      const formatted = new Intl.NumberFormat('en-US').format(amount);
+      return `${formatted} تومان`;
     }
-  });
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: formCurrency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  }
+
+  function formatPreviewSample(amount) {
+    if (formCurrency === 'TOM') {
+      const formatted = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(amount);
+      return `${formatted} تومان`;
+    }
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: formCurrency
+    }).format(amount);
+  }
 
   // Generate initials from org name
   const orgInitials = $derived(
@@ -293,27 +325,27 @@
             <div class="grid gap-6 lg:grid-cols-2">
               <!-- Currency Selection -->
               <div class="space-y-3">
-                <Label
-                  for="default_currency"
-                  class="text-muted-foreground flex items-center gap-2 text-sm"
-                >
+                <Label class="text-muted-foreground flex items-center gap-2 text-sm">
                   <Banknote class="h-3.5 w-3.5" />
                   {$_('settings.default_currency')}
                 </Label>
                 <div class="input-glow rounded-lg transition-shadow duration-300">
-                  <div class="relative">
-                    <select
-                      id="default_currency"
-                      name="default_currency"
-                      bind:value={formCurrency}
-                      class="custom-select border-input h-12 w-full cursor-pointer rounded-lg border bg-[var(--bg-subtle)] px-4 text-base transition-colors focus:border-[var(--accent-primary)] focus:bg-transparent focus:ring-2 focus:ring-[var(--accent-primary-subtle)] focus:outline-none"
-                    >
-                      {#each currencyOptions as currency}
-                        <option value={currency.value}>{currency.label}</option>
+                  <Select.Root
+                    type="single"
+                    value={formCurrency}
+                    onValueChange={(v) => (formCurrency = v)}
+                  >
+                    <Select.Trigger class="h-12 w-full">
+                      {currencyOptions.find((o) => o.value === formCurrency)?.label || 'Select Currency'}
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each currencyOptions as opt}
+                        <Select.Item value={opt.value}>{opt.label}</Select.Item>
                       {/each}
-                    </select>
-                  </div>
+                    </Select.Content>
+                  </Select.Root>
                 </div>
+                <input type="hidden" name="default_currency" value={formCurrency} />
                 <p class="text-muted-foreground text-xs">
                   {$_('settings.default_currency_hint')}
                 </p>
@@ -321,27 +353,28 @@
 
               <!-- Country Selection -->
               <div class="space-y-3">
-                <Label
-                  for="default_country"
-                  class="text-muted-foreground flex items-center gap-2 text-sm"
-                >
+                <Label class="text-muted-foreground flex items-center gap-2 text-sm">
                   <MapPin class="h-3.5 w-3.5" />
                   {$_('settings.default_country')}
                 </Label>
                 <div class="input-glow rounded-lg transition-shadow duration-300">
-                  <div class="relative">
-                    <select
-                      id="default_country"
-                      name="default_country"
-                      bind:value={formCountry}
-                      class="custom-select border-input h-12 w-full cursor-pointer rounded-lg border bg-[var(--bg-subtle)] px-4 text-base transition-colors focus:border-[var(--accent-primary)] focus:bg-transparent focus:ring-2 focus:ring-[var(--accent-primary-subtle)] focus:outline-none"
-                    >
-                      {#each countryOptions as country}
-                        <option value={country.value}>{country.flag} {country.label}</option>
+                  <Select.Root
+                    type="single"
+                    value={formCountry}
+                    onValueChange={(v) => (formCountry = v)}
+                  >
+                    <Select.Trigger class="h-12 w-full">
+                      {countryOptions.find((o) => o.value === formCountry)?.flag || ''}
+                      {countryOptions.find((o) => o.value === formCountry)?.label || 'Select Country'}
+                    </Select.Trigger>
+                    <Select.Content>
+                      {#each countryOptions as opt}
+                        <Select.Item value={opt.value}>{opt.flag} {opt.label}</Select.Item>
                       {/each}
-                    </select>
-                  </div>
+                    </Select.Content>
+                  </Select.Root>
                 </div>
+                <input type="hidden" name="default_country" value={formCountry} />
                 <p class="text-muted-foreground text-xs">
                   {$_('settings.default_country_hint')}
                 </p>
@@ -361,22 +394,14 @@
                   </div>
                   <div class="flex items-baseline gap-3">
                     <span class="text-gradient text-4xl font-bold tracking-tight md:text-5xl">
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: formCurrency,
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                      }).format(125000)}
+                      {formatPreview(125000)}
                     </span>
                     <span class="text-muted-foreground text-lg">
                       {currentCountryFlag}
                     </span>
                   </div>
                   <div class="text-muted-foreground mt-2 text-sm">
-                    Sample: {new Intl.NumberFormat('en-US', {
-                      style: 'currency',
-                      currency: formCurrency
-                    }).format(12345.67)}
+                    Sample: {formatPreviewSample(12345.67)}
                   </div>
                 </div>
               </div>
@@ -487,7 +512,7 @@
             <span class="text-muted-foreground text-sm">{$_('settings.synced')}</span>
           </div>
           <div class="text-muted-foreground text-sm">
-            Last updated: {new Date().toLocaleDateString('en-US', {
+            Last updated: {new Date().toLocaleDateString('fa-IR-u-ca-persian', {
               month: 'short',
               day: 'numeric',
               year: 'numeric'
@@ -563,15 +588,6 @@
     inset: 0;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     animation: shimmer-slide 3s ease-in-out infinite;
-  }
-
-  /* Custom select styling */
-  .custom-select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 40px;
   }
 
   /* Gradient border effect */

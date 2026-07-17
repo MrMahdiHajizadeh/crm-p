@@ -144,6 +144,16 @@ export async function load({ locals, url, cookies }) {
                 }
               : null,
 
+        // Creator info
+        createdBy: account.created_by
+          ? {
+              id: account.created_by.id,
+              name: account.created_by.name || account.created_by.email || 'Unknown',
+              email: account.created_by.email,
+              profilePhoto: account.created_by.profile_pic
+            }
+          : null,
+
         // Aggregated data
         opportunityCount,
         contactCount,

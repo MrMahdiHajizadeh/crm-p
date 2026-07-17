@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Megaphone, Route } from '@lucide/svelte';
 
   /** @type {{ ticketItem: any }} */
@@ -20,7 +20,7 @@
   function formatTimestamp(ts) {
     if (!ts) return '';
     try {
-      return new Date(ts).toLocaleString();
+      return new Date(ts).toLocaleString('fa-IR-u-ca-persian');
     } catch {
       return ts;
     }

@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
@@ -10,9 +12,11 @@ from common.serializer import LeadCommentSerializer
 from contacts.models import Contact
 from leads import swagger_params
 from leads.forms import LeadListForm
-from leads.models import Lead
+from leads.models import InteractionLog, Lead
 from leads.serializer import (
     CreateLeadFromSiteSwaggerSerializer,
+    InteractionLogCreateSerializer,
+    InteractionLogSerializer,
     LeadCommentEditSwaggerSerializer,
     LeadUploadSwaggerSerializer,
 )
@@ -219,6 +223,281 @@ class LeadAttachmentView(APIView):
             },
             status=status.HTTP_403_FORBIDDEN,
         )
+
+
+class LeadInteractionListCreateView(APIView):
+    """
+    GET /api/leads/interactions/ — list all interactions for the org (with filters)
+    POST /api/leads/interactions/ — create a new interaction
+    """
+
+    model = InteractionLog
+    permission_classes = (IsAuthenticated, HasOrgContext)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        responses={200: InteractionLogSerializer(many=True)},
+    )
+    def get(self, request, *args, **kwargs):
+        queryset = InteractionLog.objects.filter(org=request.profile.org)
+
+        # Filter by entity
+        entity_type = request.query_params.get("entity_type")
+        entity_id = request.query_params.get("entity_id")
+        if entity_type:
+            queryset = queryset.filter(entity_type=entity_type)
+        if entity_id:
+            queryset = queryset.filter(entity_id=entity_id)
+
+        # Filter by follow-up status
+        follow_up = request.query_params.get("follow_up")
+        if follow_up == "pending":
+            queryset = queryset.filter(
+                follow_up_date__isnull=False,
+                follow_up_date__gte=timezone.now()
+            )
+        elif follow_up == "overdue":
+            queryset = queryset.filter(
+                follow_up_date__isnull=False,
+                follow_up_date__lt=timezone.now()
+            )
+        elif follow_up == "all":
+            queryset = queryset.filter(follow_up_date__isnull=False)
+
+        # Filter by interaction type
+        interaction_type = request.query_params.get("interaction_type")
+        if interaction_type:
+            queryset = queryset.filter(interaction_type=interaction_type)
+
+        # Date range
+        date_from = request.query_params.get("date_from")
+        date_to = request.query_params.get("date_to")
+        if date_from:
+            queryset = queryset.filter(interaction_date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(interaction_date__lte=date_to)
+
+        queryset = queryset.order_by("-interaction_date")
+        return Response(InteractionLogSerializer(queryset, many=True).data)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        request=InteractionLogCreateSerializer,
+        responses={201: InteractionLogSerializer()},
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = InteractionLogCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            interaction = serializer.save(
+                org=request.profile.org,
+                created_by=request.user,
+            )
+            # If this interaction has a follow_up_date, also update the lead's next_follow_up
+            if (
+                interaction.entity_type == "Lead"
+                and interaction.follow_up_date
+            ):
+                try:
+                    lead = Lead.objects.get(id=interaction.entity_id, org=request.profile.org)
+                    lead.next_follow_up = interaction.follow_up_date.date()
+                    lead.last_contacted = interaction.interaction_date.date()
+                    lead.save(update_fields=["next_follow_up", "last_contacted"])
+                except Lead.DoesNotExist:
+                    pass
+            return Response(
+                InteractionLogSerializer(interaction).data,
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            {"error": True, "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class LeadScopedInteractionView(APIView):
+    """
+    GET /api/leads/<pk>/interactions/ — list interactions for a specific lead
+    POST /api/leads/<pk>/interactions/ — create interaction for a specific lead
+    """
+
+    permission_classes = (IsAuthenticated, HasOrgContext)
+
+    def get_lead(self, pk):
+        from leads.models import Lead
+        return get_object_or_404(Lead, id=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        responses={200: InteractionLogSerializer(many=True)},
+    )
+    def get(self, request, pk, *args, **kwargs):
+        lead = self.get_lead(pk)
+        interactions = InteractionLog.objects.filter(
+            org=request.profile.org,
+            entity_type="Lead",
+            entity_id=lead.id,
+        ).order_by("-interaction_date")
+        return Response(InteractionLogSerializer(interactions, many=True).data)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        request=InteractionLogCreateSerializer,
+        responses={201: InteractionLogSerializer()},
+    )
+    def post(self, request, pk, *args, **kwargs):
+        lead = self.get_lead(pk)
+        serializer = InteractionLogCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            interaction = serializer.save(
+                org=request.profile.org,
+                entity_type="Lead",
+                entity_id=lead.id,
+                created_by=request.user,
+            )
+            # Update lead's last_contacted and next_follow_up
+            lead.last_contacted = interaction.interaction_date.date()
+            if interaction.follow_up_date:
+                lead.next_follow_up = interaction.follow_up_date.date()
+            lead.save(update_fields=["last_contacted", "next_follow_up"])
+            return Response(
+                InteractionLogSerializer(interaction).data,
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(
+            {"error": True, "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class InteractionLogDetailView(APIView):
+    """
+    GET/PUT/PATCH/DELETE /api/leads/interactions/<pk>/
+    """
+
+    permission_classes = (IsAuthenticated, HasOrgContext)
+
+    def get_object(self, pk):
+        return get_object_or_404(InteractionLog, pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        responses={200: InteractionLogSerializer()},
+    )
+    def get(self, request, pk, *args, **kwargs):
+        interaction = self.get_object(pk)
+        return Response(InteractionLogSerializer(interaction).data)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        request=InteractionLogCreateSerializer,
+        responses={200: InteractionLogSerializer()},
+    )
+    def put(self, request, pk, *args, **kwargs):
+        interaction = self.get_object(pk)
+        serializer = InteractionLogCreateSerializer(interaction, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(InteractionLogSerializer(interaction).data)
+        return Response(
+            {"error": True, "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        request=InteractionLogCreateSerializer,
+        responses={200: InteractionLogSerializer()},
+    )
+    def patch(self, request, pk, *args, **kwargs):
+        interaction = self.get_object(pk)
+        serializer = InteractionLogCreateSerializer(
+            interaction, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(InteractionLogSerializer(interaction).data)
+        return Response(
+            {"error": True, "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        responses={204: None},
+    )
+    def delete(self, request, pk, *args, **kwargs):
+        interaction = self.get_object(pk)
+        interaction.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class FollowUpListView(APIView):
+    """
+    GET /api/leads/follow-ups/ — list all items needing follow-up
+    Returns unified list of interactions with pending follow_up_date,
+    grouped by recency (overdue, today, tomorrow, this week, later).
+    """
+
+    permission_classes = (IsAuthenticated, HasOrgContext)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        responses={200: InteractionLogSerializer(many=True)},
+    )
+    def get(self, request, *args, **kwargs):
+        now = timezone.now()
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = today_start + timezone.timedelta(days=1)
+        tomorrow_end = today_end + timezone.timedelta(days=1)
+        week_end = today_start + timezone.timedelta(days=7)
+
+        base_qs = InteractionLog.objects.filter(
+            org=request.profile.org,
+            follow_up_date__isnull=False,
+        ).select_related("created_by")
+
+        result = {
+            "overdue": [],
+            "today": [],
+            "tomorrow": [],
+            "this_week": [],
+            "later": [],
+        }
+
+        for interaction in base_qs.order_by("follow_up_date"):
+            fud = interaction.follow_up_date
+            data = InteractionLogSerializer(interaction).data
+            # Fetch entity display name
+            entity_name = ""
+            if interaction.entity_type == "Lead":
+                try:
+                    lead = Lead.objects.get(id=interaction.entity_id)
+                    entity_name = str(lead)
+                except Lead.DoesNotExist:
+                    entity_name = "[Deleted Lead]"
+            data["entity_name"] = entity_name
+
+            if fud < today_start:
+                result["overdue"].append(data)
+            elif fud < today_end:
+                result["today"].append(data)
+            elif fud < tomorrow_end:
+                result["tomorrow"].append(data)
+            elif fud < week_end:
+                result["this_week"].append(data)
+            else:
+                result["later"].append(data)
+
+        return Response(result)
 
 
 class CreateLeadFromSite(APIView):

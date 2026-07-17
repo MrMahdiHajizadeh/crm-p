@@ -71,7 +71,7 @@
   const columns = [
     {
       key: 'invoiceNumber',
-      label: 'Invoice #',
+      label: $_('invoices.invoice_number'),
       type: 'text',
       width: 'w-28',
       editable: false,
@@ -79,7 +79,7 @@
     },
     {
       key: 'clientName',
-      label: 'Client',
+      label: $_('common.client'),
       type: 'text',
       width: 'w-40',
       editable: false,
@@ -121,14 +121,14 @@
     },
     {
       key: 'totalAmount',
-      label: 'Total',
+      label: $_('invoices.total'),
       type: 'number',
       width: 'w-28',
       canHide: false
     },
     {
       key: 'amountDue',
-      label: 'Amount Due',
+      label: $_('invoices.amount_due'),
       type: 'number',
       width: 'w-28',
       canHide: true

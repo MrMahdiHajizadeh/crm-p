@@ -438,15 +438,15 @@ class Command(BaseCommand):
         parser.add_argument(
             "--currency",
             type=str,
-            default="USD",
+            default="TOM",
             choices=valid_currencies,
-            help=f"Default currency for organizations (default: USD). Choices: {', '.join(valid_currencies)}",
+            help=f"Default currency for organizations (default: TOM). Choices: {', '.join(valid_currencies)}",
         )
         parser.add_argument(
             "--country",
             type=str,
-            default="US",
-            help="Default country code for organizations (default: US). Examples: US, GB, CA, AU, DE, FR, IN",
+            default="IR",
+            help="Default country code for organizations (default: IR). Examples: IR, US, GB, CA, AU, DE, FR, IN",
         )
 
         # Invoice-related arguments

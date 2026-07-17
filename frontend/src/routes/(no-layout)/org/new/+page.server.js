@@ -14,8 +14,25 @@ import { env as publicEnv } from '$env/dynamic/public';
 import axios from 'axios';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ cookies }) {
-  // No data needed for load
+export async function load({ cookies, locals }) {
+  // Single-org system: if an organization already exists, redirect to org list
+  try {
+    const jwtAccess = cookies.get('jwt_access');
+    if (jwtAccess) {
+      const apiUrl = publicEnv.PUBLIC_DJANGO_API_URL;
+      const response = await axios.get(`${apiUrl}/api/org/`, {
+        headers: { Authorization: `Bearer ${jwtAccess}` }
+      });
+      const orgs = response.data?.profile_org_list || [];
+      // If the user is already a member of any org, or if any org exists
+      if (orgs.length > 0) {
+        throw redirect(302, '/org');
+      }
+    }
+  } catch (err) {
+    if (err?.status === 302) throw err;
+    // Ignore network errors — backend will block creation if needed
+  }
 }
 
 /** @type {import('./$types').Actions} */
@@ -69,7 +86,20 @@ export const actions = {
             'Content-Type': 'application/json'
           }
         }
-      );
+      ).catch((err) => {
+        // Handle 403 from backend (single-org restriction)
+        if (err.response?.status === 403) {
+          return {
+            data: null,
+            __error: err.response.data?.errors?.name || 'Only one organization is allowed in this system.'
+          };
+        }
+        throw err;
+      });
+
+      if (response.__error) {
+        return { error: { name: response.__error } };
+      }
 
       // Response should contain the created org
       const newOrg = response.data.org || response.data;

@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -201,7 +201,7 @@
                           {e.description || 'Untitled session'}
                         </p>
                         <p class="text-[10px] text-[var(--text-secondary)]">
-                          {new Date(e.started_at).toLocaleString()} ·
+                          {new Date(e.started_at).toLocaleString('fa-IR-u-ca-persian')} ·
                           {formatMinutes(e.duration_minutes)}
                           {#if e.hourly_rate}· {currency} {e.hourly_rate}/hr{/if}
                         </p>

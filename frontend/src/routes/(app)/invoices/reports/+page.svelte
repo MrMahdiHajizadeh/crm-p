@@ -5,10 +5,12 @@
   import { PageHeader } from '$lib/components/layout';
   import { Button } from '$lib/components/ui/button';
   import { formatCurrency, formatDate } from '$lib/utils/formatting.js';
+  import { orgSettings } from '$lib/stores/org.js';
 
   /** @type {{ data: import('./$types').PageData }} */
   let { data } = $props();
 
+  const orgCurrency = $derived($orgSettings.default_currency || 'TOM');
   const dashboard = $derived(data.dashboard);
   const revenue = $derived(data.revenue);
   const aging = $derived(data.aging);
@@ -82,7 +84,7 @@
         <div>
           <p class="text-sm text-[var(--text-secondary)]">Total Invoiced</p>
           <p class="mt-1 text-2xl font-bold text-[var(--text-primary)]">
-            {formatCurrency(Number(dashboard.summary?.total_invoiced || 0), 'USD')}
+            {formatCurrency(Number(dashboard.summary?.total_invoiced || 0), orgCurrency)}
           </p>
         </div>
         <div
@@ -117,7 +119,7 @@
         <div>
           <p class="text-sm text-[var(--text-secondary)]">Total Collected</p>
           <p class="mt-1 text-2xl font-bold text-[var(--color-success-default)]">
-            {formatCurrency(Number(dashboard.summary?.total_paid || 0), 'USD')}
+            {formatCurrency(Number(dashboard.summary?.total_paid || 0), orgCurrency)}
           </p>
         </div>
         <div
@@ -150,7 +152,7 @@
         <div>
           <p class="text-sm text-[var(--text-secondary)]">Outstanding</p>
           <p class="mt-1 text-2xl font-bold text-[var(--color-primary-default)]">
-            {formatCurrency(Number(dashboard.summary?.total_due || 0), 'USD')}
+            {formatCurrency(Number(dashboard.summary?.total_due || 0), orgCurrency)}
           </p>
         </div>
         <div
@@ -185,7 +187,7 @@
             Overdue ({dashboard.overdue?.count || 0})
           </p>
           <p class="mt-1 text-2xl font-bold text-[var(--color-negative-default)]">
-            {formatCurrency(Number(dashboard.overdue?.amount || 0), 'USD')}
+            {formatCurrency(Number(dashboard.overdue?.amount || 0), orgCurrency)}
           </p>
         </div>
         <div
@@ -225,7 +227,7 @@
         <div class="flex items-center justify-between">
           <span class="text-[var(--text-secondary)]">Revenue Collected</span>
           <span class="font-medium text-[var(--color-success-default)]">
-            {formatCurrency(Number(dashboard.recent_activity?.revenue_30d || 0), 'USD')}
+            {formatCurrency(Number(dashboard.recent_activity?.revenue_30d || 0), orgCurrency)}
           </span>
         </div>
         <div class="flex items-center justify-between">
@@ -243,7 +245,7 @@
         <div class="flex items-center justify-between">
           <span class="text-[var(--text-secondary)]">Total Invoiced</span>
           <span class="font-medium text-[var(--text-primary)]">
-            {formatCurrency(Number(dashboard.recent_activity?.invoiced_30d || 0), 'USD')}
+            {formatCurrency(Number(dashboard.recent_activity?.invoiced_30d || 0), orgCurrency)}
           </span>
         </div>
       </div>
@@ -325,7 +327,7 @@
                 <td class="py-3 text-[var(--text-primary)]">{formatDate(item.period)}</td>
                 <td class="py-3 text-right text-[var(--text-secondary)]">{item.count}</td>
                 <td class="py-3 text-right font-medium text-[var(--color-success-default)]">
-                  {formatCurrency(Number(item.revenue), 'USD')}
+                  {formatCurrency(Number(item.revenue), orgCurrency)}
                 </td>
               </tr>
             {/each}
@@ -337,7 +339,7 @@
                 >{revenue.total?.count || 0}</td
               >
               <td class="py-3 text-right font-bold text-[var(--color-success-default)]">
-                {formatCurrency(Number(revenue.total?.revenue || 0), 'USD')}
+                {formatCurrency(Number(revenue.total?.revenue || 0), orgCurrency)}
               </td>
             </tr>
           </tfoot>
@@ -361,7 +363,7 @@
       <div class="rounded-lg bg-[var(--color-success-light)] p-4">
         <p class="text-sm font-medium text-[var(--color-success-default)]">Current</p>
         <p class="mt-1 text-xl font-bold text-[var(--color-success-default)]">
-          {formatCurrency(Number(aging.current?.amount || 0), 'USD')}
+          {formatCurrency(Number(aging.current?.amount || 0), orgCurrency)}
         </p>
         <p class="text-sm text-[var(--color-success-default)]/80">
           {aging.current?.count || 0} invoices
@@ -372,7 +374,7 @@
       <div class="rounded-lg bg-[var(--stage-negotiation-bg)] p-4">
         <p class="text-sm font-medium text-[var(--stage-negotiation)]">1-30 Days</p>
         <p class="mt-1 text-xl font-bold text-[var(--stage-negotiation)]">
-          {formatCurrency(Number(aging['1_30_days']?.amount || 0), 'USD')}
+          {formatCurrency(Number(aging['1_30_days']?.amount || 0), orgCurrency)}
         </p>
         <p class="text-sm text-[var(--stage-negotiation)]/80">
           {aging['1_30_days']?.count || 0} invoices
@@ -383,7 +385,7 @@
       <div class="rounded-lg bg-[var(--color-primary-light)] p-4">
         <p class="text-sm font-medium text-[var(--color-primary-default)]">31-60 Days</p>
         <p class="mt-1 text-xl font-bold text-[var(--color-primary-default)]">
-          {formatCurrency(Number(aging['31_60_days']?.amount || 0), 'USD')}
+          {formatCurrency(Number(aging['31_60_days']?.amount || 0), orgCurrency)}
         </p>
         <p class="text-sm text-[var(--color-primary-default)]/80">
           {aging['31_60_days']?.count || 0} invoices
@@ -394,7 +396,7 @@
       <div class="rounded-lg bg-[var(--color-negative-light)] p-4">
         <p class="text-sm font-medium text-[var(--color-negative-default)]">61-90 Days</p>
         <p class="mt-1 text-xl font-bold text-[var(--color-negative-default)]">
-          {formatCurrency(Number(aging['61_90_days']?.amount || 0), 'USD')}
+          {formatCurrency(Number(aging['61_90_days']?.amount || 0), orgCurrency)}
         </p>
         <p class="text-sm text-[var(--color-negative-default)]/80">
           {aging['61_90_days']?.count || 0} invoices
@@ -405,7 +407,7 @@
       <div class="rounded-lg bg-[var(--color-negative-default)]/20 p-4">
         <p class="text-sm font-medium text-[var(--color-negative-default)]">Over 90 Days</p>
         <p class="mt-1 text-xl font-bold text-[var(--color-negative-default)]">
-          {formatCurrency(Number(aging['over_90_days']?.amount || 0), 'USD')}
+          {formatCurrency(Number(aging['over_90_days']?.amount || 0), orgCurrency)}
         </p>
         <p class="text-sm text-[var(--color-negative-default)]/80">
           {aging['over_90_days']?.count || 0} invoices
@@ -418,7 +420,7 @@
       <span class="font-medium text-[var(--text-secondary)]">Total Outstanding</span>
       <div class="text-right">
         <p class="text-2xl font-bold text-[var(--text-primary)]">
-          {formatCurrency(Number(aging.total?.amount || 0), 'USD')}
+          {formatCurrency(Number(aging.total?.amount || 0), orgCurrency)}
         </p>
         <p class="text-sm text-[var(--text-secondary)]">{aging.total?.count || 0} invoices</p>
       </div>

@@ -149,6 +149,15 @@ export async function load({ url, locals, cookies }) {
               }
             : null,
 
+      // Creator info
+      createdBy: contact.created_by
+        ? {
+            id: contact.created_by.id,
+            name: contact.created_by.name || contact.created_by.email || 'Unknown',
+            email: contact.created_by.email
+          }
+        : null,
+
       // Teams
       teams:
         contact.teams?.map((team) => ({

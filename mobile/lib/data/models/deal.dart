@@ -59,19 +59,8 @@ enum OpportunitySource {
 
 /// Currency enumeration
 enum Currency {
-  usd('USD', 'USD', '\$'),
-  eur('EUR', 'EUR', '€'),
-  gbp('GBP', 'GBP', '£'),
-  inr('INR', 'INR', '₹'),
-  cad('CAD', 'CAD', 'C\$'),
-  aud('AUD', 'AUD', 'A\$'),
-  jpy('JPY', 'JPY', '¥'),
-  cny('CNY', 'CNY', '¥'),
-  chf('CHF', 'CHF', 'CHF'),
-  sgd('SGD', 'SGD', 'S\$'),
-  aed('AED', 'AED', 'د.إ'),
-  brl('BRL', 'BRL', 'R\$'),
-  mxn('MXN', 'MXN', '\$');
+  tom('TOM', 'تومان', 'تومان'),
+  usd('USD', 'USD', '\$');
 
   final String value;
   final String label;
@@ -80,10 +69,10 @@ enum Currency {
   const Currency(this.value, this.label, this.symbol);
 
   static Currency fromString(String? value) {
-    if (value == null) return Currency.usd;
+    if (value == null) return Currency.tom;
     return Currency.values.firstWhere(
       (e) => e.value.toLowerCase() == value.toLowerCase(),
-      orElse: () => Currency.usd,
+      orElse: () => Currency.tom,
     );
   }
 }

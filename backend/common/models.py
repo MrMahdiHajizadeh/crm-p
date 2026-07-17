@@ -126,10 +126,10 @@ class Org(BaseModel):
 
     # Locale settings
     default_currency = models.CharField(
-        max_length=3, choices=CURRENCY_CODES, default="USD"
+        max_length=3, choices=CURRENCY_CODES, default="TOM"
     )
     default_country = models.CharField(
-        max_length=2, choices=COUNTRIES, blank=True, null=True
+        max_length=2, choices=COUNTRIES, blank=True, null=True, default="IR"
     )
 
     # CSAT (Tier 2 csat). Org-level kill switch — when False, the

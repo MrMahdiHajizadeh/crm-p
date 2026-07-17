@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { enhance, deserialize } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
@@ -69,19 +69,44 @@
    * @typedef {{ key: string, label: string, type?: ColumnType, width?: string, editable?: boolean, canHide?: boolean, getValue?: (row: any) => any, emptyText?: string, relationIcon?: string, options?: any[] }} ColumnDef
    */
 
+  // Reactive translated options for status/rating (hardcoded English labels
+  // in table-helpers.js don't support i18n, so we derive them here).
+  const translatedStatusOptions = $derived(
+    leadStatusOptions.map((opt) => ({
+      ...opt,
+      label: $_(`filters.${opt.value.toLowerCase()}`) || opt.label
+    }))
+  );
+  const translatedRatingOptions = $derived(
+    leadRatingOptions.map((opt) => ({
+      ...opt,
+      label: $_(`filters.${opt.value.toLowerCase()}`) || opt.label
+    }))
+  );
+
+  // Reactive translated industry options
+  const translatedIndustries = $derived(
+    INDUSTRIES.map((ind) => ({
+      ...ind,
+      label: ind.value
+        ? $_('industries.' + ind.value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')) || ind.label
+        : $_('industries.select_industry') || ind.label
+    }))
+  );
+
   /** @type {ColumnDef[]} */
   const columns = [
     { key: 'title', label: 'leads.title', type: 'text', width: 'w-[200px]', canHide: false, editable: false, emptyText: 'common.untitled' },
     { key: 'name', label: 'leads.name', type: 'text', width: 'w-[180px]', editable: false, canHide: true, getValue: (row) => `${row.firstName || ''} ${row.lastName || ''}`.trim(), emptyText: '' },
     { key: 'company', label: 'leads.company', type: 'relation', width: 'w-40', relationIcon: 'building', getValue: (row) => (typeof row.company === 'object' ? row.company?.name : row.company), emptyText: '' },
     { key: 'email', label: 'common.email', type: 'email', width: 'w-52', editable: false, emptyText: '' },
-    { key: 'status', label: 'common.status', type: 'select', width: 'w-36', options: leadStatusOptions },
-    { key: 'rating', label: 'leads.rating', type: 'select', width: 'w-28', options: leadRatingOptions },
+    { key: 'status', label: 'common.status', type: 'select', width: 'w-36', options: translatedStatusOptions },
+    { key: 'rating', label: 'leads.rating', type: 'select', width: 'w-28', options: translatedRatingOptions },
     { key: 'createdAt', label: 'common.created_at', type: 'date', width: 'w-36', editable: false },
     { key: 'phone', label: 'common.phone', type: 'text', width: 'w-36', canHide: true, editable: false, emptyText: '' },
     { key: 'jobTitle', label: 'leads.job_title', type: 'text', width: 'w-36', canHide: true, editable: false, emptyText: '' },
     { key: 'leadSource', label: 'leads.source', type: 'select', width: 'w-28', canHide: true },
-    { key: 'industry', label: 'leads.industry', type: 'select', width: 'w-32', canHide: true, options: INDUSTRIES.map((i) => ({ ...i, color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' })) },
+    { key: 'industry', label: 'leads.industry', type: 'select', width: 'w-32', canHide: true, options: translatedIndustries.map((i) => ({ ...i, color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' })) },
     { key: 'owner', label: 'common.assigned_to', type: 'relation', width: 'w-36', canHide: true, relationIcon: 'user', getValue: (row) => row.owner?.name || '', emptyText: '' }
   ];
 
@@ -101,43 +126,43 @@
   const sourceOptions = [
     {
       value: 'call',
-      label: 'Call',
+      label: $_('filters.call'),
       color:
         'bg-[var(--activity-call)]/10 text-[var(--activity-call)] dark:bg-[var(--activity-call)]/15'
     },
     {
       value: 'email',
-      label: 'Email',
+      label: $_('filters.email'),
       color:
         'bg-[var(--activity-email)]/10 text-[var(--activity-email)] dark:bg-[var(--activity-email)]/15'
     },
     {
       value: 'existing customer',
-      label: 'Existing Customer',
+      label: $_('filters.existing_customer'),
       color:
         'bg-[var(--color-success-light)] text-[var(--color-success-default)] dark:bg-[var(--color-success-default)]/15'
     },
     {
       value: 'partner',
-      label: 'Partner',
+      label: $_('filters.partner'),
       color:
         'bg-[var(--color-primary-light)] text-[var(--color-primary-default)] dark:bg-[var(--color-primary-default)]/15'
     },
     {
       value: 'public relations',
-      label: 'Public Relations',
+      label: $_('filters.public_relations'),
       color:
         'bg-[var(--activity-meeting)]/10 text-[var(--activity-meeting)] dark:bg-[var(--activity-meeting)]/15'
     },
     {
       value: 'campaign',
-      label: 'Campaign',
+      label: $_('filters.campaign'),
       color:
         'bg-[var(--stage-qualified)]/10 text-[var(--stage-qualified)] dark:bg-[var(--stage-qualified)]/15'
     },
     {
       value: 'other',
-      label: 'Other',
+      label: $_('filters.other'),
       color:
         'bg-[var(--surface-sunken)] text-[var(--text-secondary)] dark:bg-[var(--surface-sunken)]'
     }
@@ -185,94 +210,94 @@
     // Contact Information
     {
       key: 'salutation',
-      label: 'Salutation',
+      label: $_('leads.salutation'),
       type: 'select',
       icon: User,
       options: salutationOptions
     },
     {
       key: 'firstName',
-      label: 'First Name',
+      label: $_('leads.first_name'),
       type: 'text',
       icon: User,
-      placeholder: 'First name',
+      placeholder: $_('leads.first_name'),
       essential: true
     },
     {
       key: 'lastName',
-      label: 'Last Name',
+      label: $_('leads.last_name'),
       type: 'text',
       icon: User,
-      placeholder: 'Last name',
+      placeholder: $_('leads.last_name'),
       essential: true
     },
     {
       key: 'email',
-      label: 'Email',
+      label: $_('common.email'),
       type: 'email',
       icon: Mail,
-      placeholder: 'Add email',
+      placeholder: $_('common.email'),
       essential: true
     },
     {
       key: 'phone',
-      label: 'Phone',
+      label: $_('common.phone'),
       type: 'text',
       icon: Phone,
-      placeholder: 'Add phone',
+      placeholder: $_('common.phone'),
       essential: true
     },
     {
       key: 'jobTitle',
-      label: 'Job Title',
+      label: $_('leads.job_title'),
       type: 'text',
       icon: Briefcase,
-      placeholder: 'Add job title'
+      placeholder: $_('leads.job_title')
     },
     {
       key: 'company',
-      label: 'Company',
+      label: $_('leads.company'),
       type: 'text',
       icon: Building2,
       getValue: (/** @type {any} */ row) =>
         typeof row.company === 'object' ? row.company?.name : row.company,
-      placeholder: 'Add company',
+      placeholder: $_('leads.company'),
       essential: true
     },
     {
       key: 'website',
-      label: 'Website',
+      label: $_('leads.website'),
       type: 'text',
       icon: Globe,
-      placeholder: 'Add website'
+      placeholder: $_('leads.website')
     },
     {
       key: 'linkedinUrl',
-      label: 'LinkedIn',
+      label: $_('leads.linkedin'),
       type: 'text',
       icon: Linkedin,
-      placeholder: 'Add LinkedIn URL'
+      placeholder: $_('leads.linkedin')
     },
     // Lead Details
     {
       key: 'status',
-      label: 'Status',
+      label: $_('leads.lead_status'),
       type: 'select',
       icon: Briefcase,
-      options: leadStatusOptions,
+      options: translatedStatusOptions,
       essential: true
     },
     {
       key: 'rating',
-      label: 'Rating',
+      label: $_('leads.rating'),
       type: 'select',
       icon: Star,
-      options: leadRatingOptions
+      options: translatedRatingOptions
     },
     // Metadata
     {
       key: 'createdAt',
-      label: 'Created',
+      label: $_('common.created_at'),
       type: 'date',
       icon: Calendar,
       editable: false,
@@ -280,17 +305,17 @@
     },
     {
       key: 'leadSource',
-      label: 'Source',
+      label: $_('leads.source'),
       type: 'select',
       icon: Target,
       options: sourceOptions
     },
     {
       key: 'industry',
-      label: 'Industry',
+      label: $_('leads.industry'),
       type: 'select',
       icon: Building2,
-      options: INDUSTRIES.map((i) => ({
+      options: translatedIndustries.map((i) => ({
         ...i,
         color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
       }))
@@ -298,7 +323,7 @@
     // Deal Information
     {
       key: 'opportunityAmount',
-      label: 'Deal Value',
+      label: $_('leads.opportunity_amount'),
       type: 'number',
       icon: DollarSign,
       placeholder: '0',
@@ -306,76 +331,76 @@
     },
     {
       key: 'currency',
-      label: 'Currency',
+      label: $_('leads.currency'),
       type: 'select',
       icon: Banknote,
       options: currencyOptions,
-      placeholder: 'Select currency',
+      placeholder: $_('filters.select_currency'),
       essential: true
     },
     {
       key: 'probability',
-      label: 'Probability',
+      label: $_('leads.probability'),
       type: 'number',
       icon: Percent,
       placeholder: '0-100'
     },
     {
       key: 'closeDate',
-      label: 'Close Date',
+      label: $_('leads.close_date'),
       type: 'date',
       icon: Calendar,
-      placeholder: 'Set date',
+      placeholder: $_('leads.close_date'),
       hideOnCreate: true
     },
     // Activity
     {
       key: 'lastContacted',
-      label: 'Last Contact',
+      label: $_('leads.last_contacted'),
       type: 'date',
       icon: Calendar,
-      placeholder: 'Set date',
+      placeholder: $_('leads.last_contacted'),
       hideOnCreate: true
     },
     {
       key: 'nextFollowUp',
-      label: 'Follow-up',
+      label: $_('leads.next_follow_up'),
       type: 'date',
       icon: Calendar,
-      placeholder: 'Set date'
+      placeholder: $_('leads.next_follow_up')
     },
     // Address
     {
       key: 'addressLine',
-      label: 'Address',
+      label: $_('common.address'),
       type: 'text',
       icon: MapPin,
-      placeholder: 'Street address'
+      placeholder: $_('leads.street')
     },
     {
       key: 'city',
-      label: 'City',
+      label: $_('common.city'),
       type: 'text',
       icon: MapPin,
-      placeholder: 'City'
+      placeholder: $_('common.city')
     },
     {
       key: 'state',
-      label: 'State',
+      label: $_('common.state'),
       type: 'text',
       icon: MapPin,
-      placeholder: 'State/Province'
+      placeholder: $_('common.state')
     },
     {
       key: 'postcode',
-      label: 'Postal Code',
+      label: $_('common.postal_code'),
       type: 'text',
       icon: MapPin,
-      placeholder: 'Postal code'
+      placeholder: $_('common.postal_code')
     },
     {
       key: 'country',
-      label: 'Country',
+      label: $_('common.country'),
       type: 'select',
       icon: Globe,
       options: COUNTRIES.map((c) => ({
@@ -387,39 +412,47 @@
     // Notes
     {
       key: 'description',
-      label: 'Notes',
+      label: $_('common.notes'),
       type: 'textarea',
       icon: FileText,
-      placeholder: 'Add notes...'
+      placeholder: $_('common.notes')
     },
     // Assignment (multi-select fields - options populated dynamically)
     {
       key: 'assignedTo',
-      label: 'Assigned To',
+      label: $_('common.assigned_to'),
       type: 'multiselect',
       icon: Users,
       options: []
     },
     {
       key: 'teams',
-      label: 'Teams',
+      label: $_('common.teams'),
       type: 'multiselect',
       icon: Users,
       options: []
     },
     {
       key: 'contacts',
-      label: 'Contacts',
+      label: $_('common.contacts'),
       type: 'multiselect',
       icon: UserPlus,
       options: []
     },
     {
       key: 'tags',
-      label: 'Tags',
+      label: $_('common.tags'),
       type: 'multiselect',
       icon: Tag,
       options: []
+    },
+    // System fields
+    {
+      key: 'createdBy',
+      label: $_('common.created_by'),
+      type: 'readonly',
+      icon: User,
+      getValue: (data) => data.createdBy?.name || data.createdBy?.email || '-'
     }
   ]);
 
@@ -1645,10 +1678,10 @@
                   <span
                     class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {getOptionStyle(
                       lead.status,
-                      leadStatusOptions
+                      translatedStatusOptions
                     )}"
                   >
-                    {getOptionLabel(lead.status, leadStatusOptions)}
+                    {getOptionLabel(lead.status, translatedStatusOptions)}
                   </span>
                 </div>
                 <div
@@ -1658,10 +1691,10 @@
                     <span
                       class="rounded-full px-2 py-0.5 {getOptionStyle(
                         lead.rating,
-                        leadRatingOptions
+                        translatedRatingOptions
                       )}"
                     >
-                      {getOptionLabel(lead.rating, leadRatingOptions)}
+                      {getOptionLabel(lead.rating, translatedRatingOptions)}
                     </span>
                   {/if}
                   <span>{formatRelativeDate(lead.createdAt)}</span>
@@ -1701,8 +1734,8 @@
   data={currentDrawerData}
   columns={drawerColumnsWithOptions}
   titleKey="title"
-  titlePlaceholder={drawerMode === 'create' ? 'Lead Title' : 'Untitled Lead'}
-  headerLabel={drawerMode === 'create' ? 'New Lead' : 'Lead'}
+  titlePlaceholder={drawerMode === 'create' ? $_('leads.title') : $_('common.untitled')}
+  headerLabel={drawerMode === 'create' ? $_('leads.create') : $_('leads.title')}
   mode={drawerMode}
   loading={drawerLoading}
   fullPageHref={drawerMode !== 'create' && drawerData?.id ? `/leads/${drawerData.id}` : ''}
@@ -1754,13 +1787,13 @@
         {/if}
         {#if drawerData.createdAt}
           <span aria-hidden="true">·</span>
-          <span title={new Date(drawerData.createdAt).toLocaleString()}>
+          <span title={new Date(drawerData.createdAt).toLocaleString('fa-IR-u-ca-persian')}>
             Created {formatDate(drawerData.createdAt)}
           </span>
         {/if}
         {#if drawerData.updatedAt && drawerData.updatedAt !== drawerData.createdAt}
           <span aria-hidden="true">·</span>
-          <span title={new Date(drawerData.updatedAt).toLocaleString()}>
+          <span title={new Date(drawerData.updatedAt).toLocaleString('fa-IR-u-ca-persian')}>
             Updated {formatRelativeDate(drawerData.updatedAt)}
           </span>
         {/if}

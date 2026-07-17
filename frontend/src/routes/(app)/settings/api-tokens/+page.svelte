@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
@@ -139,7 +139,7 @@ BCRM_TOKEN = "${token}"`;
     if (!value) return 'Never';
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return 'Never';
-    return d.toLocaleDateString(undefined, {
+    return d.toLocaleDateString('fa-IR-u-ca-persian', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'

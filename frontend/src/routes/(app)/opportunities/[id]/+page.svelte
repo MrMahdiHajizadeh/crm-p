@@ -92,7 +92,7 @@
   {#snippet amount()}
     {#if opp?.amount != null}
       <span class="text-[28px] font-bold leading-none tabular-nums text-[color:var(--text)]">
-        {formatCurrency(opp.amount, opp.currency || 'USD')}
+        {formatCurrency(opp.amount, opp.currency || 'TOM')}
       </span>
       {#if opp?.probability != null}
         <span class="text-[11px] leading-none text-[color:var(--text-subtle)]">

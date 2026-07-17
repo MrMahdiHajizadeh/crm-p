@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { tick } from 'svelte';
   import { Check, ChevronDown, Building2, User } from '@lucide/svelte';
@@ -97,7 +97,7 @@
   function formatDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('fa-IR-u-ca-persian', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   /**

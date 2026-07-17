@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
@@ -186,7 +186,7 @@
     },
     {
       key: 'opportunityType',
-      label: 'Type',
+      label: $_('opportunities.type'),
       type: 'select',
       options: typeOptions,
       width: 'w-32',
@@ -414,6 +414,13 @@
       type: 'textarea',
       icon: FileText,
       placeholder: 'Add notes...'
+    },
+    {
+      key: 'createdBy',
+      label: $_('common.created_by'),
+      type: 'readonly',
+      icon: User,
+      getValue: (data) => data.createdBy?.name || data.createdBy?.email || '-'
     }
   ]);
 
@@ -746,7 +753,7 @@
    */
   function formatAmount(value, currency = 'USD') {
     if (!value) return '-';
-    return formatCurrency(value, currency || 'USD');
+    return formatCurrency(value, currency || 'TOM');
   }
 
   /**
@@ -755,7 +762,7 @@
   function formatDate(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('fa-IR-u-ca-persian', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   /**
@@ -1561,7 +1568,7 @@
                       item.unitPrice,
                       selectedRow.currency || 'USD'
                     )}
-                    = {formatCurrency(item.total, selectedRow.currency || 'USD')}
+                    = {formatCurrency(item.total, selectedRow.currency || 'TOM')}
                   </p>
                 </div>
                 {#if !isClosed}

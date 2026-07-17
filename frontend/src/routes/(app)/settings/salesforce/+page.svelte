@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { toast } from 'svelte-sonner';
@@ -34,7 +34,7 @@
   function formatDate(dateStr) {
     if (!dateStr) return 'Unknown';
     try {
-      return new Date(dateStr).toLocaleDateString('en-US', {
+      return new Date(dateStr).toLocaleDateString('fa-IR-u-ca-persian', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

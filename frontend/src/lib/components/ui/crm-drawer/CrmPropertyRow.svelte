@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Check, Calendar as CalendarIcon } from '@lucide/svelte';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
@@ -121,14 +121,38 @@
    * @param {string} dateStr
    */
   function formatDateDisplay(dateStr) {
-    if (!dateStr) return placeholder || 'Pick a date';
+    if (!dateStr) {
+      // Default to today's date in Jalali format
+      try {
+        return new Date().toLocaleDateString('fa-IR-u-ca-persian', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+      } catch {
+        return placeholder || 'امروز';
+      }
+    }
     try {
-      // If we got just YYYY-MM-DD, pin it to local midnight; otherwise let Date parse the ISO string.
-      const isoLike = /T|\s/.test(dateStr) ? dateStr : `${dateStr}T00:00:00`;
-      const date = new Date(isoLike);
+      // Parse YYYY-MM-DD as LOCAL time to avoid timezone shift bugs.
+      // Using new Date("2026-07-17") or new Date("2026-07-17T00:00:00") parses as UTC,
+      // which can roll the date ±1 day in timezones far from UTC.
+      const parts = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr);
+      if (parts) {
+        const date = new Date(+parts[1], +parts[2] - 1, +parts[3]);
+        if (!Number.isNaN(date.getTime())) {
+          return date.toLocaleDateString('fa-IR-u-ca-persian', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+          });
+        }
+      }
+      // Fallback for ISO datetime strings that include time
+      const date = new Date(dateStr);
       if (Number.isNaN(date.getTime())) return dateStr;
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
+      return date.toLocaleDateString('fa-IR-u-ca-persian', {
+        month: 'long',
         day: 'numeric',
         year: 'numeric'
       });
@@ -313,8 +337,8 @@
                 aria-labelledby={labelId}
                 aria-describedby={error ? errorId : undefined}
                 class={cn(
-                  'hover:bg-muted/30 inline-flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-all',
-                  !value ? 'text-muted-foreground/50' : 'text-foreground',
+                  'hover:bg-[var(--surface-raised)] inline-flex w-full items-center gap-2.5 rounded-lg border border-[var(--border-default)] px-2.5 py-1.5 text-sm font-medium transition-all',
+                  !value ? 'text-[var(--text-primary)]' : 'text-[var(--text-primary)]',
                   !editable && 'cursor-default hover:bg-transparent',
                   error && 'ring-1 ring-destructive/40'
                 )}
@@ -324,7 +348,7 @@
               </button>
             {/snippet}
           </Popover.Trigger>
-          <Popover.Content class="w-auto p-0" align="start">
+          <Popover.Content class="w-auto p-0 border-[var(--border-default)] bg-[var(--surface-default)]" align="start">
             <Calendar value={parseDateValue(value)} onValueChange={handleCalendarChange} />
           </Popover.Content>
         </Popover.Root>

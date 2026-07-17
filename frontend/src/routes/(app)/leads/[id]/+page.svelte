@@ -1,4 +1,5 @@
 <script>
+  import { _ } from '$lib/i18n';
   import { goto } from '$app/navigation';
   import {
     Pencil,
@@ -19,7 +20,8 @@
     Users,
     UserCheck,
     FileText,
-    ExternalLink
+    ExternalLink,
+    Clock
   } from '@lucide/svelte';
   import { LinkedinIcon as Linkedin } from '$lib/components/icons';
   import { PageHeader } from '$lib/components/layout';
@@ -51,6 +53,7 @@
   const lead = $derived(data.lead || {});
   const comments = $derived(data.comments || []);
   const attachments = $derived(data.attachments || []);
+  const interactions = $derived(data.interactions || []);
   const tags = $derived(data.tags || []);
   const customFieldDefinitions = $derived(data.customFieldDefinitions || []);
   const customFieldValues = $derived(data.customFieldValues || {});
@@ -63,8 +66,22 @@
   );
   const normalizedRating = $derived((lead?.rating || '').toString().toUpperCase());
 
+  // Reactive translated options
+  const translatedStatusOptions = $derived(
+    leadStatusOptions.map((opt) => ({
+      ...opt,
+      label: $_(`filters.${opt.value.toLowerCase()}`) || opt.label
+    }))
+  );
+  const translatedRatingOptions = $derived(
+    leadRatingOptions.map((opt) => ({
+      ...opt,
+      label: $_(`filters.${opt.value.toLowerCase()}`) || opt.label
+    }))
+  );
+
   const stepperStages = $derived(
-    leadStatusOptions.map((s) => ({ value: s.value, label: s.label }))
+    translatedStatusOptions.map((s) => ({ value: s.value, label: s.label }))
   );
 
   const fullName = $derived(
@@ -135,9 +152,9 @@
     return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
   }
 
-  // Timeline items: comments + attachments + created event, sorted DESC by timestamp.
+  // Timeline items: interactions + comments + attachments + created event, sorted DESC by timestamp.
   const timelineItems = $derived.by(() => {
-    /** @type {Array<{ id: string, ts: string, kind: 'comment' | 'attachment' | 'created', payload: any }>} */
+    /** @type {Array<{ id: string, ts: string, kind: 'comment' | 'attachment' | 'created' | 'interaction', payload: any }>} */
     const items = [];
     for (const c of comments) {
       items.push({ id: `comment-${c.id}`, ts: c.commented_on || '', kind: 'comment', payload: c });
@@ -148,6 +165,14 @@
         ts: a.created_on || a.created_at || '',
         kind: 'attachment',
         payload: a
+      });
+    }
+    for (const i of interactions) {
+      items.push({
+        id: `interaction-${i.id}`,
+        ts: i.interaction_date || i.created_at || '',
+        kind: 'interaction',
+        payload: i
       });
     }
     if (lead?.created_at || lead?.created_on) {
@@ -290,7 +315,7 @@
                   </dt>
                   <dd class="text-[15px] font-medium tabular-nums text-[color:var(--text)]">
                     {lead?.opportunity_amount != null
-                      ? formatCurrency(lead.opportunity_amount, lead?.currency || 'USD')
+                      ? formatCurrency(lead.opportunity_amount, lead?.currency || 'TOM')
                       : '—'}
                   </dd>
                 </div>
@@ -468,6 +493,41 @@
                     {#snippet text()}
                       <strong>{item.payload.created_by_user || 'Someone'}</strong> uploaded
                       <strong>{item.payload.file_name || 'a file'}</strong>
+                    {/snippet}
+                  </TimelineItem>
+                {:else if item.kind === 'interaction'}
+                  <TimelineItem
+                    variant={item.payload.interaction_type === 'call' ? 'success' : item.payload.interaction_type === 'email' ? 'violet' : 'default'}
+                    time={item.ts ? formatRelativeDate(item.ts) : ''}
+                    quote={item.payload.description || ''}
+                  >
+                    {#snippet icon()}
+                      {#if item.payload.interaction_type === 'call'}
+                        <Phone class="size-3.5" />
+                      {:else if item.payload.interaction_type === 'email'}
+                        <Mail class="size-3.5" />
+                      {:else if item.payload.interaction_type === 'meeting'}
+                        <Users class="size-3.5" />
+                      {:else}
+                        <FileText class="size-3.5" />
+                      {/if}
+                    {/snippet}
+                    {#snippet text()}
+                      <strong>{item.payload.created_by?.name || item.payload.created_by?.email || 'Someone'}</strong>
+                      {item.payload.subject ? `— ${item.payload.subject}` : ''}
+                      {#if item.payload.duration_minutes}
+                        <span class="text-[color:var(--text-subtle)]">({item.payload.duration_minutes} min)</span>
+                      {/if}
+                      {#if item.payload.result}
+                        <span class="ml-1.5 inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
+                          {item.payload.result_display || item.payload.result}
+                        </span>
+                      {/if}
+                      {#if item.payload.follow_up_date}
+                        <span class="ml-1.5 text-[11px] text-[var(--text-subtle)]">
+                          → {formatDate(item.payload.follow_up_date)}
+                        </span>
+                      {/if}
                     {/snippet}
                   </TimelineItem>
                 {:else}
@@ -669,6 +729,39 @@
                   {#snippet icon()}<Paperclip class="size-3.5" />{/snippet}
                   {#snippet text()}<strong>{item.payload.created_by_user || 'Someone'}</strong>
                     uploaded <strong>{item.payload.file_name || 'a file'}</strong>{/snippet}
+                </TimelineItem>
+              {:else if item.kind === 'interaction'}
+                <TimelineItem
+                  variant={item.payload.interaction_type === 'call' ? 'success' : item.payload.interaction_type === 'email' ? 'violet' : 'default'}
+                  time={item.ts ? formatRelativeDate(item.ts) : ''}
+                  quote={item.payload.description || ''}
+                >
+                  {#snippet icon()}
+                    {#if item.payload.interaction_type === 'call'}
+                      <Phone class="size-3.5" />
+                    {:else if item.payload.interaction_type === 'email'}
+                      <Mail class="size-3.5" />
+                    {:else if item.payload.interaction_type === 'meeting'}
+                      <Users class="size-3.5" />
+                    {:else}
+                      <FileText class="size-3.5" />
+                    {/if}
+                  {/snippet}
+                  {#snippet text()}
+                    <strong>{item.payload.created_by?.name || item.payload.created_by?.email || 'Someone'}</strong>
+                    {item.payload.subject ? `— ${item.payload.subject}` : ''}
+                    {#if item.payload.duration_minutes}
+                      <span class="text-[color:var(--text-subtle)]">({item.payload.duration_minutes} min)</span>
+                    {/if}
+                    {#if item.payload.result}
+                      <span class="ml-1.5 inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
+                        {item.payload.result_display || item.payload.result}
+                      </span>
+                    {/if}
+                    {#if item.payload.follow_up_date}
+                      <span class="ml-1.5 text-[11px] text-[var(--text-subtle)]">→ {formatDate(item.payload.follow_up_date)}</span>
+                    {/if}
+                  {/snippet}
                 </TimelineItem>
               {:else}
                 <TimelineItem variant="success" time={item.ts ? formatRelativeDate(item.ts) : ''}>

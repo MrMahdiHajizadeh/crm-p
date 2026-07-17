@@ -181,7 +181,6 @@ def case_pre_save_sla_pause(sender, instance, **kwargs):
 def case_post_save_emit_activity(sender, instance, created, **kwargs):
     if created:
         _create_activity(instance, "CREATE")
-        _maybe_route(instance)
         return
 
     old = getattr(instance, "_audit_old", None)
@@ -235,17 +234,6 @@ def case_post_save_emit_activity(sender, instance, created, **kwargs):
     if changes:
         _create_activity(instance, "UPDATE", {"changes": changes})
 
-
-def _maybe_route(case):
-    """Run the auto-routing engine. Failures must not break case creation."""
-    if getattr(case, "_routing_skip", False):
-        return
-    try:
-        from cases.routing import evaluate
-
-        evaluate(case)
-    except Exception:
-        logger.exception("Auto-routing failed for case=%s", case.pk)
 
 
 def _maybe_schedule_csat(case, old_status):

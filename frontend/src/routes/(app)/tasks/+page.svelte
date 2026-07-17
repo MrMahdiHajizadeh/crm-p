@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
@@ -143,7 +143,7 @@
   const taskColumns = [
     {
       key: 'subject',
-      label: 'tasks.subject',
+      label: $_('tasks.subject'),
       type: 'text',
       width: 'w-64',
       canHide: false,
@@ -151,19 +151,19 @@
     },
     {
       key: 'relatedTo',
-      label: 'Related To',
+      label: $_('common.related_to'),
       type: 'relation',
       width: 'w-48',
       relationIcon: 'link',
       editable: false,
       getValue: getRelatedEntity
     },
-    { key: 'dueDate', label: 'tasks.due_date', type: 'date', width: 'w-36', editable: false },
-    { key: 'priority', label: 'tasks.priority', type: 'select', options: priorityOptions, width: 'w-28' },
-    { key: 'status', label: 'common.status', type: 'select', options: statusOptions, width: 'w-36' },
+    { key: 'dueDate', label: $_('tasks.due_date'), type: 'date', width: 'w-36', editable: false },
+    { key: 'priority', label: $_('tasks.priority'), type: 'select', options: priorityOptions, width: 'w-28' },
+    { key: 'status', label: $_('common.status'), type: 'select', options: statusOptions, width: 'w-36' },
     {
       key: 'assignedTo',
-      label: 'common.assigned_to',
+      label: $_('common.assigned_to'),
       type: 'relation',
       width: 'w-36',
       relationIcon: 'user',
@@ -178,7 +178,7 @@
     // Hidden by default
     {
       key: 'account',
-      label: 'Account',
+      label: $_('common.account'),
       type: 'relation',
       width: 'w-40',
       relationIcon: 'building',
@@ -188,7 +188,7 @@
     },
     {
       key: 'contacts',
-      label: 'Contacts',
+      label: $_('common.contacts'),
       type: 'relation',
       width: 'w-36',
       relationIcon: 'contact',
@@ -203,7 +203,7 @@
     },
     {
       key: 'teams',
-      label: 'Teams',
+      label: $_('common.teams'),
       type: 'relation',
       width: 'w-36',
       relationIcon: 'users',
@@ -218,7 +218,7 @@
     },
     {
       key: 'tags',
-      label: 'Tags',
+      label: $_('common.tags'),
       type: 'relation',
       width: 'w-32',
       relationIcon: 'tag',
@@ -559,7 +559,7 @@
   function formatDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('fa-IR-u-ca-persian', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   /**
@@ -731,19 +731,12 @@
   let currentDate = $state(new Date(today));
   let selectedDate = $state(today.toISOString().slice(0, 10));
 
+  // Persian month names indexed by Gregorian month (0=Jan, 11=Dec)
+  // Mapping: Jan→دی, Feb→بهمن, Mar→اسفند, Apr→فروردین, May→اردیبهشت, Jun→خرداد,
+  //          Jul→تیر, Aug→مرداد, Sep→شهریور, Oct→مهر, Nov→آبان, Dec→آذر
   const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
+    'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد',
+    'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر'
   ];
 
   // Calendar computed values
@@ -890,10 +883,10 @@
   // Parent entity fields (account, opportunity, case, lead) are only shown in edit mode
   // Exception: when creating from account quick action, show account as readonly and hide other parent fields
   const drawerColumns = $derived([
-    { key: 'subject', label: 'tasks.subject', type: 'text', icon: FileText },
-    { key: 'status', label: 'common.status', type: 'select', icon: Circle, options: statusOptions },
-    { key: 'priority', label: 'tasks.priority', type: 'select', icon: Flag, options: priorityOptions },
-    { key: 'dueDate', label: 'tasks.due_date', type: 'date', icon: Calendar },
+    { key: 'subject', label: $_('tasks.subject'), type: 'text', icon: FileText },
+    { key: 'status', label: $_('common.status'), type: 'select', icon: Circle, options: statusOptions },
+    { key: 'priority', label: $_('tasks.priority'), type: 'select', icon: Flag, options: priorityOptions },
+    { key: 'dueDate', label: $_('tasks.due_date'), type: 'date', icon: Calendar },
     // Parent entity field handling:
     // - In edit mode: show readonly for the existing parent entity
     // - In create mode with accountFromUrl: show account as readonly only
@@ -903,7 +896,7 @@
           const task = localTasks.find((t) => t.id === selectedTaskId);
           if (!task) return [];
           if (task.account)
-            return [{ key: 'accountName', label: 'common.account', type: 'readonly', icon: Building2 }];
+            return [{ key: 'accountName', label: $_('common.account'), type: 'readonly', icon: Building2 }];
           if (task.lead)
             return [{ key: 'leadName', label: 'Lead', type: 'readonly', icon: UserPlus }];
           if (task.opportunity)
@@ -918,7 +911,7 @@
         ? [
             {
               key: 'accountDisplay',
-              label: 'common.account',
+              label: $_('common.account'),
               type: 'readonly',
               icon: Building2,
               getValue: () => accountNameFromUrl || 'Loading...'
@@ -927,21 +920,28 @@
         : []),
     {
       key: 'assignedTo',
-      label: 'common.assigned_to',
+      label: $_('common.assigned_to'),
       type: 'multiselect',
       icon: User,
       options: userOptions
     },
     {
       key: 'contacts',
-      label: 'common.contact',
+      label: $_('common.contact'),
       type: 'multiselect',
       icon: Contact,
       options: contactOptions
     },
-    { key: 'teams', label: 'Teams', type: 'multiselect', icon: Users, options: teamOptions },
-    { key: 'tags', label: 'common.tags', type: 'multiselect', icon: Tag, options: tagOptions },
-    { key: 'description', label: 'common.description', type: 'textarea' }
+    { key: 'teams', label: $_('common.teams'), type: 'multiselect', icon: Users, options: teamOptions },
+    { key: 'tags', label: $_('common.tags'), type: 'multiselect', icon: Tag, options: tagOptions },
+    { key: 'description', label: $_('common.description'), type: 'textarea' },
+    {
+      key: 'createdBy',
+      label: $_('common.created_by'),
+      type: 'readonly',
+      icon: User,
+      getValue: (data) => data.createdBy?.name || data.createdBy?.email || '-'
+    }
   ]);
 
   // Drawer form data state
@@ -1238,7 +1238,7 @@
 
         <Button onclick={() => addNewTask()}>
           <Plus class="mr-2 h-4 w-4" />
-          New Task
+          {$_('tasks.create')}
         </Button>
       </div>
     {/snippet}
@@ -1295,9 +1295,9 @@
             >
               <CheckSquare class="size-8 text-[var(--text-tertiary)]" />
             </div>
-            <h3 class="text-lg font-medium text-[var(--text-primary)]">No tasks found</h3>
+            <h3 class="text-lg font-medium text-[var(--text-primary)]">{$_('tasks.no_tasks_found')}</h3>
             <p class="mt-1 text-sm text-[var(--text-secondary)]">
-              Try adjusting your filters or create a new task
+              {$_('tasks.no_tasks_found')}
             </p>
           </div>
         {/snippet}
@@ -1346,12 +1346,12 @@
                 onclick={goToToday}
                 class="text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/20"
               >
-                Today
+                امروز
               </Button>
             </div>
             <!-- Days of Week -->
             <div class="bg-muted/50 grid grid-cols-7 border-b">
-              {#each ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as day}
+              {#each ['ی', 'د', 'س', 'چ', 'پ', 'ج', 'ش'] as day}
                 <div
                   class="text-muted-foreground border-r p-3 text-center text-sm font-medium last:border-r-0"
                 >
@@ -1418,7 +1418,7 @@
                 <h3
                   class="truncate text-[16px] font-medium leading-[1.3] text-[color:var(--text-primary)]"
                 >
-                  Tasks for {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+                  Tasks for {new Date(selectedDate + 'T00:00:00').toLocaleDateString('fa-IR-u-ca-persian', {
                     weekday: 'long',
                     month: 'long',
                     day: 'numeric'
@@ -1525,8 +1525,8 @@
   data={drawerFormData}
   columns={drawerColumns}
   titleKey="subject"
-  titlePlaceholder="Task title"
-  headerLabel={isCreateMode ? 'New Task' : 'Task'}
+  titlePlaceholder={$_('tasks.title')}
+  headerLabel={isCreateMode ? $_('tasks.create') : $_('tasks.title')}
   mode={isCreateMode ? 'create' : 'view'}
   onFieldChange={handleDrawerFieldChange}
   onDelete={deleteSelectedTask}

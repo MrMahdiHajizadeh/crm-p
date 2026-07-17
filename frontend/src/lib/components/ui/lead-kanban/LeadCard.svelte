@@ -36,7 +36,7 @@
   const title = $derived(item.title || item.full_name || item.fullName || 'Untitled Lead');
   const company = $derived(item.company_name || item.company || '');
   const amount = $derived(item.opportunity_amount || item.opportunityAmount);
-  const currency = $derived(item.currency || 'AED');
+  const currency = $derived(item.currency || 'TOM');
   const isOverdue = $derived(item.is_follow_up_overdue || item.isFollowUpOverdue);
   const rating = $derived(item.rating);
   const assignees = $derived(item.assigned_to || item.assignedTo || []);

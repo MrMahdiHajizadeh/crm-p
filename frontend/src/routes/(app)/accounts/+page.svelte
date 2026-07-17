@@ -26,7 +26,8 @@
     UserPlus,
     Contact,
     Banknote,
-    CheckSquare
+    CheckSquare,
+    User
   } from '@lucide/svelte';
   import { PageHeader, FilterStrip, ViewTabs, FilterPill } from '$lib/components/layout';
   import { CrmDrawer } from '$lib/components/ui/crm-drawer';
@@ -190,7 +191,7 @@
       label: 'accounts.revenue',
       type: 'number',
       width: 'w-32',
-      format: (value, row) => formatCurrency(value, row?.currency || 'USD', true)
+      format: (value, row) => formatCurrency(value, row?.currency || 'TOM', true)
     },
     { key: 'phone', label: $_('common.phone'), type: 'text', width: 'w-36', emptyText: '' },
     {
@@ -297,6 +298,13 @@
       options: tagOptions,
       placeholder: 'Add tags',
       emptyText: 'No tags'
+    },
+    {
+      key: 'createdBy',
+      label: $_('common.created_by'),
+      type: 'readonly',
+      icon: User,
+      getValue: (data) => data.createdBy?.name || data.createdBy?.email || '-'
     }
   ]);
 

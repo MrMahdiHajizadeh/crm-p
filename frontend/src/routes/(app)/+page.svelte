@@ -18,7 +18,7 @@
   let { data } = $props();
 
   const today = $derived(new Date().toLocaleDateString(
-    $locale === 'fa' ? 'fa-IR' : 'en-US',
+    $locale === 'fa' ? 'fa-IR-u-ca-persian' : 'en-US',
     { weekday: 'long', month: 'long', day: 'numeric' }
   ));
 
@@ -30,7 +30,7 @@
   const hotLeads = $derived(data.hotLeads || []);
   const goalSummary = $derived(data.goalSummary || []);
 
-  const orgCurrency = $derived($orgSettings.default_currency || 'USD');
+  const orgCurrency = $derived($orgSettings.default_currency || 'TOM');
   const otherCurrencyCount = $derived(revenueMetrics.other_currency_count || 0);
   const currencyNote = $derived(
     otherCurrencyCount > 0

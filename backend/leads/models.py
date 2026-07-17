@@ -14,6 +14,22 @@ from common.utils import (
     LEAD_SOURCE,
     LEAD_STATUS,
 )
+
+INTERACTION_TYPE_CHOICES = (
+    ("call", "تماس تلفنی"),
+    ("email", "ایمیل"),
+    ("meeting", "جلسه"),
+    ("note", "یادداشت"),
+)
+
+INTERACTION_RESULT_CHOICES = (
+    ("completed", "انجام شد"),
+    ("no_answer", "پاسخی نداد"),
+    ("follow_up_required", "نیاز به پیگیری مجدد"),
+    ("not_interested", "عدم علاقه"),
+    ("left_voicemail", "پیغام گذاشته شد"),
+    ("scheduled", "زمان‌بندی شد"),
+)
 from common.validators import flexible_phone_validator
 from contacts.models import Contact
 
@@ -327,3 +343,62 @@ class LeadStage(BaseModel):
         if not self.org_id and self.pipeline_id:
             self.org_id = self.pipeline.org_id
         super().save(*args, **kwargs)
+
+
+class InteractionLog(BaseModel):
+    """
+    Log of interactions (calls, emails, meetings, notes) for any CRM entity.
+    Used for timeline display and follow-up tracking.
+    """
+
+    ENTITY_TYPE_CHOICES = (
+        ("Lead", "Lead"),
+        ("Contact", "Contact"),
+        ("Account", "Account"),
+        ("Opportunity", "Opportunity"),
+    )
+
+    entity_type = models.CharField(
+        max_length=50, choices=ENTITY_TYPE_CHOICES, help_text="Type of entity this interaction belongs to"
+    )
+    entity_id = models.UUIDField(
+        help_text="UUID of the entity this interaction belongs to"
+    )
+    interaction_type = models.CharField(
+        max_length=20, choices=INTERACTION_TYPE_CHOICES, help_text="Type of interaction"
+    )
+    interaction_date = models.DateTimeField(
+        default=timezone.now, help_text="Date and time of the interaction"
+    )
+    duration_minutes = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Duration in minutes"
+    )
+    subject = models.CharField(
+        max_length=255, blank=True, default="", help_text="Short summary/subject"
+    )
+    description = models.TextField(
+        blank=True, default="", help_text="Full notes/conversation details"
+    )
+    result = models.CharField(
+        max_length=30, choices=INTERACTION_RESULT_CHOICES, blank=True, null=True, help_text="Outcome of the interaction"
+    )
+    follow_up_date = models.DateTimeField(
+        null=True, blank=True, help_text="Scheduled next follow-up date/time"
+    )
+    org = models.ForeignKey(
+        Org, on_delete=models.CASCADE, related_name="interaction_logs"
+    )
+
+    class Meta:
+        verbose_name = "Interaction Log"
+        verbose_name_plural = "Interaction Logs"
+        db_table = "interaction_log"
+        ordering = ("-interaction_date",)
+        indexes = [
+            models.Index(fields=["entity_type", "entity_id"]),
+            models.Index(fields=["org", "follow_up_date"]),
+            models.Index(fields=["org", "interaction_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.get_interaction_type_display()} on {self.interaction_date.strftime('%Y-%m-%d')}: {self.subject or '(no subject)'}"

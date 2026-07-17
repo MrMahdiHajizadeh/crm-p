@@ -5,6 +5,7 @@
   import { enhance } from '$app/forms';
   import { tick } from 'svelte';
   import { toast } from 'svelte-sonner';
+  import { _ } from '$lib/i18n';
 
   import { PageHeader } from '$lib/components/layout';
   import { CrmDrawer } from '$lib/components/ui/crm-drawer';
@@ -84,7 +85,7 @@
   const columns = [
     {
       key: 'title',
-      label: 'Title',
+      label: $_('common.title'),
       type: 'text',
       width: 'w-48',
       editable: false,
@@ -117,7 +118,7 @@
     },
     {
       key: 'totalAmount',
-      label: 'Amount',
+      label: $_('invoices.amount'),
       type: 'number',
       width: 'w-28',
       canHide: false,
@@ -133,7 +134,7 @@
     },
     {
       key: 'account',
-      label: 'Account',
+      label: $_('common.account'),
       type: 'relation',
       width: 'w-36',
       relationIcon: 'building',
@@ -145,10 +146,10 @@
   // Drawer field definitions
   const drawerFields = [
     // Core Info Section
-    { key: 'title', label: 'Title', type: 'text', section: 'core', required: true },
+    { key: 'title', label: $_('common.title'), type: 'text', section: 'core', required: true },
     {
       key: 'isActive',
-      label: 'Active',
+      label: $_('common.active'),
       type: 'boolean',
       section: 'core'
     },
@@ -204,8 +205,8 @@
       section: 'stats'
     },
     // Notes Section
-    { key: 'notes', label: 'Notes', type: 'textarea', section: 'notes' },
-    { key: 'terms', label: 'Terms & Conditions', type: 'textarea', section: 'notes' }
+    { key: 'notes', label: $_('common.notes'), type: 'textarea', section: 'notes' },
+    { key: 'terms', label: $_('invoices.terms'), type: 'textarea', section: 'notes' }
   ];
 
   // Default visible columns
@@ -976,7 +977,7 @@
           <div class="bg-muted/20 flex items-center justify-between px-4 py-3 text-sm">
             <span class="text-muted-foreground">Subtotal</span>
             <span class="font-medium">
-              {formatCurrency(lineItemsSubtotal, drawerFormData.currency || 'USD')}
+              {formatCurrency(lineItemsSubtotal, drawerFormData.currency || 'TOM')}
             </span>
           </div>
         </div>

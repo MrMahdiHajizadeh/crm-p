@@ -11,7 +11,6 @@ from cases.models import (
     EscalationPolicy,
     InboundMailbox,
     ReopenPolicy,
-    RoutingRule,
     TimeEntry,
 )
 from common.models import Profile, Teams
@@ -529,127 +528,6 @@ class EmailMessageSerializer(serializers.ModelSerializer):
             "drop_reason",
             "created_at",
         )
-        read_only_fields = fields
-
-
-class RoutingRuleSerializer(serializers.ModelSerializer):
-    """Per-org auto-routing rule. See docs/cases/tier1/auto-routing.md."""
-
-    target_assignees = ProfileSerializer(read_only=True, many=True)
-    target_team = TeamsSerializer(read_only=True)
-    target_assignee_ids = serializers.PrimaryKeyRelatedField(
-        source="target_assignees",
-        queryset=Profile.objects.none(),
-        write_only=True,
-        required=False,
-        many=True,
-    )
-    target_team_id = serializers.PrimaryKeyRelatedField(
-        source="target_team",
-        queryset=Teams.objects.none(),
-        write_only=True,
-        required=False,
-        allow_null=True,
-    )
-
-    class Meta:
-        model = RoutingRule
-        fields = (
-            "id",
-            "name",
-            "priority_order",
-            "is_active",
-            "conditions",
-            "strategy",
-            "stop_processing",
-            "target_assignees",
-            "target_team",
-            "target_assignee_ids",
-            "target_team_id",
-            "created_at",
-            "updated_at",
-        )
-        read_only_fields = ("id", "created_at", "updated_at")
-
-    SUPPORTED_OPS = ("eq", "in", "contains", "regex")
-    SUPPORTED_FIELDS = (
-        "priority",
-        "case_type",
-        "account",
-        "tags",
-        "from_email_domain",
-        "mailbox_id",
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        request = self.context.get("request") if hasattr(self, "context") else None
-        org = (
-            getattr(getattr(request, "profile", None), "org", None)
-            if request
-            else None
-        )
-        if org is None:
-            org = self.context.get("org") if hasattr(self, "context") else None
-        if org is not None:
-            self.fields["target_assignee_ids"].child_relation.queryset = (
-                Profile.objects.filter(org=org)
-            )
-            self.fields["target_team_id"].queryset = Teams.objects.filter(org=org)
-
-    def validate_conditions(self, value):
-        if value in (None, ""):
-            return []
-        if not isinstance(value, list):
-            raise serializers.ValidationError("conditions must be a list of objects.")
-        for i, cond in enumerate(value):
-            if not isinstance(cond, dict):
-                raise serializers.ValidationError(
-                    f"conditions[{i}] must be an object."
-                )
-            field = cond.get("field")
-            op = cond.get("op", "eq")
-            if not isinstance(field, str) or not field:
-                raise serializers.ValidationError(
-                    f"conditions[{i}].field is required."
-                )
-            if not (
-                field in self.SUPPORTED_FIELDS or field.startswith("custom_fields.")
-            ):
-                raise serializers.ValidationError(
-                    f"conditions[{i}].field {field!r} is not supported."
-                )
-            if op not in self.SUPPORTED_OPS:
-                raise serializers.ValidationError(
-                    f"conditions[{i}].op {op!r} is not supported."
-                )
-            if "value" not in cond:
-                raise serializers.ValidationError(
-                    f"conditions[{i}].value is required."
-                )
-        return value
-
-    def validate(self, attrs):
-        strategy = attrs.get("strategy", getattr(self.instance, "strategy", "direct"))
-        if strategy == "by_team":
-            target_team = attrs.get(
-                "target_team", getattr(self.instance, "target_team", None)
-            )
-            if target_team is None:
-                raise serializers.ValidationError(
-                    {"target_team_id": "by_team strategy requires target_team_id."}
-                )
-        if strategy in ("round_robin", "least_busy", "direct"):
-            assignees = attrs.get("target_assignees")
-            if assignees is None and self.instance is None:
-                raise serializers.ValidationError(
-                    {
-                        "target_assignee_ids": (
-                            f"{strategy} strategy requires at least one target assignee."
-                        )
-                    }
-                )
-        return attrs
 
 
 class TimeEntrySerializer(serializers.ModelSerializer):

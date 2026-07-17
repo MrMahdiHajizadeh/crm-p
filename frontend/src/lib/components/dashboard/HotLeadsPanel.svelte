@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Flame, Phone, Mail, ChevronRight, Calendar, Sparkles } from '@lucide/svelte';
@@ -66,7 +66,7 @@
       const days = Math.floor((today.getTime() - dateOnly.getTime()) / (1000 * 60 * 60 * 24));
       return `${days}d overdue`;
     }
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('fa-IR-u-ca-persian', { month: 'short', day: 'numeric' });
   }
 
   /**

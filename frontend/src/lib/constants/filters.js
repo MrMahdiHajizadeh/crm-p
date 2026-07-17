@@ -106,34 +106,12 @@ export const OPPORTUNITY_SOURCES = [
 /** @type {{ value: string, label: string }[]} */
 export const CURRENCY_CODES = [
   { value: '', label: 'Select Currency' },
-  { value: 'USD', label: 'USD - Dollar' },
-  { value: 'EUR', label: 'EUR - Euro' },
-  { value: 'GBP', label: 'GBP - Pound' },
-  { value: 'INR', label: 'INR - Rupee' },
-  { value: 'CAD', label: 'CAD - Dollar' },
-  { value: 'AUD', label: 'AUD - Dollar' },
-  { value: 'JPY', label: 'JPY - Yen' },
-  { value: 'CNY', label: 'CNY - Yuan' },
-  { value: 'CHF', label: 'CHF - Franc' },
-  { value: 'SGD', label: 'SGD - Dollar' },
-  { value: 'AED', label: 'AED - Dirham' },
-  { value: 'BRL', label: 'BRL - Real' },
-  { value: 'MXN', label: 'MXN - Peso' }
+  { value: 'TOM', label: 'تومان - Toman' },
+  { value: 'USD', label: 'USD - Dollar' }
 ];
 
 /** @type {Record<string, string>} */
 export const CURRENCY_SYMBOLS = {
-  USD: '$',
-  EUR: '€',
-  GBP: '£',
-  INR: '₹',
-  CAD: 'CA$',
-  AUD: 'A$',
-  JPY: '¥',
-  CNY: '¥',
-  CHF: 'CHF',
-  SGD: 'S$',
-  AED: 'د.إ',
-  BRL: 'R$',
-  MXN: 'MX$'
+  TOM: 'تومان',
+  USD: '$'
 };

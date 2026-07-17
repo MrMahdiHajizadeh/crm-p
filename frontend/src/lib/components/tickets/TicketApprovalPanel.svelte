@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { onMount, untrack } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -343,7 +343,7 @@
                 </span>
                 <span class="text-[var(--text-secondary)]">
                   {a.rule_summary?.name || 'Rule'} ·
-                  {new Date(a.created_at).toLocaleDateString()}
+                  {new Date(a.created_at).toLocaleDateString('fa-IR-u-ca-persian')}
                 </span>
               </li>
             {/each}

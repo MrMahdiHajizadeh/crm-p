@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
@@ -204,6 +204,9 @@
   // Tags with color for filter dropdown
   const allTags = $derived(formOptions.tags || []);
 
+  // User role info for conditional UI
+  const isAdmin = $derived(data.isAdmin === true);
+
   /**
    * Get account name from server-provided accounts list
    * @param {string} id
@@ -271,6 +274,7 @@
 
   // Drawer columns configuration (with icons and multiselect).
   // The drawer is create-only; account is editable except when pre-filled from URL.
+  // For non-admin users, the assignedTo field is hidden — tickets auto-assign to admins.
   const drawerColumns = $derived([
     { key: 'subject', label: 'tickets.subject', type: 'text' },
     !accountFromUrl
@@ -327,14 +331,18 @@
       placeholder: 'Describe the ticket...',
       emptyText: 'No description'
     },
-    {
-      key: 'assignedTo',
-      label: 'common.assigned_to',
-      type: 'multiselect',
-      icon: User,
-      options: users.map((/** @type {any} */ u) => ({ id: u.id, name: u.name })),
-      emptyText: 'Unassigned'
-    },
+    ...(isAdmin
+      ? [
+          {
+            key: 'assignedTo',
+            label: 'common.assigned_to',
+            type: 'multiselect',
+            icon: User,
+            options: users.map((/** @type {any} */ u) => ({ id: u.id, name: u.name })),
+            emptyText: 'Unassigned'
+          }
+        ]
+      : []),
     {
       key: 'teams',
       label: 'common.teams',
@@ -841,7 +849,7 @@
             <span
               class="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 align-middle text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
               title={row.lastEscalationFiredAt
-                ? `Escalated ${row.escalationCount}× — last ${new Date(row.lastEscalationFiredAt).toLocaleString()}`
+                ? `Escalated ${row.escalationCount}× — last ${new Date(row.lastEscalationFiredAt).toLocaleString('fa-IR-u-ca-persian')}`
                 : `Escalated ${row.escalationCount}×`}
             >
               <AlertTriangle class="h-3 w-3" />
@@ -955,6 +963,11 @@
   mode="create"
 >
   {#snippet footerActions()}
+    {#if !isAdmin}
+      <p class="px-4 text-sm text-[var(--text-secondary)]">
+        This ticket will be automatically sent to all admins.
+      </p>
+    {/if}
     <Button variant="outline" onclick={() => drawer.closeAll()} disabled={isSubmitting}>
       Cancel
     </Button>

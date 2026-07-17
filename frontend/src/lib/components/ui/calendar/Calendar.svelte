@@ -2,7 +2,10 @@
   import { Calendar } from 'bits-ui';
   import { ChevronLeft, ChevronRight } from '@lucide/svelte';
   import { cn } from '$lib/utils.js';
-  import { today, getLocalTimeZone } from '@internationalized/date';
+  import { today, getLocalTimeZone, PersianCalendar, toCalendar, GregorianCalendar } from '@internationalized/date';
+
+  /** @type {import('@internationalized/date').PersianCalendar} */
+  const persianCal = new PersianCalendar();
 
   /**
    * @type {{
@@ -13,49 +16,68 @@
    */
   let { value = $bindable(), onValueChange, class: className } = $props();
 
-  // Placeholder controls which month/year is displayed
-  let placeholder = $state(value || today(getLocalTimeZone()));
+  // Convert Gregorian value to Persian for display
+  function toPersian(dv) {
+    if (!dv) return undefined;
+    try { return toCalendar(dv, persianCal); } catch { return dv; }
+  }
 
-  // Sync placeholder when value changes
+  // Convert Persian value back to Gregorian for the parent
+  function toGregorian(dv) {
+    if (!dv) return undefined;
+    try { return toCalendar(dv, new GregorianCalendar()); } catch { return dv; }
+  }
+
+  // Placeholder in Persian calendar (defaults to today)
+  let placeholder = $state(toPersian(value) || toPersian(today(getLocalTimeZone())));
+
+  // Sync placeholder when value changes (convert Gregorian → Persian)
   $effect(() => {
     if (value) {
-      placeholder = value;
+      const p = toPersian(value);
+      if (p) placeholder = p;
     }
   });
 
-  // Generate year options (100 years back, 10 years forward)
-  const currentYear = today(getLocalTimeZone()).year;
-  const years = Array.from({ length: 111 }, (_, i) => currentYear - 100 + i);
+  // Generate year options using Persian year
+  const currentPersianYear = toPersian(today(getLocalTimeZone()))?.year || 1405;
+  const years = Array.from({ length: 111 }, (_, i) => currentPersianYear - 100 + i);
 
+  // Persian month names indexed by Persian month (1=Farvardin, 12=Esfand)
   const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December'
+    'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+    'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
   ];
+
+  // Persian weekday names (starting from Sunday to match bits-ui Grid)
+  const weekdaysPersian = ['ی', 'د', 'س', 'چ', 'پ', 'ج', 'ش'];
 </script>
 
 <Calendar.Root
   type="single"
+  locale="fa"
   weekdayFormat="short"
   fixedWeeks={true}
-  bind:value
+  value={value ? toPersian(value) : undefined}
   bind:placeholder
-  {onValueChange}
+  calendar={persianCal}
+  onValueChange={(dv) => {
+    // Convert Persian CalendarDate back to Gregorian before passing to parent
+    if (dv) {
+      const greg = toGregorian(dv);
+      value = greg; // update the bound value (Gregorian)
+      onValueChange?.(greg);
+    } else {
+      value = dv;
+      onValueChange?.(dv);
+    }
+  }}
   class={cn('p-3', className)}
 >
-  {#snippet children({ months: calendarMonths, weekdays })}
+  {#snippet children({ months: calendarMonths })}
     <Calendar.Header class="relative flex w-full items-center justify-between gap-1 pb-2">
       <Calendar.PrevButton
-        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-transparent p-0 opacity-50 transition-opacity hover:opacity-100 dark:border-gray-700"
+        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border-default)] bg-transparent p-0 opacity-50 transition-opacity hover:opacity-100"
       >
         <ChevronLeft class="h-4 w-4" />
       </Calendar.PrevButton>
@@ -63,7 +85,7 @@
       <div class="flex items-center gap-1">
         <!-- Month Select -->
         <select
-          class="h-7 rounded-md border border-gray-200 bg-transparent px-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700"
+          class="h-7 rounded-md border border-[var(--border-default)] bg-[var(--surface-default)] px-2 text-sm font-medium text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--color-primary-default)] focus:outline-none"
           value={placeholder?.month}
           onchange={(e) => {
             const target = /** @type {HTMLSelectElement} */ (e.target);
@@ -79,7 +101,7 @@
 
         <!-- Year Select -->
         <select
-          class="h-7 rounded-md border border-gray-200 bg-transparent px-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700"
+          class="h-7 rounded-md border border-[var(--border-default)] bg-[var(--surface-default)] px-2 text-sm font-medium text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--color-primary-default)] focus:outline-none"
           value={placeholder?.year}
           onchange={(e) => {
             const target = /** @type {HTMLSelectElement} */ (e.target);
@@ -95,7 +117,7 @@
       </div>
 
       <Calendar.NextButton
-        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 bg-transparent p-0 opacity-50 transition-opacity hover:opacity-100 dark:border-gray-700"
+        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border-default)] bg-transparent p-0 opacity-50 transition-opacity hover:opacity-100"
       >
         <ChevronRight class="h-4 w-4" />
       </Calendar.NextButton>
@@ -105,11 +127,11 @@
       <Calendar.Grid class="w-full border-collapse space-y-1">
         <Calendar.GridHead>
           <Calendar.GridRow class="flex">
-            {#each weekdays as day}
+            {#each weekdaysPersian as day}
               <Calendar.HeadCell
-                class="w-8 rounded-md text-[0.8rem] font-normal text-gray-500 dark:text-gray-400"
+                class="w-8 rounded-md text-[0.8rem] font-normal text-[var(--text-secondary)]"
               >
-                {day.slice(0, 2)}
+                {day}
               </Calendar.HeadCell>
             {/each}
           </Calendar.GridRow>
@@ -120,7 +142,7 @@
               {#each week as date}
                 <Calendar.Cell {date} month={month.value} class="relative p-0 text-center text-sm">
                   <Calendar.Day
-                    class="inline-flex h-8 w-8 items-center justify-center rounded-md p-0 text-sm font-normal transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[disabled]:text-gray-400 data-[outside-month]:text-gray-400 data-[outside-month]:opacity-50 data-[selected]:bg-blue-600 data-[selected]:text-white data-[today]:bg-gray-100 data-[today]:font-semibold dark:hover:bg-gray-800 dark:data-[selected]:bg-blue-600 dark:data-[today]:bg-gray-800"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-md p-0 text-sm font-normal text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-raised)] focus-visible:ring-2 focus-visible:ring-[var(--color-primary-default)] focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[disabled]:text-[var(--text-tertiary)] data-[outside-month]:text-[var(--text-tertiary)] data-[outside-month]:opacity-50 data-[selected]:bg-[var(--color-primary-default)] data-[selected]:text-white data-[today]:bg-[var(--surface-raised)] data-[today]:font-semibold"
                   >
                     {date.day}
                   </Calendar.Day>

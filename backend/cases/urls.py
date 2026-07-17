@@ -13,7 +13,6 @@ from cases import (
     merge_views,
     parent_views,
     unmerge_views,
-    routing_views,
     solution_views,
     time_views,
     views,
@@ -89,22 +88,6 @@ urlpatterns = [
         "escalation-policies/<str:pk>/",
         escalation_views.EscalationPolicyDetailView.as_view(),
         name="escalation_policy_detail",
-    ),
-    # Routing rules (admin CRUD + dry-run test endpoint, must be before <str:pk>/ patterns)
-    path(
-        "routing-rules/",
-        routing_views.RoutingRuleListCreateView.as_view(),
-        name="routing_rule_list_create",
-    ),
-    path(
-        "routing-rules/<str:pk>/",
-        routing_views.RoutingRuleDetailView.as_view(),
-        name="routing_rule_detail",
-    ),
-    path(
-        "routing-rules/<str:pk>/test/",
-        routing_views.RoutingRuleTestView.as_view(),
-        name="routing_rule_test",
     ),
     # Inbound email — public webhook (SNS-signed) + admin mailbox CRUD.
     path(

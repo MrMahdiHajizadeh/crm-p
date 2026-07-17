@@ -264,8 +264,9 @@ class ApiHomeView(APIView):
 
 class ActivityListView(APIView):
     """
-    Get recent activities for the organization
-    Returns the last 10 activities by default
+    Get recent activities for the organization with advanced filtering.
+    Returns the last 10 activities by default.
+    Supports pagination, filtering by user, action, entity_type, and date range.
     """
 
     permission_classes = (IsAuthenticated,)
@@ -278,13 +279,43 @@ class ActivityListView(APIView):
                 name="limit",
                 type=int,
                 location=OpenApiParameter.QUERY,
-                description="Number of activities to return (default: 10, max: 50)",
+                description="Number of activities to return (default: 10, max: 100)",
+            ),
+            OpenApiParameter(
+                name="offset",
+                type=int,
+                location=OpenApiParameter.QUERY,
+                description="Offset for pagination",
             ),
             OpenApiParameter(
                 name="entity_type",
                 type=str,
                 location=OpenApiParameter.QUERY,
                 description="Filter by entity type (Account, Lead, Contact, etc.)",
+            ),
+            OpenApiParameter(
+                name="action",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Filter by action (CREATE, UPDATE, DELETE, etc.)",
+            ),
+            OpenApiParameter(
+                name="user_id",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Filter by user/profile UUID",
+            ),
+            OpenApiParameter(
+                name="date_from",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="Start date (YYYY-MM-DD)",
+            ),
+            OpenApiParameter(
+                name="date_to",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description="End date (YYYY-MM-DD)",
             ),
         ],
         responses={200: serializer.ActivitySerializer(many=True)},
@@ -296,19 +327,52 @@ class ActivityListView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Only admin/superuser can see all activities
+        is_admin = request.profile.role == "ADMIN" or request.user.is_superuser
+
         # Get query params
-        limit = min(int(request.query_params.get("limit", 10)), 50)
+        limit = min(int(request.query_params.get("limit", 20)), 100)
+        offset = int(request.query_params.get("offset", 0))
         entity_type = request.query_params.get("entity_type", None)
+        action = request.query_params.get("action", None)
+        user_id = request.query_params.get("user_id", None)
+        date_from = request.query_params.get("date_from", None)
+        date_to = request.query_params.get("date_to", None)
 
         # Query activities for this organization
         queryset = Activity.objects.filter(org=request.profile.org)
+
+        # Non-admin users can only see their own activities
+        if not is_admin:
+            queryset = queryset.filter(user=request.profile)
 
         # Filter by entity type if specified
         if entity_type:
             queryset = queryset.filter(entity_type=entity_type)
 
-        # Get most recent activities
-        activities = queryset.select_related("user", "user__user")[:limit]
+        # Filter by action if specified
+        if action:
+            actions = [a.strip() for a in action.split(",")]
+            queryset = queryset.filter(action__in=actions)
+
+        # Filter by user if specified (admin only)
+        if user_id and is_admin:
+            queryset = queryset.filter(user__id=user_id)
+
+        # Filter by date range
+        if date_from:
+            queryset = queryset.filter(created_at__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(created_at__lte=date_to)
+
+        # Get total count before pagination
+        total_count = queryset.count()
+
+        # Get most recent activities with pagination
+        activities = (
+            queryset.select_related("user", "user__user")
+            .order_by("-created_at")[offset:offset + limit]
+        )
 
         # Serialize
         activities_data = serializer.ActivitySerializer(activities, many=True).data
@@ -316,7 +380,10 @@ class ActivityListView(APIView):
         return Response(
             {
                 "error": False,
+                "total_count": total_count,
                 "count": len(activities_data),
+                "offset": offset,
+                "limit": limit,
                 "activities": activities_data,
             },
             status=status.HTTP_200_OK,

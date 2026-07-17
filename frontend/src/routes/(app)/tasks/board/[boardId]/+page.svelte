@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import PageHeader from '$lib/components/layout/PageHeader.svelte';
@@ -94,7 +94,7 @@
 
   function formatDate(date) {
     if (!date) return '';
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('fa-IR-u-ca-persian', {
       month: 'short',
       day: 'numeric'
     });

@@ -32,8 +32,9 @@ from common.serializer import (
 from common.utils import COUNTRIES, INDCHOICES, LEAD_SOURCE, LEAD_STATUS
 from contacts.models import Contact
 from leads import swagger_params
-from leads.models import Lead
+from leads.models import InteractionLog, Lead
 from leads.serializer import (
+    InteractionLogSerializer,
     LeadCreateSerializer,
     LeadCreateSwaggerSerializer,
     LeadDetailEditSwaggerSerializer,
@@ -457,11 +458,19 @@ class LeadDetailView(APIView):
         all_user_ids = [user.id for user in users]
         users_excluding_team_id = set(all_user_ids) - set(team_ids)
         users_excluding_team = Profile.objects.filter(id__in=users_excluding_team_id)
+        # Get interactions for this lead
+        interactions = InteractionLog.objects.filter(
+            org=self.request.profile.org,
+            entity_type="Lead",
+            entity_id=self.lead_obj.id,
+        ).order_by("-interaction_date")
+
         context.update(
             {
                 "lead_obj": LeadSerializer(self.lead_obj).data,
                 "attachments": AttachmentsSerializer(attachments, many=True).data,
                 "comments": LeadCommentSerializer(comments, many=True).data,
+                "interactions": InteractionLogSerializer(interactions, many=True).data,
                 "users_mention": users_mention,
                 "assigned_data": assigned_data,
             }

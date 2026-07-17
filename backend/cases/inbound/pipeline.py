@@ -159,13 +159,6 @@ def ingest(parsed: ParsedEmail, mailbox: InboundMailbox) -> IngestResult:
             org=mailbox.org,
             external_thread_id=parsed.message_id,
         )
-        # Attach inbound-only fields the routing engine reads (post_save signal
-        # picks these up via getattr).
-        case._routing_mailbox_id = mailbox.id
-        from_domain = ""
-        if parsed.from_address and "@" in parsed.from_address:
-            from_domain = parsed.from_address.rsplit("@", 1)[-1].lower()
-        case._routing_from_domain = from_domain
         case.save()
         if mailbox.default_assignee_id:
             case.assigned_to.add(mailbox.default_assignee)

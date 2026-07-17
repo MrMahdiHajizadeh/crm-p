@@ -190,9 +190,9 @@ export const handle = sequence(Sentry.sentryHandle(), async function _handle({ e
         event.locals.org_name = jwtPayload.org_name || 'Organization';
         // Extract org settings for currency/locale
         event.locals.org_settings = jwtPayload.org_settings || {
-          default_currency: 'USD',
-          currency_symbol: '$',
-          default_country: null,
+          default_currency: 'TOM',
+          currency_symbol: 'تومان',
+          default_country: 'IR',
           opportunities_enabled: false,
           invoices_enabled: false
         };
@@ -227,9 +227,9 @@ export const handle = sequence(Sentry.sentryHandle(), async function _handle({ e
           // Decode new token to get org_settings
           const newPayload = decodeJwtPayload(switchResult.access_token);
           event.locals.org_settings = newPayload?.org_settings || {
-            default_currency: 'USD',
-            currency_symbol: '$',
-            default_country: null,
+            default_currency: 'TOM',
+            currency_symbol: 'تومان',
+            default_country: 'IR',
             opportunities_enabled: false,
             invoices_enabled: false
           };

@@ -176,6 +176,11 @@ export async function load({ locals, cookies, url }) {
       isActive: opp.is_active,
       createdOnArrow: opp.created_on_arrow,
 
+      // Creator info
+      createdBy: opp.created_by
+        ? { id: opp.created_by.id, name: opp.created_by.name || opp.created_by.email || 'Unknown', email: opp.created_by.email }
+        : null,
+
       // Account
       account: opp.account
         ? {

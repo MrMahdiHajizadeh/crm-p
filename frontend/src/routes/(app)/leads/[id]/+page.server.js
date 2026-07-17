@@ -31,6 +31,7 @@ export async function load({ params, locals, cookies }) {
       lead,
       comments: response.comments || [],
       attachments: response.attachments || [],
+      interactions: response.interactions || [],
       tags: response.tags || lead?.tags || [],
       users: response.users || [],
       commentPermission: response.comment_permission || false,

@@ -304,7 +304,9 @@ export async function load({ url, locals, cookies }) {
         contacts,
         teams,
         tags
-      }
+      },
+      // User role for conditional UI (non-admin users see simplified form)
+      isAdmin: locals.profile?.role === 'ADMIN' || locals.profile?.is_organization_admin === true
     };
   } catch (err) {
     console.error('Error loading tickets from API:', err);

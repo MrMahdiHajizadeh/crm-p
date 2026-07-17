@@ -97,7 +97,6 @@
     "tags": "Tags",
     "reopen_policy": "Reopen Policy",
     "custom_fields": "Custom Fields",
-    "auto_routing": "Auto-Routing",
     "escalation": "Escalation",
     "approval_rules": "Approval Rules",
     "inbound_email": "Inbound Email",
@@ -109,7 +108,10 @@
     "dark": "Dark",
     "system": "System",
     "sign_out": "Sign out",
-    "user_avatar": "User avatar"
+    "user_avatar": "User avatar",
+    "management": "Management",
+    "follow_ups": "Follow-ups",
+    "supervision": "Supervision"
   },
   "focusbar": {
     "focus_title": "Today's Focus",
@@ -441,7 +443,6 @@
     "tags": "Tags",
     "reopen_policy": "Reopen Policy",
     "custom_fields": "Custom Fields",
-    "auto_routing": "Auto-Routing",
     "escalation": "Escalation",
     "approval_rules": "Approval Rules",
     "inbound_email": "Inbound Email",
@@ -565,7 +566,6 @@
     "no_personal_macros": "No Personal Macros",
     "no_policies": "No Policies",
     "no_profiles": "No Profiles",
-    "no_routing_rules": "No Routing Rules",
     "no_rule_matched": "No Rule Matched",
     "no_tags_found": "No Tags Found",
     "no_tags_match": "No Tags Match",
@@ -585,8 +585,6 @@
     "reopen_window": "Reopen Window",
     "resolution_action": "Resolution Action",
     "resolution_breach": "Resolution Breach",
-    "routing": "Routing",
-    "routing_subtitle": "Routing Subtitle",
     "rules_run_order": "Rules Run Order",
     "salesforce_connected_status": "Salesforce Connected Status",
     "salesforce_connection": "Salesforce Connection",
@@ -705,5 +703,75 @@
     "team_card_delete_desc_after": "? This will remove the team from all assigned records. This action cannot be undone.",
     "team_card_delete_confirm": "Delete",
     "team_card_no_members": "No members assigned"
+  },
+  "interaction": {
+    "types": {
+      "call": "Phone Call",
+      "email": "Email",
+      "meeting": "Meeting",
+      "note": "Note"
+    },
+    "results": {
+      "completed": "Completed",
+      "no_answer": "No Answer",
+      "follow_up_required": "Follow-up Required",
+      "not_interested": "Not Interested",
+      "left_voicemail": "Left Voicemail",
+      "scheduled": "Scheduled"
+    },
+    "form": {
+      "title": "Log New Interaction",
+      "type": "Type",
+      "date": "Date & Time",
+      "duration": "Duration (min)",
+      "subject": "Subject",
+      "subject_placeholder": "Brief summary",
+      "description": "Notes",
+      "description_placeholder": "Enter conversation details...",
+      "result": "Result",
+      "select_result": "Select result",
+      "follow_up": "Next Follow-up",
+      "save": "Save",
+      "saved": "Interaction logged successfully",
+      "error": "Failed to log interaction",
+      "required": "Please enter at least a subject or notes"
+    }
+  },
+  "followups": {
+    "title": "Follow-ups",
+    "subtitle": "{count} items need follow-up",
+    "overdue": "Overdue",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "this_week": "This Week",
+    "later": "Later",
+    "empty_title": "No follow-ups needed",
+    "empty_desc": "When you set a follow-up date on a lead or contact, it will appear here.",
+    "log_interaction": "Log Interaction"
+  },
+  "supervision": {
+    "title": "Supervision",
+    "subtitle": "Recent user activities",
+    "all_types": "All Types",
+    "all_actions": "All Actions",
+    "action_create": "Create",
+    "action_update": "Update",
+    "action_delete": "Delete",
+    "filter_entity": "Type",
+    "filter_action": "Action",
+    "filter_from": "From",
+    "filter_to": "To",
+    "apply_filters": "Apply Filters",
+    "col_user": "User",
+    "col_action": "Action",
+    "col_entity": "Entity",
+    "col_name": "Name",
+    "col_time": "Time",
+    "showing": "Showing {count} of {total}",
+    "empty_title": "No activities found",
+    "empty_desc": "No activities match the selected filters.",
+    "page_info": "Page {page} of {total}",
+    "previous": "Previous",
+    "next": "Next"
   }
 }

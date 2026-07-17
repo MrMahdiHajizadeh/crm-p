@@ -10,7 +10,72 @@ from common.serializer import (
 )
 from common.utils import LEAD_STATUS
 from contacts.serializer import ContactSerializer
-from leads.models import Lead, LeadPipeline, LeadStage
+from leads.models import (
+    INTERACTION_RESULT_CHOICES,
+    INTERACTION_TYPE_CHOICES,
+    InteractionLog,
+    Lead,
+    LeadPipeline,
+    LeadStage,
+)
+
+
+class InteractionLogSerializer(serializers.ModelSerializer):
+    """Serializer for interaction logs (read)."""
+
+    created_by = UserSerializer(read_only=True)
+    interaction_type_display = serializers.SerializerMethodField()
+    result_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = InteractionLog
+        fields = (
+            "id",
+            "entity_type",
+            "entity_id",
+            "interaction_type",
+            "interaction_type_display",
+            "interaction_date",
+            "duration_minutes",
+            "subject",
+            "description",
+            "result",
+            "result_display",
+            "follow_up_date",
+            "created_by",
+            "created_at",
+            "updated_at",
+        )
+
+    def get_interaction_type_display(self, obj):
+        return obj.get_interaction_type_display()
+
+    def get_result_display(self, obj):
+        return obj.get_result_display() if obj.result else None
+
+
+class InteractionLogCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating interaction logs."""
+
+    class Meta:
+        model = InteractionLog
+        fields = (
+            "entity_type",
+            "entity_id",
+            "interaction_type",
+            "interaction_date",
+            "duration_minutes",
+            "subject",
+            "description",
+            "result",
+            "follow_up_date",
+        )
+
+    def validate_entity_type(self, value):
+        valid_types = dict(InteractionLog.ENTITY_TYPE_CHOICES)
+        if value not in valid_types:
+            raise serializers.ValidationError(f"Invalid entity type. Must be one of: {', '.join(valid_types.keys())}")
+        return value
 
 
 class LeadSerializer(serializers.ModelSerializer):

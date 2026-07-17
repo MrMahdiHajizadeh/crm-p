@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { onDestroy, onMount } from 'svelte';
   import { toast } from 'svelte-sonner';
@@ -268,7 +268,7 @@
                 {ownerLabel(e)}
               </span>
               <span class="text-[11px] text-[var(--text-secondary)]">
-                {new Date(e.started_at).toLocaleString()}
+                {new Date(e.started_at).toLocaleString('fa-IR-u-ca-persian')}
               </span>
               {#if e.auto_stopped}
                 <span

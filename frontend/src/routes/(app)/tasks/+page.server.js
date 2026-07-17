@@ -207,7 +207,7 @@ export async function load({ locals, cookies, url }) {
       createdBy: task.created_by
         ? {
             id: task.created_by.id,
-            name: task.created_by.email
+            name: task.created_by.name || task.created_by.email || 'Unknown'
           }
         : null,
 
@@ -221,7 +221,7 @@ export async function load({ locals, cookies, url }) {
     // Transform dropdown options
     const users = (usersRes.active_users?.active_users || []).map((u) => ({
       id: u.id,
-      name: u.user_details?.email || u.email
+      name: u.user_details?.name || u.user_details?.email || u.name || u.phone || u.email || 'Unknown'
     }));
 
     // accounts already transformed above for task account name lookup

@@ -1,16 +1,35 @@
+import { apiRequest } from '$lib/api-helpers.js';
+
 /** @type {import('./$types').LayoutServerLoad} */
-export async function load({ locals }) {
-  // console.log("locals", locals.user);
+export async function load({ locals, cookies }) {
+  // Try to fetch fresh org settings from API (in case JWT is stale)
+  let orgSettings = locals.org_settings || {
+    default_currency: 'TOM',
+    currency_symbol: 'تومان',
+    default_country: 'IR',
+    opportunities_enabled: false,
+    invoices_enabled: false
+  };
+
+  try {
+    const fresh = await apiRequest('/org/settings/', {}, { cookies });
+    if (fresh && fresh.default_currency) {
+      orgSettings = {
+        default_currency: fresh.default_currency || 'TOM',
+        currency_symbol: fresh.currency_symbol || 'تومان',
+        default_country: fresh.default_country || 'IR',
+        opportunities_enabled: fresh.opportunities_enabled ?? false,
+        invoices_enabled: fresh.invoices_enabled ?? false
+      };
+    }
+  } catch {
+    // Use JWT fallback if API fetch fails
+  }
+
   return {
     user: locals.user,
     org_name: locals.org_name || 'BottleCRM',
-    org_settings: locals.org_settings || {
-      default_currency: 'USD',
-      currency_symbol: '$',
-      default_country: null,
-      opportunities_enabled: false,
-      invoices_enabled: false
-    }
+    org_settings: orgSettings
   };
 }
 

@@ -3,13 +3,21 @@
  * @module lib/utils/formatting
  */
 
-const dateFormatter = new Intl.DateTimeFormat('en-US', {
-  month: 'short',
+// Persian (Jalali) date formatter
+const dateFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+  month: 'long',
   day: 'numeric',
   year: 'numeric'
 });
 
-const relativeFormatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+// Short Persian date formatter (e.g., "۲۶ تیر")
+const dateFormatterShort = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+  month: 'long',
+  day: 'numeric'
+});
+
+// Persian relative time formatter
+const relativeFormatter = new Intl.RelativeTimeFormat('fa', { numeric: 'auto' });
 
 const RELATIVE_UNITS = /** @type {const} */ ([
   { unit: 'year', ms: 365.25 * 24 * 60 * 60 * 1000 },
@@ -58,11 +66,11 @@ export function formatRelativeDate(date) {
 /**
  * Format a number as currency
  * @param {number | string | null | undefined} amount - Amount to format
- * @param {string} [currency='USD'] - Currency code (ISO 4217)
+ * @param {string} [currency='TOM'] - Currency code (TOM for Toman, or ISO 4217)
  * @param {boolean} [compact=false] - Use compact notation (e.g., $1.2M)
  * @returns {string} Formatted currency string or '-' if no amount
  */
-export function formatCurrency(amount, currency = 'USD', compact = false) {
+export function formatCurrency(amount, currency = 'TOM', compact = false) {
   if (amount === null || amount === undefined) return '-';
 
   // Convert to number if string
@@ -71,8 +79,21 @@ export function formatCurrency(amount, currency = 'USD', compact = false) {
   // Handle NaN or invalid numbers
   if (isNaN(numAmount)) return '-';
 
-  // Ensure valid currency code (fallback to USD)
-  const currencyCode = currency && currency.length === 3 ? currency : 'USD';
+  // Ensure valid currency code (fallback to TOM)
+  const currencyCode = currency && currency.length === 3 ? currency : 'TOM';
+
+  // TOM is not an ISO 4217 code, format manually with the symbol
+  if (currencyCode === 'TOM') {
+    try {
+      const formatted = new Intl.NumberFormat('en-US', {
+        notation: compact ? 'compact' : 'standard',
+        maximumFractionDigits: compact ? 1 : 0
+      }).format(numAmount);
+      return `${formatted} تومان`;
+    } catch {
+      return `${numAmount} تومان`;
+    }
+  }
 
   try {
     return new Intl.NumberFormat('en-US', {

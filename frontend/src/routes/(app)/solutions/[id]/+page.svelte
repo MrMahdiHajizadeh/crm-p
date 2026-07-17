@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { enhance } from '$app/forms';
   import { untrack } from 'svelte';
@@ -114,7 +114,7 @@
   }
 
   /** @param {string | null | undefined} d */
-  const formatDate = (d) => (d ? new Date(d).toLocaleString() : '—');
+  const formatDate = (d) => (d ? new Date(d).toLocaleString('fa-IR-u-ca-persian') : '—');
 </script>
 
 <svelte:head>

@@ -76,9 +76,9 @@ class OrgAwareRefreshToken(RefreshToken):
             # Add org settings for currency/locale and feature flags
             if hasattr(org, "default_currency"):
                 token["org_settings"] = {
-                    "default_currency": org.default_currency or "USD",
+                    "default_currency": org.default_currency or "TOM",
                     "currency_symbol": CURRENCY_SYMBOLS.get(
-                        org.default_currency or "USD", "$"
+                        org.default_currency or "TOM", "تومان"
                     ),
                     "default_country": org.default_country,
                     "opportunities_enabled": getattr(
@@ -136,7 +136,7 @@ class OrgSettingsSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(str)
     def get_currency_symbol(self, obj):
-        return CURRENCY_SYMBOLS.get(obj.default_currency or "USD", "$")
+        return CURRENCY_SYMBOLS.get(obj.default_currency or "TOM", "تومان")
 
     @extend_schema_field(str)
     def get_logo_url(self, obj):

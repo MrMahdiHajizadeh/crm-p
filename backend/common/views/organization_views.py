@@ -34,6 +34,18 @@ class OrgProfileCreateView(APIView):
         request=OrgProfileCreateSerializer,
     )
     def post(self, request, format=None):
+        # Single-org system: prevent creating more than one organization.
+        if Org.objects.exists():
+            return Response(
+                {
+                    "error": True,
+                    "errors": {
+                        "name": "Only one organization is allowed in this system."
+                    },
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         data = request.data
         data["api_key"] = secrets.token_hex(16)
         serializer = self.serializer_class(data=data)

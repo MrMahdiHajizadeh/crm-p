@@ -390,34 +390,12 @@ PERIOD_TYPES = (
 
 CURRENCY_CODES = (
     ("USD", _("USD, Dollar")),
-    ("EUR", _("EUR, Euro")),
-    ("GBP", _("GBP, Pound")),
-    ("INR", _("INR, Rupee")),
-    ("CAD", _("CAD, Dollar")),
-    ("AUD", _("AUD, Dollar")),
-    ("JPY", _("JPY, Yen")),
-    ("CNY", _("CNY, Yuan")),
-    ("CHF", _("CHF, Franc")),
-    ("SGD", _("SGD, Dollar")),
-    ("AED", _("AED, Dirham")),
-    ("BRL", _("BRL, Real")),
-    ("MXN", _("MXN, Peso")),
+    ("TOM", _("TOM, Toman")),
 )
 
 CURRENCY_SYMBOLS = {
     "USD": "$",
-    "EUR": "€",
-    "GBP": "£",
-    "INR": "₹",
-    "CAD": "CA$",
-    "AUD": "A$",
-    "JPY": "¥",
-    "CNY": "¥",
-    "CHF": "CHF",
-    "SGD": "S$",
-    "AED": "د.إ",
-    "BRL": "R$",
-    "MXN": "MX$",
+    "TOM": "تومان",
 }
 
 

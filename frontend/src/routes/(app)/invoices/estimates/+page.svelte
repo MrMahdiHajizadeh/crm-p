@@ -5,6 +5,7 @@
   import { enhance } from '$app/forms';
   import { tick } from 'svelte';
   import { toast } from 'svelte-sonner';
+  import { _ } from '$lib/i18n';
 
   import { PageHeader } from '$lib/components/layout';
   import { CrmDrawer } from '$lib/components/ui/crm-drawer';
@@ -83,7 +84,7 @@
     },
     {
       key: 'title',
-      label: 'Title',
+      label: $_('common.title'),
       type: 'text',
       width: 'w-44',
       canHide: true,
@@ -91,7 +92,7 @@
     },
     {
       key: 'account',
-      label: 'Account',
+      label: $_('common.account'),
       type: 'relation',
       width: 'w-36',
       relationIcon: 'building',
@@ -100,7 +101,7 @@
     },
     {
       key: 'status',
-      label: 'Status',
+      label: $_('common.status'),
       type: 'select',
       width: 'w-28',
       options: ESTIMATE_STATUSES,
@@ -109,7 +110,7 @@
     },
     {
       key: 'issueDate',
-      label: 'Issue Date',
+      label: $_('invoices.issue_date'),
       type: 'date',
       width: 'w-28',
       canHide: true,
@@ -133,7 +134,7 @@
     },
     {
       key: 'owner',
-      label: 'Owner',
+      label: $_('common.owner'),
       type: 'relation',
       width: 'w-32',
       relationIcon: 'user',
@@ -146,10 +147,10 @@
   const drawerFields = [
     // Core Info Section
     { key: 'estimateNumber', label: 'Estimate #', type: 'readonly', section: 'core' },
-    { key: 'title', label: 'Title', type: 'text', section: 'core' },
+    { key: 'title', label: $_('common.title'), type: 'text', section: 'core' },
     {
       key: 'status',
-      label: 'Status',
+      label: $_('common.status'),
       type: 'select',
       section: 'core',
       options: ESTIMATE_STATUSES
@@ -159,7 +160,7 @@
     { key: 'clientEmail', label: 'Client Email', type: 'email', section: 'client' },
     { key: 'clientPhone', label: 'Client Phone', type: 'text', section: 'client' },
     // Dates Section
-    { key: 'issueDate', label: 'Issue Date', type: 'date', section: 'dates' },
+    { key: 'issueDate', label: $_('invoices.issue_date'), type: 'date', section: 'dates' },
     { key: 'expiryDate', label: 'Valid Until', type: 'date', section: 'dates' },
     // Amounts Section (readonly in drawer - calculated from line items)
     {
@@ -191,8 +192,8 @@
       getValue: (row) => formatCurrency(Number(row.totalAmount), row.currency)
     },
     // Notes Section
-    { key: 'notes', label: 'Notes', type: 'textarea', section: 'notes' },
-    { key: 'terms', label: 'Terms & Conditions', type: 'textarea', section: 'notes' }
+    { key: 'notes', label: $_('common.notes'), type: 'textarea', section: 'notes' },
+    { key: 'terms', label: $_('invoices.terms'), type: 'textarea', section: 'notes' }
   ];
 
   // Default visible columns
@@ -1224,7 +1225,7 @@
           <div class="bg-muted/20 flex items-center justify-between px-4 py-3 text-sm">
             <span class="text-muted-foreground">Subtotal</span>
             <span class="font-medium">
-              {formatCurrency(lineItemsSubtotal, drawerFormData.currency || 'USD')}
+              {formatCurrency(lineItemsSubtotal, drawerFormData.currency || 'TOM')}
             </span>
           </div>
         </div>

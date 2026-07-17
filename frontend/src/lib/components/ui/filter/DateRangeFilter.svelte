@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { CalendarDays, ChevronDown, X, Clock, ArrowRight } from '@lucide/svelte';
   import { cn } from '$lib/utils.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
@@ -109,7 +109,7 @@
   function formatDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString('fa-IR-u-ca-persian', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   /**
@@ -118,7 +118,7 @@
   function formatDateShort(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('fa-IR-u-ca-persian', { month: 'short', day: 'numeric' });
   }
 
   /**

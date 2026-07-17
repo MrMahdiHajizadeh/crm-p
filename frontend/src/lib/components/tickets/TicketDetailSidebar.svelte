@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Clock, AlertTriangle, PauseCircle } from '@lucide/svelte';
 
   /** @type {{ ticketItem: any, formOptions: any }} */
@@ -6,12 +6,12 @@
 
   function fmt(d) {
     if (!d) return '—';
-    return new Date(d).toLocaleDateString();
+    return new Date(d).toLocaleDateString('fa-IR-u-ca-persian');
   }
 
   function fmtFull(d) {
     if (!d) return '—';
-    return new Date(d).toLocaleString();
+    return new Date(d).toLocaleString('fa-IR-u-ca-persian');
   }
 
   const sla = $derived(ticketItem.sla || {});

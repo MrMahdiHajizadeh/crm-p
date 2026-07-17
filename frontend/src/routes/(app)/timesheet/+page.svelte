@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { onDestroy, untrack } from 'svelte';
@@ -138,7 +138,7 @@
   }
 
   function fmtDate(/** @type {string} */ iso) {
-    return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
+    return new Date(`${iso}T00:00:00`).toLocaleDateString('fa-IR-u-ca-persian', {
       weekday: 'short',
       month: 'short',
       day: 'numeric'

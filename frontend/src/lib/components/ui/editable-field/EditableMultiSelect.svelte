@@ -84,10 +84,12 @@
         const id = opt?.id ?? opt?.value;
         if (!id) return null;
 
+        // Derive a human-readable name, falling back to a short ID prefix
+        const nameFallback = id && typeof id === 'string' ? `#${id.slice(0, 8)}` : id;
         return {
           ...opt,
           id,
-          name: opt?.name ?? opt?.label ?? opt?.email ?? id
+          name: opt?.name ?? opt?.label ?? opt?.email ?? nameFallback
         };
       })
       .filter(Boolean)

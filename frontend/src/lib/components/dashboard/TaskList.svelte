@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Badge } from '$lib/components/ui/badge/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Circle, CheckCircle2, ChevronRight, ListTodo } from '@lucide/svelte';
@@ -123,7 +123,7 @@
       const days = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
       return days === 1 ? 'Yesterday' : `${days}d ago`;
     }
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('fa-IR-u-ca-persian', { month: 'short', day: 'numeric' });
   }
 
   /** @type {{ id: 'all' | 'overdue' | 'today' | 'week', label: string }[]} */

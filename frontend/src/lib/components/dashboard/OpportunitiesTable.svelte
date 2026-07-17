@@ -158,7 +158,7 @@
               <span
                 class="flex-shrink-0 text-base font-bold tracking-tight text-[var(--text-primary)] tabular-nums"
               >
-                {formatCurrency(opp.amount, opp.currency || 'USD')}
+                {formatCurrency(opp.amount, opp.currency || 'TOM')}
               </span>
             </div>
 

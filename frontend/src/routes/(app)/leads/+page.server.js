@@ -166,6 +166,15 @@ export async function load({ url, cookies, locals }) {
               }
             : null,
 
+      // Creator info
+      createdBy: lead.created_by
+        ? {
+            id: lead.created_by.id,
+            name: lead.created_by.name || lead.created_by.email || lead.created_by.phone || 'Unknown',
+            email: lead.created_by.email
+          }
+        : null,
+
       // Assignment arrays (IDs for form editing)
       assignedTo: (lead.assigned_to || []).map((u) => u.id),
       teams: (lead.teams || []).map((t) => t.id),
@@ -757,6 +766,9 @@ export const actions = {
         isActive: lead.is_active,
         createdAt: lead.created_at,
         updatedAt: lead.updated_at || lead.created_at,
+        createdBy: lead.created_by
+          ? { id: lead.created_by.id, name: lead.created_by.name || lead.created_by.email || lead.created_by.phone || 'Unknown', email: lead.created_by.email }
+          : null,
         owner:
           lead.assigned_to && lead.assigned_to.length > 0
             ? {

@@ -345,6 +345,22 @@ class CaseListView(APIView, LimitOffsetPagination):
                 attachment.org = self.request.profile.org
                 attachment.save()
 
+            # Auto-assign to all admins if creator is not an admin
+            # and the case has no assignee yet (two-way ticket system).
+            if (
+                request.profile.role != "ADMIN"
+                and not request.profile.is_organization_admin
+                and not cases_obj.assigned_to.exists()
+            ):
+                admin_profiles = Profile.objects.filter(
+                    org=request.profile.org,
+                    is_active=True,
+                ).filter(
+                    Q(role="ADMIN") | Q(is_organization_admin=True)
+                )
+                if admin_profiles.exists():
+                    cases_obj.assigned_to.add(*admin_profiles)
+
             recipients = list(cases_obj.assigned_to.all().values_list("id", flat=True))
             send_email_to_assigned_user.delay(
                 recipients,
