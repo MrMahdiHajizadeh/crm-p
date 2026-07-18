@@ -22,42 +22,42 @@
   const INVOICE_STATUSES = [
     {
       value: 'Draft',
-      label: 'Draft',
+      get label() { return $_('invoices.status_draft'); },
       color: 'bg-[var(--surface-sunken)] text-[var(--text-secondary)]'
     },
     {
       value: 'Sent',
-      label: 'Sent',
+      get label() { return $_('invoices.status_sent'); },
       color:
         'bg-[var(--stage-contacted-bg)] text-[var(--stage-contacted)] dark:bg-[var(--stage-contacted)]/15'
     },
     {
       value: 'Viewed',
-      label: 'Viewed',
+      get label() { return $_('invoices.status_viewed'); },
       color:
         'bg-[var(--stage-qualified-bg)] text-[var(--stage-qualified)] dark:bg-[var(--stage-qualified)]/15'
     },
     {
       value: 'Partially_Paid',
-      label: 'Partially Paid',
+      get label() { return $_('invoices.status_partially_paid'); },
       color:
         'bg-[var(--stage-negotiation-bg)] text-[var(--stage-negotiation)] dark:bg-[var(--stage-negotiation)]/15'
     },
     {
       value: 'Paid',
-      label: 'Paid',
+      get label() { return $_('invoices.status_paid'); },
       color:
         'bg-[var(--color-success-light)] text-[var(--color-success-default)] dark:bg-[var(--color-success-default)]/15'
     },
     {
       value: 'Overdue',
-      label: 'Overdue',
+      get label() { return $_('invoices.status_overdue'); },
       color:
         'bg-[var(--color-negative-light)] text-[var(--color-negative-default)] dark:bg-[var(--color-negative-default)]/15'
     },
     {
       value: 'Cancelled',
-      label: 'Cancelled',
+      get label() { return $_('invoices.status_cancelled'); },
       color: 'bg-[var(--surface-sunken)] text-[var(--text-tertiary)]'
     }
   ];
@@ -147,11 +147,11 @@
 
   // Status chip filter definitions
   const STATUS_CHIPS = [
-    { key: 'ALL', label: 'All' },
-    { key: 'OPEN', label: 'Open', statuses: ['Draft', 'Sent', 'Viewed'] },
-    { key: 'PAID', label: 'Paid', statuses: ['Paid', 'Partially_Paid'] },
-    { key: 'OVERDUE', label: 'Overdue', statuses: ['Overdue'] },
-    { key: 'CANCELLED', label: 'Cancelled', statuses: ['Cancelled'] }
+    { key: 'ALL', get label() { return $_('common.all'); } },
+    { key: 'OPEN', get label() { return $_('filters.open'); }, statuses: ['Draft', 'Sent', 'Viewed'] },
+    { key: 'PAID', get label() { return $_('invoices.status_paid'); }, statuses: ['Paid', 'Partially_Paid'] },
+    { key: 'OVERDUE', get label() { return $_('invoices.status_overdue'); }, statuses: ['Overdue'] },
+    { key: 'CANCELLED', get label() { return $_('invoices.status_cancelled'); }, statuses: ['Cancelled'] }
   ];
 
   // State

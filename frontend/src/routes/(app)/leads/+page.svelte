@@ -28,7 +28,8 @@
     ArrowRightCircle,
     Banknote,
     AlertTriangle,
-    RotateCw
+    RotateCw,
+    X
   } from '@lucide/svelte';
   import { LinkedinIcon as Linkedin } from '$lib/components/icons';
   import { page } from '$app/stores';
@@ -55,6 +56,9 @@
   import CrmTable from '$lib/components/ui/crm-table/CrmTable.svelte';
   import CrmDrawer from '$lib/components/ui/crm-drawer/CrmDrawer.svelte';
   import { CommentSection } from '$lib/components/ui/comment-section';
+  import { Timeline, TimelineItem } from '$lib/components/ui/timeline';
+  import InteractionDialog from '$lib/components/ui/interaction/InteractionDialog.svelte';
+  import * as Sheet from '$lib/components/ui/sheet/index.js';
   import { getCurrentUser } from '$lib/api.js';
   import { browser } from '$app/environment';
   import { orgSettings } from '$lib/stores/org.js';
@@ -564,7 +568,7 @@
       formOptionsLoaded = true;
     } catch (err) {
       console.error('Failed to load form options:', err);
-      formOptionsError = 'Couldn’t load options';
+      formOptionsError = 'Couldn�t load options';
     } finally {
       formOptionsLoading = false;
     }
@@ -609,6 +613,65 @@
   let drawerLoading = $state(false);
   let isSaving = $state(false);
   let currentUser = $state(null);
+
+  // Timeline state for drawer
+  let drawerInteractions = $state(/** @type {any[]} */ ([]));
+  let drawerInteractionsLoading = $state(false);
+  let interactionDialogOpen = $state(false);
+  let interactionDialogEntityName = $state('');
+
+  // Selected timeline item for detail slide panel
+  let selectedTimelineItem = $state(/** @type {any | null} */ (null));
+  let timelineDetailOpen = $state(false);
+
+  function openTimelineDetail(item) {
+    selectedTimelineItem = item;
+    timelineDetailOpen = true;
+  }
+
+  function closeTimelineDetail() {
+    timelineDetailOpen = false;
+    selectedTimelineItem = null;
+  }
+
+  async function fetchDrawerInteractions(leadId) {
+    if (!leadId) return;
+    drawerInteractionsLoading = true;
+    try {
+      const formData = new FormData();
+      formData.append('leadId', leadId);
+      const resp = await fetch('?/getInteractions', { method: 'POST', body: formData });
+      const text = await resp.text();
+      const result = deserialize(text);
+      if (result.type === 'success' && result.data?.interactions) {
+        drawerInteractions = result.data.interactions;
+      } else if (result.type === 'failure') {
+        console.error('Failed to fetch interactions:', result.data?.error);
+        drawerInteractions = [];
+      }
+    } catch (err) {
+      console.error('Failed to fetch interactions:', err);
+      drawerInteractions = [];
+    } finally {
+      drawerInteractionsLoading = false;
+    }
+  }
+
+  // Combined timeline from interactions + comments for drawer
+  const drawerTimelineItems = $derived.by(() => {
+    /** @type {Array<{ id: string, ts: string, kind: string, payload: any }>} */
+    const items = [];
+    for (const c of (drawerData?.comments || [])) {
+      items.push({ id: `comment-${c.id}`, ts: c.commented_on || c.created_at || '', kind: 'comment', payload: c });
+    }
+    for (const i of drawerInteractions) {
+      items.push({ id: `interaction-${i.id}`, ts: i.interaction_date || i.created_at || '', kind: 'interaction', payload: i });
+    }
+    if (drawerData?.createdAt) {
+      items.push({ id: `created-${drawerData.id}`, ts: drawerData.createdAt, kind: 'created', payload: drawerData });
+    }
+    return items.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+  });
 
   // For create mode - temporary form data
   let createFormData = $state(
@@ -687,6 +750,9 @@
         drawerOpen = true;
         // Lazy load form options when drawer opens via URL
         loadFormOptions();
+        // Fetch interactions for timeline
+        drawerInteractions = [];
+        fetchDrawerInteractions(lead.id);
       }
     }
   });
@@ -784,6 +850,9 @@
     updateUrl(lead.id, null);
     // Load form options (uses pre-loaded server data)
     loadFormOptions();
+    // Reset and fetch interactions
+    drawerInteractions = [];
+    fetchDrawerInteractions(lead.id);
 
     // If from kanban, we need to fetch full lead data since kanban cards have minimal data
     if (fromKanban) {
@@ -831,7 +900,7 @@
           currency: lead.currency,
           status: lead.status ? lead.status.toUpperCase().replace(/ /g, '_') : 'ASSIGNED'
         };
-        drawerLoadError = 'Couldn’t load full details. Showing limited data.';
+        drawerLoadError = 'Couldn�t load full details. Showing limited data.';
         drawerLoadErrorLead = lead;
       } finally {
         drawerLoading = false;
@@ -1028,7 +1097,7 @@
    */
   async function handleCreateLead() {
     if (!createFormData.title?.trim()) {
-      toast.error('Lead title is required');
+      toast.error($_('leads.title_required') || 'Lead title is required');
       return;
     }
 
@@ -1067,9 +1136,12 @@
       formState.tags = createFormData.tags || [];
 
       await tick();
+
+      // Use the hidden form with use:enhance instead of raw fetch
       createForm.requestSubmit();
-    } finally {
+    } catch (err) {
       isSaving = false;
+      toast.error('An unexpected error occurred');
     }
   }
 
@@ -1616,7 +1688,7 @@
           data={kanbanData}
           loading={!kanbanData}
           onStatusChange={handleKanbanStatusChange}
-          onCardClick={(lead) => openLead(lead, true)}
+          onCardClick={(lead) => goto(`/leads/${lead.id}`)}
         />
       </div>
     {:else}
@@ -1640,7 +1712,7 @@
             bind:visibleColumns
             bind:activeRowId
             onRowChange={handleRowChange}
-            onRowClick={(row) => openLead(row)}
+            onRowClick={(row) => goto(`/leads/${row.id}`)}
           >
             {#snippet emptyState()}
               <div class="flex flex-col items-center justify-center py-16 text-center">
@@ -1660,8 +1732,8 @@
           {#each filteredLeads as lead (lead.id)}
             <button
               type="button"
-              class="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--color-primary-light)] dark:hover:bg-[var(--color-primary-default)]/5"
-              onclick={() => openLead(lead)}
+              class="flex w-full items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--color-primary-light)] dark:hover:bg-[var(--color-primary-default)]/5"
+              onclick={() => goto(`/leads/${lead.id}`)}
             >
               <div class="min-w-0 flex-1">
                 <div class="flex items-start justify-between gap-2">
@@ -1786,13 +1858,13 @@
           </div>
         {/if}
         {#if drawerData.createdAt}
-          <span aria-hidden="true">·</span>
+          <span aria-hidden="true">�</span>
           <span title={new Date(drawerData.createdAt).toLocaleString('fa-IR-u-ca-persian')}>
             Created {formatDate(drawerData.createdAt)}
           </span>
         {/if}
         {#if drawerData.updatedAt && drawerData.updatedAt !== drawerData.createdAt}
-          <span aria-hidden="true">·</span>
+          <span aria-hidden="true">�</span>
           <span title={new Date(drawerData.updatedAt).toLocaleString('fa-IR-u-ca-persian')}>
             Updated {formatRelativeDate(drawerData.updatedAt)}
           </span>
@@ -1803,33 +1875,247 @@
 
   {#snippet activitySection()}
     {#if drawerMode !== 'create' && drawerData}
-      <CommentSection
-        entityId={drawerData.id}
-        entityType="leads"
-        initialComments={drawerData.comments || []}
-        currentUserEmail={currentUser?.email}
-        isAdmin={currentUser?.organizations?.some((o) => o.role === 'ADMIN')}
-      />
+      <!-- Log Interaction Button -->
+      <div class="mb-3 flex items-center justify-between px-5">
+        <h4 class="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-subtle)]">
+          ??????
+        </h4>
+        <Button
+          variant="ghost"
+          size="sm"
+          class="text-[11px]"
+          onclick={() => {
+            interactionDialogEntityName = drawerData?.title || '';
+            interactionDialogOpen = true;
+          }}
+        >
+          <Plus class="mr-1 size-3" />
+          ??? ?????
+        </Button>
+      </div>
+
+      {#if drawerInteractionsLoading}
+        <div class="space-y-3 px-5 pb-4">
+          {#each [1, 2, 3] as _}
+            <div class="h-12 w-full animate-pulse rounded-lg bg-[var(--surface-sunken)]"></div>
+          {/each}
+        </div>
+      {:else}
+        <Timeline isEmpty={drawerTimelineItems.length === 0}>
+          {#each drawerTimelineItems as item (item.id)}
+            {#if item.kind === 'interaction'}
+              {@const i = item.payload}
+              <li class="flex items-start gap-3 py-3.5 first:pt-0 last:pb-0 list-none">
+                <button
+                  type="button"
+                  onclick={() => { selectedTimelineItem = item; timelineDetailOpen = true; }}
+                  class="flex items-start gap-3 w-full text-end group"
+                >
+                  <div
+                    aria-hidden="true"
+                    class="flex size-7 shrink-0 items-center justify-center rounded-full border {i.interaction_type === 'call' ? 'bg-[color:var(--green)]/12 border-[color:var(--green)]/30 text-[color:var(--green)]' : i.interaction_type === 'email' ? 'bg-[color:var(--violet-soft)] border-[color:var(--violet)]/30 text-[color:var(--violet-soft-text)]' : 'bg-[color:var(--bg-elevated)] border-[color:var(--border-faint)] text-[color:var(--text-muted)]'}"
+                  >
+                    {#if i.interaction_type === 'call'}
+                      <Phone class="size-3.5" />
+                    {:else if i.interaction_type === 'email'}
+                      <Mail class="size-3.5" />
+                    {:else if i.interaction_type === 'meeting'}
+                      <Users class="size-3.5" />
+                    {:else}
+                      <FileText class="size-3.5" />
+                    {/if}
+                  </div>
+                  <div class="min-w-0 flex-1 text-end">
+                    <div class="text-[13px] leading-[1.55] text-[color:var(--text-muted)] [&_strong]:font-medium [&_strong]:text-[color:var(--text)]">
+                      <strong>{i.created_by?.name || i.created_by?.email || '?????'}</strong>
+                      {i.subject ? ` � ${i.subject}` : ''}
+                      {#if i.duration_minutes}
+                        <span class="text-[var(--text-subtle)]"> ({i.duration_minutes} ?????)</span>
+                      {/if}
+                      {#if i.result}
+                        <span class="ml-1.5 inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
+                          {i.result_display || i.result}
+                        </span>
+                      {/if}
+                      {#if i.follow_up_date}
+                        <span class="ml-1.5 text-[11px] text-[var(--text-subtle)]">
+                          ? {formatDate(i.follow_up_date)}
+                        </span>
+                      {/if}
+                    </div>
+                    {#if i.description}
+                      <blockquote class="mt-2 rounded-[var(--r-md)] border border-[color:var(--border-faint)] bg-[color:var(--bg-elevated)] px-3 py-2 text-[12px] leading-[1.5] text-[color:var(--text)]">
+                        {i.description}
+                      </blockquote>
+                    {/if}
+                    {#if item.ts}
+                      <p class="mt-1.5 text-[11px] leading-none text-[color:var(--text-subtle)]">{formatRelativeDate(item.ts)}</p>
+                    {/if}
+                  </div>
+                </button>
+              </li>
+            {:else if item.kind === 'comment'}
+              <TimelineItem
+                variant="violet"
+                time={item.ts ? formatRelativeDate(item.ts) : ''}
+                quote={item.payload.comment || ''}
+              >
+                {#snippet icon()}<MessageSquare class="size-3.5" />{/snippet}
+                {#snippet text()}
+                  <strong>{item.payload.commented_by_user || item.payload.commented_by?.name || '?????'}</strong> ??? ???
+                {/snippet}
+              </TimelineItem>
+            {:else if item.kind === 'created'}
+              <TimelineItem variant="success" time={item.ts ? formatRelativeDate(item.ts) : ''}>
+                {#snippet icon()}<Calendar class="size-3.5" />{/snippet}
+                {#snippet text()}???? ????? ??{/snippet}
+              </TimelineItem>
+            {/if}
+          {/each}
+        </Timeline>
+
+        <!-- Interaction Detail Slide Panel -->
+        {#if timelineDetailOpen && selectedTimelineItem?.kind === 'interaction'}
+          {@const i = selectedTimelineItem.payload}
+          <div
+            class="fixed inset-y-0 right-0 z-[100] w-full animate-in slide-in-from-right data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-md"
+          >
+            <div class="flex h-full flex-col border-l border-[var(--border-faint)] bg-[var(--bg)] shadow-xl">
+              <!-- Header -->
+              <div class="flex items-center justify-between border-b border-[var(--border-faint)] px-5 py-4">
+                <div class="flex items-center gap-2">
+                  <span class="rounded-md bg-[var(--bg-elevated)] px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                    ?????? ?????
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onclick={closeTimelineDetail}
+                  class="flex h-7 w-7 items-center justify-center rounded-lg text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-elevated)] hover:text-[var(--text)]"
+                >
+                  <X class="size-3.5" />
+                </button>
+              </div>
+
+              <!-- Content -->
+              <div class="flex-1 overflow-y-auto px-5 py-5">
+                <div class="space-y-5">
+                  <!-- Type badge -->
+                  <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-faint)] bg-[var(--bg-elevated)] px-3 py-1.5 text-[13px] font-medium text-[var(--text)]">
+                      {#if i.interaction_type === 'call'}
+                        <Phone class="size-3.5" />
+                      {:else if i.interaction_type === 'email'}
+                        <Mail class="size-3.5" />
+                      {:else if i.interaction_type === 'meeting'}
+                        <Users class="size-3.5" />
+                      {:else}
+                        <FileText class="size-3.5" />
+                      {/if}
+                      {i.interaction_type_display || i.interaction_type}
+                    </span>
+                    {#if i.result}
+                      <span class="inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2.5 py-1 text-[11px] font-medium text-[var(--text-muted)]">
+                        {i.result_display || i.result}
+                      </span>
+                    {/if}
+                  </div>
+
+                  <!-- Subject -->
+                  {#if i.subject}
+                    <div>
+                      <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">?????</p>
+                      <p class="mt-1 text-[14px] font-semibold text-[var(--text)]">{i.subject}</p>
+                    </div>
+                  {/if}
+
+                  <!-- Description -->
+                  {#if i.description}
+                    <div>
+                      <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">???????</p>
+                      <p class="mt-1 text-[13px] leading-relaxed text-[var(--text)]">{i.description}</p>
+                    </div>
+                  {/if}
+
+                  <!-- Details grid -->
+                  <div class="grid grid-cols-2 gap-4">
+                    {#if i.created_by?.name || i.created_by?.email}
+                      <div>
+                        <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">?????????</p>
+                        <p class="mt-1 text-[13px] font-medium text-[var(--text)]">{i.created_by.name || i.created_by.email}</p>
+                      </div>
+                    {/if}
+                    {#if i.interaction_date}
+                      <div>
+                        <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">????? ?????</p>
+                        <p class="mt-1 text-[13px] text-[var(--text)]">{formatDate(i.interaction_date)}</p>
+                      </div>
+                    {/if}
+                    {#if i.duration_minutes}
+                      <div>
+                        <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">??? ????</p>
+                        <p class="mt-1 text-[13px] font-medium text-[var(--text)]">{i.duration_minutes} ?????</p>
+                      </div>
+                    {/if}
+                    {#if i.follow_up_date}
+                      <div>
+                        <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">?????? ????</p>
+                        <p class="mt-1 text-[13px] text-[var(--text)]">
+                          <Calendar class="ml-1 inline size-3" />
+                          {formatDate(i.follow_up_date)}
+                        </p>
+                      </div>
+                    {/if}
+                    {#if i.created_at}
+                      <div>
+                        <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">???? ???</p>
+                        <p class="mt-1 text-[13px] text-[var(--text)]">{formatRelativeDate(i.created_at)}</p>
+                      </div>
+                    {/if}
+                    {#if selectedTimelineItem?.ts}
+                      <div>
+                        <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">????</p>
+                        <p class="mt-1 text-[13px] text-[var(--text)]">{formatRelativeDate(selectedTimelineItem.ts)}</p>
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {/if}
+
+        <!-- Comment input at bottom -->
+        <div class="mt-4 border-t border-[var(--border-faint)] pt-3">
+          <CommentSection
+            entityId={drawerData.id}
+            entityType="leads"
+            initialComments={drawerData.comments || []}
+            currentUserEmail={currentUser?.email}
+            isAdmin={currentUser?.organizations?.some((o) => o.role === 'ADMIN')}
+          />
+        </div>
+      {/if}
     {/if}
   {/snippet}
 
   {#snippet footerActions()}
     {#if drawerMode === 'create'}
-      <Button variant="outline" onclick={closeDrawer}>Cancel</Button>
+      <Button variant="outline" onclick={closeDrawer}>{$_('common.cancel')}</Button>
       <Button onclick={handleCreateLead} disabled={isSaving}>
         {#if isSaving}
           <Loader2 class="mr-2 h-4 w-4 animate-spin" />
-          Creating...
+          {$_('common.saving')}
         {:else}
-          Create Lead
+          {$_('leads.create')}
         {/if}
       </Button>
     {:else}
-      <Button variant="outline" onclick={closeDrawer} disabled={isSaving}>Cancel</Button>
+      <Button variant="outline" onclick={closeDrawer} disabled={isSaving}>{$_('common.cancel')}</Button>
       {#if drawerData?.status !== 'converted'}
         <Button variant="outline" onclick={handleDrawerConvert} disabled={isSaving}>
           <ArrowRightCircle class="mr-2 h-4 w-4" />
-          Convert
+          {$_('leads.convert')}
         </Button>
       {/if}
       <Button onclick={handleDrawerUpdate} disabled={isSaving}>
@@ -1843,6 +2129,19 @@
     {/if}
   {/snippet}
 </CrmDrawer>
+
+<!-- Interaction Dialog for logging interactions from drawer -->
+<InteractionDialog
+  open={interactionDialogOpen}
+  entityType="Lead"
+  entityId={drawerData?.id || ''}
+  entityName={interactionDialogEntityName}
+  onClose={() => { interactionDialogOpen = false; }}
+  onSuccess={() => {
+    interactionDialogOpen = false;
+    if (drawerData?.id) fetchDrawerInteractions(drawerData.id);
+  }}
+/>
 
 <!-- Hidden forms for server actions -->
 <form

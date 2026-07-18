@@ -8,7 +8,6 @@
  */
 
 import { env } from '$env/dynamic/public';
-import { goto } from '$app/navigation';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -137,9 +136,6 @@ async function refreshAccessToken() {
 
     // Refresh token expired or invalid
     clearAuthData();
-    if (typeof window !== 'undefined') {
-      goto('/login');
-    }
     return null;
   } catch (error) {
     console.error('Token refresh failed:', error);

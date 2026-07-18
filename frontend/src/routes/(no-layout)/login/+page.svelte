@@ -11,29 +11,46 @@
   let isSubmitting = $state(false);
   let loginMode = $state('password'); // 'password' | 'otp' | 'verify'
   let otpPhone = $state('');
+  let otpSent = $state(false);
 
   $effect(() => {
-    if (form?.success) {
+    if (form?.success && !form?.otpRequired) {
+      // Sync tokens to localStorage for client-side api.js compatibility
+      if (form?.tokens) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('access_token', form.tokens.access);
+          localStorage.setItem('refresh_token', form.tokens.refresh);
+        }
+      }
       goto('/org');
+    }
+  });
+
+  // Watch form for OTP sent status changes
+  $effect(() => {
+    if (form?.otpSent) {
+      otpSent = true;
+      isSubmitting = false;
+    }
+    if (form?.error) {
+      isSubmitting = false;
     }
   });
 
   function switchToOtp() {
     loginMode = 'otp';
     otpPhone = '';
+    otpSent = false;
   }
 
   function switchToPassword() {
     loginMode = 'password';
+    otpSent = false;
   }
 
   function handleOtpRequest() {
     isSubmitting = true;
     // The form submission is handled by use:enhance
-  }
-
-  function handleOtpVerify() {
-    isSubmitting = true;
   }
 </script>
 
@@ -45,13 +62,13 @@
 <div class="login-page">
   <div class="login-wrapper">
     <a href="/" class="logo">
-      <img src={imgLogo} alt="" class="logo-icon" />
+      <img src={imgLogo} alt={$_('app.name')} class="logo-icon" />
       <span class="logo-text">{$_('app.name')}</span>
     </a>
 
     <div class="login-card">
       <h1 class="login-title">
-        {loginMode === 'password' ? $_('login.title') : 'ورود با رمز یکبار مصرف'}
+        {loginMode === 'password' ? $_('login.title') : $_('login.otp_title')}
       </h1>
 
       <!-- Tab switcher -->
@@ -63,7 +80,7 @@
           onclick={switchToPassword}
         >
           <Lock size={14} />
-          ورود با رمز
+          {$_('login.password_tab')}
         </button>
         <button
           type="button"
@@ -72,21 +89,21 @@
           onclick={switchToOtp}
         >
           <MessageSquareText size={14} />
-          رمز یکبار مصرف
+          {$_('login.otp_tab')}
         </button>
       </div>
 
       {#if loginMode === 'password'}
         <form method="POST" action="?/password" use:enhance class="login-form">
           <div class="input-group">
-            <label for="phone" class="input-label">تلفن همراه</label>
+            <label for="phone" class="input-label">{$_('login.phone_label')}</label>
             <div class="input-wrapper">
               <Smartphone class="input-icon" size={18} />
               <input
                 type="tel"
                 id="phone"
                 name="phone"
-                placeholder="مثال: 09120000000"
+                placeholder={$_('login.phone_placeholder')}
                 class="text-input"
                 required
                 autocomplete="username"
@@ -96,14 +113,14 @@
           </div>
 
           <div class="input-group">
-            <label for="password" class="input-label">رمز عبور</label>
+            <label for="password" class="input-label">{$_('login.password_label')}</label>
             <div class="input-wrapper">
               <Lock class="input-icon" size={18} />
               <input
                 type="password"
                 id="password"
                 name="password"
-                placeholder="رمز عبور خود را وارد کنید"
+                placeholder={$_('login.password_placeholder')}
                 class="text-input"
                 required
                 autocomplete="current-password"
@@ -122,9 +139,9 @@
           <button type="submit" class="submit-btn" disabled={isSubmitting}>
             {#if isSubmitting}
               <span class="spinner"></span>
-              <span>در حال ورود...</span>
+              <span>{$_('login.submitting_login')}</span>
             {:else}
-              <span>ورود</span>
+              <span>{$_('login.submit_login')}</span>
               <ArrowRight size={18} />
             {/if}
           </button>
@@ -132,14 +149,14 @@
       {:else if loginMode === 'otp'}
         <form method="POST" action="?/requestOTP" use:enhance class="login-form">
           <div class="input-group">
-            <label for="otp-phone" class="input-label">تلفن همراه</label>
+            <label for="otp-phone" class="input-label">{$_('login.phone_label')}</label>
             <div class="input-wrapper">
               <Smartphone class="input-icon" size={18} />
               <input
                 type="tel"
                 id="otp-phone"
                 name="phone"
-                placeholder="مثال: 09120000000"
+                placeholder={$_('login.phone_placeholder')}
                 class="text-input"
                 required
                 autocomplete="username"
@@ -156,39 +173,38 @@
             </div>
           {/if}
 
-          {#if form?.success && form?.message === 'Code sent'}
+          {#if otpSent}
             <div class="success-box">
-              <span>کد تأیید ارسال شد</span>
+              <span>{$_('login.otp_code_sent')}</span>
             </div>
             {#if otpPhone}
-              {@const verifyAction = new URLSearchParams({ phone: otpPhone })}
-              <p class="hint-text">کد ۶ رقمی ارسال شده به شماره {otpPhone} را وارد کنید</p>
+              <p class="hint-text">{$_('login.otp_code_hint', { phone: otpPhone })}</p>
             {/if}
           {:else}
             <button type="submit" class="submit-btn" onclick={handleOtpRequest} disabled={isSubmitting}>
               {#if isSubmitting}
                 <span class="spinner"></span>
-                <span>در حال ارسال...</span>
+                <span>{$_('login.sending_code')}</span>
               {:else}
-                <span>ارسال کد تأیید</span>
+                <span>{$_('login.submit_send_code')}</span>
                 <ArrowRight size={18} />
               {/if}
             </button>
           {/if}
         </form>
 
-        {#if form?.success && form?.message === 'Code sent'}
+        {#if otpSent}
           <form method="POST" action="?/verifyOTP" use:enhance class="login-form" style="margin-top: 1rem">
             <input type="hidden" name="phone" value={otpPhone} />
             <div class="input-group">
-              <label for="otp-code" class="input-label">کد تأیید</label>
+              <label for="otp-code" class="input-label">{$_('login.otp_code_label')}</label>
               <div class="input-wrapper">
                 <MessageSquareText class="input-icon" size={18} />
                 <input
                   type="text"
                   id="otp-code"
                   name="code"
-                  placeholder="۱۲۳۴۵۶"
+                  placeholder={$_('login.otp_code_placeholder')}
                   class="text-input"
                   required
                   maxlength="6"
@@ -201,9 +217,9 @@
             <button type="submit" class="submit-btn" disabled={isSubmitting}>
               {#if isSubmitting}
                 <span class="spinner"></span>
-                <span>در حال ورود...</span>
+                <span>{$_('login.submitting_login')}</span>
               {:else}
-                <span>ورود</span>
+                <span>{$_('login.submit_login')}</span>
                 <ArrowRight size={18} />
               {/if}
             </button>

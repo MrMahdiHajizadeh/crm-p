@@ -326,7 +326,7 @@
             <button
               type="button"
               onclick={() => toggleType(objType.value)}
-              class="border-border hover:bg-muted/50 flex w-full items-start gap-3 rounded-lg border p-4 text-left transition-colors
+              class="border-border hover:bg-muted/50 flex w-full items-start gap-3 rounded-lg border p-4 text-start transition-colors
                 {isSelected(objType.value) ? 'border-blue-300 bg-blue-50/50 dark:border-blue-700 dark:bg-blue-950/30' : ''}"
             >
               <div class="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border transition-colors
@@ -393,9 +393,9 @@
               <Table.Head>Date</Table.Head>
               <Table.Head>Status</Table.Head>
               <Table.Head>Objects</Table.Head>
-              <Table.Head class="text-right">Imported</Table.Head>
-              <Table.Head class="text-right">Skipped</Table.Head>
-              <Table.Head class="text-right">Errors</Table.Head>
+              <Table.Head class="text-end">Imported</Table.Head>
+              <Table.Head class="text-end">Skipped</Table.Head>
+              <Table.Head class="text-end">Errors</Table.Head>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -416,9 +416,9 @@
                 <Table.Cell class="text-muted-foreground max-w-[200px] truncate text-sm">
                   {(job.object_types || []).join(', ') || 'None'}
                 </Table.Cell>
-                <Table.Cell class="text-right text-sm text-emerald-600 dark:text-emerald-400">{job.imported_count || 0}</Table.Cell>
-                <Table.Cell class="text-right text-sm text-amber-600 dark:text-amber-400">{job.skipped_count || 0}</Table.Cell>
-                <Table.Cell class="text-right text-sm text-red-600 dark:text-red-400">{job.error_count || 0}</Table.Cell>
+                <Table.Cell class="text-end text-sm text-emerald-600 dark:text-emerald-400">{job.imported_count || 0}</Table.Cell>
+                <Table.Cell class="text-end text-sm text-amber-600 dark:text-amber-400">{job.skipped_count || 0}</Table.Cell>
+                <Table.Cell class="text-end text-sm text-red-600 dark:text-red-400">{job.error_count || 0}</Table.Cell>
               </Table.Row>
 
               {#if isExpanded}

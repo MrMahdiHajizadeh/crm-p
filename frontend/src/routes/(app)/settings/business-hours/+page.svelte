@@ -154,10 +154,10 @@
         <table class="w-full text-sm">
           <thead class="bg-[var(--surface-muted)] text-xs uppercase tracking-wide text-[var(--text-secondary)]">
             <tr>
-              <th class="px-3 py-2 text-left">{$_('common.day')}</th>
-              <th class="px-3 py-2 text-left">{$_('common.closed')}</th>
-              <th class="px-3 py-2 text-left">{$_('settings.open_time')}</th>
-              <th class="px-3 py-2 text-left">{$_('settings.close_time')}</th>
+              <th class="px-3 py-2 text-start">{$_('common.day')}</th>
+              <th class="px-3 py-2 text-start">{$_('common.closed')}</th>
+              <th class="px-3 py-2 text-start">{$_('settings.open_time')}</th>
+              <th class="px-3 py-2 text-start">{$_('settings.close_time')}</th>
             </tr>
           </thead>
           <tbody>

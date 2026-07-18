@@ -284,6 +284,7 @@ class InvoiceTemplateAdmin(admin.ModelAdmin):
     ordering = ("name",)
 
 
+
 # Estimate Admin
 class EstimateLineItemInline(admin.TabularInline):
     model = EstimateLineItem

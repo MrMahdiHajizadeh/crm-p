@@ -43,7 +43,7 @@ export const actions = {
         maxAge: 60 * 60 * 24 * 365
       });
 
-      return { success: true };
+      return { success: true, tokens: { access: access_token, refresh: refresh_token } };
     } catch (error) {
       const message = error.response?.data?.error || 'Login failed';
       return { success: false, error: message };
@@ -65,7 +65,7 @@ export const actions = {
         { phone },
         { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
       );
-      return { success: true, message: 'Code sent' };
+      return { success: true, otpSent: true };
     } catch (error) {
       return { success: false, error: 'Failed to send code' };
     }
@@ -100,7 +100,7 @@ export const actions = {
         maxAge: 60 * 60 * 24 * 365
       });
 
-      return { success: true };
+      return { success: true, tokens: { access: access_token, refresh: refresh_token } };
     } catch (error) {
       const message = error.response?.data?.error || 'Invalid or expired code';
       return { success: false, error: message };

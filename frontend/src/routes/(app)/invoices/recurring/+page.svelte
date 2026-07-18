@@ -931,8 +931,8 @@
             class="bg-muted/50 text-muted-foreground grid grid-cols-12 gap-3 border-b px-4 py-3 text-xs font-medium uppercase tracking-wide"
           >
             <div class="col-span-7">Description</div>
-            <div class="col-span-2 text-right">Qty</div>
-            <div class="col-span-2 text-right">Rate</div>
+            <div class="col-span-2 text-end">Qty</div>
+            <div class="col-span-2 text-end">Rate</div>
             <div class="col-span-1"></div>
           </div>
           {#each drawerFormData.lineItems || [] as item, index (item.id || `${index}`)}
@@ -950,7 +950,7 @@
                   bind:value={item.quantity}
                   min="0"
                   step="1"
-                  class="bg-background w-full rounded-md border px-3 py-2 text-right text-sm"
+                  class="bg-background w-full rounded-md border px-3 py-2 text-end text-sm"
                 />
               </div>
               <div class="col-span-2">
@@ -959,7 +959,7 @@
                   bind:value={item.unitPrice}
                   min="0"
                   step="0.01"
-                  class="bg-background w-full rounded-md border px-3 py-2 text-right text-sm"
+                  class="bg-background w-full rounded-md border px-3 py-2 text-end text-sm"
                 />
               </div>
               <div class="col-span-1 flex justify-end">

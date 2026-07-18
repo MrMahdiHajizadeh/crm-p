@@ -10,6 +10,7 @@
   import * as Select from '$lib/components/ui/select/index.js';
   import { toast } from '$lib/components/ui/toast/index.js';
   import { Calendar, Clock, Phone, Mail, Users, FileText } from '@lucide/svelte';
+  import PersianDateTimePicker from './PersianDateTimePicker.svelte';
 
   /** @type {{
    *   open: boolean,
@@ -38,14 +39,23 @@
     { value: 'scheduled', label: $_('interaction.results.scheduled') },
   ];
 
+  // Helper: get local datetime string in YYYY-MM-DDTHH:mm format
+  function getLocalDateTimeString(date = new Date()) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  }
+
   // Form state
   let interactionType = $state('call');
-  let interactionDate = $state(new Date().toISOString().slice(0, 16));
+  let interactionDate = $state(getLocalDateTimeString());
   let durationMinutes = $state(0);
   let subject = $state('');
   let description = $state('');
   let result = $state(undefined);
-  let followUpDate = $state('');
+  // Default follow-up to tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  let followUpDate = $state(getLocalDateTimeString(tomorrow));
   // Hidden form ref for use:enhance
   let interactionForm = $state(null);
 
@@ -78,7 +88,7 @@
 <Dialog.Root open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
   <Dialog.Portal>
     <Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-    <Dialog.Content class="fixed start-1/2 top-[50%] z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-6 shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-h-[85vh] overflow-y-auto">
+    <Dialog.Content class="sm:max-w-md rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-6 shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-h-[85vh] overflow-y-auto">
       <Dialog.Header>
         <Dialog.Title class="text-[15px] font-semibold text-[var(--text)]">
           {$_('interaction.form.title')}
@@ -116,11 +126,10 @@
             <Label for="interaction-date" class="text-[12px] font-medium text-[var(--text)]">
               {$_('interaction.form.date')}
             </Label>
-            <Input
+            <PersianDateTimePicker
               id="interaction-date"
-              type="datetime-local"
-              bind:value={interactionDate}
-              class="text-[13px]"
+              value={interactionDate}
+              onValueChange={(v) => interactionDate = v}
             />
           </div>
           <div class="flex flex-col gap-1.5">
@@ -187,11 +196,10 @@
             <Label for="follow-up" class="text-[12px] font-medium text-[var(--text)]">
               {$_('interaction.form.follow_up')}
             </Label>
-            <Input
+            <PersianDateTimePicker
               id="follow-up"
-              type="datetime-local"
-              bind:value={followUpDate}
-              class="text-[13px]"
+              value={followUpDate}
+              onValueChange={(v) => followUpDate = v}
             />
           </div>
         </div>
@@ -220,10 +228,10 @@
   <input type="hidden" name="entity_type" value={entityType} />
   <input type="hidden" name="entity_id" value={entityId} />
   <input type="hidden" name="interaction_type" value={interactionType} />
-  <input type="hidden" name="interaction_date" value={new Date(interactionDate).toISOString()} />
+  <input type="hidden" name="interaction_date" value={interactionDate ? new Date(interactionDate).toISOString() : ''} />
   <input type="hidden" name="duration_minutes" value={durationMinutes > 0 ? String(durationMinutes) : ''} />
   <input type="hidden" name="subject" value={subject} />
   <input type="hidden" name="description" value={description} />
   <input type="hidden" name="result" value={result || ''} />
-  <input type="hidden" name="follow_up_date" value={followUpDate || ''} />
+  <input type="hidden" name="follow_up_date" value={followUpDate ? new Date(followUpDate).toISOString() : ''} />
 </form>

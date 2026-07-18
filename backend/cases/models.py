@@ -204,7 +204,7 @@ class Case(AssignableMixin, BaseModel):
                 except type(self).DoesNotExist:
                     old_status = None
             if old_status != "Closed":
-                from cases.approvals import Approval, find_matching_rule
+
 
                 rule = find_matching_rule(self, trigger_event="pre_close")
                 if rule is not None:
@@ -405,7 +405,7 @@ class CsatSurvey(BaseModel):
     the policy in the migration.
     """
 
-    RATING_CHOICES = ((i, str(i)) for i in range(1, 6))
+    RATING_CHOICES = ((1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5"))
 
     case = models.OneToOneField(
         Case, on_delete=models.CASCADE, related_name="csat_survey"

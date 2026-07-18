@@ -206,25 +206,25 @@
             <dl class="grid grid-cols-1 gap-y-3 text-[12px]">
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Account</dt>
-                <dd class="truncate text-right font-medium text-[color:var(--text)]">{opp?.account?.name || '—'}</dd>
+                <dd class="truncate text-end font-medium text-[color:var(--text)]">{opp?.account?.name || '—'}</dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Stage</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {OPPORTUNITY_STAGES.find((s) => s.value === opp?.stage)?.label || opp?.stage || '—'}
                 </dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Close date</dt>
-                <dd class="text-right text-[color:var(--text-muted)]">{opp?.closed_on ? formatDate(opp.closed_on) : '—'}</dd>
+                <dd class="text-end text-[color:var(--text-muted)]">{opp?.closed_on ? formatDate(opp.closed_on) : '—'}</dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Probability</dt>
-                <dd class="text-right tabular-nums text-[color:var(--text-muted)]">{opp?.probability != null ? `${opp.probability}%` : '—'}</dd>
+                <dd class="text-end tabular-nums text-[color:var(--text-muted)]">{opp?.probability != null ? `${opp.probability}%` : '—'}</dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Source</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">{opp?.lead_source || '—'}</dd>
+                <dd class="truncate text-end text-[color:var(--text-muted)]">{opp?.lead_source || '—'}</dd>
               </div>
             </dl>
           </SectionCard>

@@ -32,7 +32,7 @@
   let formExpiresAt = $state('');
   let creating = $state(false);
 
-  // Copy-once panel state — populated only from the create action result.
+  // Copy-once panel state � populated only from the create action result.
   let copied = $state(false);
   /** @type {string} */
   let confirmingId = $state('');
@@ -42,7 +42,7 @@
 
   // The just-created raw token if we have it, else a paste-your-token hint. We
   // can only ever show the real token in the same response that created it.
-  const tokenValue = $derived(form?.created?.token || 'bcrm_pat_…paste-your-token');
+  const tokenValue = $derived(form?.created?.token || 'bcrm_pat_�paste-your-token');
 
   /**
    * MCP clients we give a ready-to-paste config for. Claude Desktop, Cursor and
@@ -50,7 +50,7 @@
    * file differs); Codex CLI uses TOML.
    */
   const CLIENTS = [
-    { id: 'claude', label: 'Claude Desktop', lang: 'json', file: 'claude_desktop_config.json — Settings → Developer → Edit Config' },
+    { id: 'claude', label: 'Claude Desktop', lang: 'json', file: 'claude_desktop_config.json � Settings ? Developer ? Edit Config' },
     { id: 'cursor', label: 'Cursor', lang: 'json', file: '~/.cursor/mcp.json (global) or .cursor/mcp.json (per project)' },
     { id: 'codex', label: 'Codex CLI', lang: 'toml', file: '~/.codex/config.toml' },
     { id: 'gemini', label: 'Gemini CLI', lang: 'json', file: '~/.gemini/settings.json' }
@@ -98,7 +98,7 @@ BCRM_TOKEN = "${token}"`;
       formName = '';
       formExpiresAt = '';
       copied = false;
-      // Surface the connect instructions immediately — the config now carries
+      // Surface the connect instructions immediately � the config now carries
       // the real token, which the user can only copy from this one response.
       helpOpen = true;
     } else if (form?.revoked) {
@@ -118,7 +118,7 @@ BCRM_TOKEN = "${token}"`;
       toast.success('Token copied to clipboard');
       setTimeout(() => (copied = false), 2000);
     } catch {
-      toast.error('Could not copy — select and copy manually');
+      toast.error('Could not copy � select and copy manually');
     }
   }
 
@@ -130,7 +130,7 @@ BCRM_TOKEN = "${token}"`;
       toast.success('Config copied to clipboard');
       setTimeout(() => (configCopied = false), 2000);
     } catch {
-      toast.error('Could not copy — select and copy manually');
+      toast.error('Could not copy � select and copy manually');
     }
   }
 
@@ -270,7 +270,7 @@ BCRM_TOKEN = "${token}"`;
               <Table.Head>{$_('settings.expires')}</Table.Head>
               <Table.Head>{$_('settings.created')}</Table.Head>
               <Table.Head>{$_('common.status')}</Table.Head>
-              <Table.Head class="text-right">{$_('common.actions')}</Table.Head>
+              <Table.Head class="text-end">{$_('common.actions')}</Table.Head>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -300,7 +300,7 @@ BCRM_TOKEN = "${token}"`;
                     <Badge variant="outline">{$_('common.active')}</Badge>
                   {/if}
                 </Table.Cell>
-                <Table.Cell class="text-right">
+                <Table.Cell class="text-end">
                   {#if !isRevoked(token)}
                     {#if confirmingId === token.id}
                       <form
@@ -341,7 +341,7 @@ BCRM_TOKEN = "${token}"`;
                       </Button>
                     {/if}
                   {:else}
-                    <span class="text-xs text-[var(--text-secondary)]">—</span>
+                    <span class="text-xs text-[var(--text-secondary)]">�</span>
                   {/if}
                 </Table.Cell>
               </Table.Row>
@@ -356,7 +356,7 @@ BCRM_TOKEN = "${token}"`;
       <button
         type="button"
         onclick={() => (helpOpen = !helpOpen)}
-        class="flex w-full items-center gap-2 p-4 text-left"
+        class="flex w-full items-center gap-2 p-4 text-start"
       >
         {#if helpOpen}
           <ChevronDown class="h-4 w-4 text-[var(--text-secondary)]" />
@@ -387,7 +387,7 @@ BCRM_TOKEN = "${token}"`;
             <code class="font-mono text-xs text-[var(--text-primary)]">{selectedClientMeta.file}</code
             >, then restart {selectedClientMeta.label}.
             {#if form?.created?.token}
-              The token below is yours — it's shown only this once.
+              The token below is yours � it's shown only this once.
             {:else}
               Replace <code class="font-mono text-xs">BCRM_TOKEN</code> with a token you created above.
             {/if}
@@ -421,7 +421,7 @@ BCRM_TOKEN = "${token}"`;
               class="underline">uv</a
             >
             (provides <code class="font-mono">uvx</code>) on your machine. The agent acts as you and
-            inherits your role — it can't see or do anything you can't.
+            inherits your role � it can't see or do anything you can't.
           </p>
         </div>
       {/if}

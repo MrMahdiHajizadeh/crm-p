@@ -61,7 +61,7 @@
               <button
                 type="submit"
                 disabled={loading}
-                class="group w-full rounded-xl border border-[var(--border-default)] bg-[var(--surface-default)] p-5 text-left shadow-sm transition-all hover:border-[var(--border-strong)] hover:shadow-md focus:ring-2 focus:ring-[var(--color-primary-default)] focus:ring-offset-2 focus:outline-none disabled:opacity-60"
+                class="group w-full rounded-xl border border-[var(--border-default)] bg-[var(--surface-default)] p-5 text-start shadow-sm transition-all hover:border-[var(--border-strong)] hover:shadow-md focus:ring-2 focus:ring-[var(--color-primary-default)] focus:ring-offset-2 focus:outline-none disabled:opacity-60"
               >
                 <div class="flex items-center gap-4">
                   <div

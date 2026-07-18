@@ -55,19 +55,19 @@
   const statusOptions = [
     {
       value: 'New',
-      label: 'New',
+      get label() { return $_('filters.new'); },
       color:
         'bg-[var(--task-upcoming-bg)] text-[var(--task-upcoming)] dark:bg-[var(--task-upcoming)]/15'
     },
     {
       value: 'In Progress',
-      label: 'In Progress',
+      get label() { return $_('filters.in_progress'); },
       color:
         'bg-[var(--task-due-today-bg)] text-[var(--task-due-today)] dark:bg-[var(--task-due-today)]/15'
     },
     {
       value: 'Completed',
-      label: 'Completed',
+      get label() { return $_('filters.completed'); },
       color:
         'bg-[var(--task-completed-bg)] text-[var(--task-completed)] dark:bg-[var(--task-completed)]/15'
     }
@@ -76,19 +76,19 @@
   const priorityOptions = [
     {
       value: 'High',
-      label: 'High',
+      get label() { return $_('filters.high'); },
       color:
         'bg-[var(--priority-high-bg)] text-[var(--priority-high)] dark:bg-[var(--priority-high)]/15'
     },
     {
       value: 'Medium',
-      label: 'Medium',
+      get label() { return $_('filters.medium'); },
       color:
         'bg-[var(--priority-medium-bg)] text-[var(--priority-medium)] dark:bg-[var(--priority-medium)]/15'
     },
     {
       value: 'Low',
-      label: 'Low',
+      get label() { return $_('filters.low'); },
       color:
         'bg-[var(--priority-low-bg)] text-[var(--priority-low)] dark:bg-[var(--priority-low)]/15'
     }
@@ -346,7 +346,7 @@
   const filters = $derived(data.filters || {});
 
   // Status options for filter dropdown
-  const statusFilterOptions = $derived([{ value: '', label: 'All Statuses' }, ...statusOptions]);
+  const statusFilterOptions = $derived([{ value: '', label: $_('filters.all_statuses') }, ...statusOptions]);
 
   // Priority options for filter dropdown
   const priorityFilterOptions = $derived([
@@ -447,7 +447,7 @@
     localTasks = [...filteredTasks];
   });
 
-  // Active row (highlighted in the table) — null until the user clicks a row.
+  // Active row (highlighted in the table) � null until the user clicks a row.
   /** @type {string | null} */
   let activeRowId = $state(null);
 
@@ -732,11 +732,11 @@
   let selectedDate = $state(today.toISOString().slice(0, 10));
 
   // Persian month names indexed by Gregorian month (0=Jan, 11=Dec)
-  // Mapping: Jan→دی, Feb→بهمن, Mar→اسفند, Apr→فروردین, May→اردیبهشت, Jun→خرداد,
-  //          Jul→تیر, Aug→مرداد, Sep→شهریور, Oct→مهر, Nov→آبان, Dec→آذر
+  // Mapping: Jan???, Feb?????, Mar??????, Apr????????, May?????????, Jun??????,
+  //          Jul????, Aug??????, Sep???????, Oct????, Nov?????, Dec????
   const monthNames = [
-    'دی', 'بهمن', 'اسفند', 'فروردین', 'اردیبهشت', 'خرداد',
-    'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر'
+    '??', '????', '?????', '???????', '????????', '?????',
+    '???', '?????', '??????', '???', '????', '???'
   ];
 
   // Calendar computed values
@@ -1346,12 +1346,12 @@
                 onclick={goToToday}
                 class="text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/20"
               >
-                امروز
+                ?????
               </Button>
             </div>
             <!-- Days of Week -->
             <div class="bg-muted/50 grid grid-cols-7 border-b">
-              {#each ['ی', 'د', 'س', 'چ', 'پ', 'ج', 'ش'] as day}
+              {#each ['?', '?', '?', '?', '?', '?', '?'] as day}
                 <div
                   class="text-muted-foreground border-r p-3 text-center text-sm font-medium last:border-r-0"
                 >
@@ -1435,7 +1435,7 @@
                   <button
                     type="button"
                     onclick={() => openTaskSheet(task.id)}
-                    class="hover:bg-muted bg-muted/50 block w-full rounded-lg border p-3 text-left transition-colors"
+                    class="hover:bg-muted bg-muted/50 block w-full rounded-lg border p-3 text-start transition-colors"
                   >
                     <div class="mb-2 flex items-start justify-between gap-2">
                       <h4 class="text-foreground line-clamp-2 flex-1 font-medium">

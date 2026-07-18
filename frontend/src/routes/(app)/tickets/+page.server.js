@@ -11,36 +11,9 @@
 
 import { fail, redirect, error } from '@sveltejs/kit';
 import { env } from '$env/dynamic/public';
-import { apiRequest, buildQueryParams } from '$lib/api-helpers.js';
+import { apiRequest, buildQueryParams, forwardMultipart } from '$lib/api-helpers.js';
 
 const API_BASE_URL = `${env.PUBLIC_DJANGO_API_URL}/api`;
-
-/**
- * Forward a multipart upload to Django, preserving the auth cookie.
- * apiRequest only handles JSON, so file uploads need a direct fetch.
- */
-async function forwardMultipart(endpoint, file, cookies) {
-  const accessToken = cookies?.get?.('jwt_access');
-  const fd = new FormData();
-  fd.append('file', file, file.name || 'upload.csv');
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: 'POST',
-    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-    body: fd
-  });
-  const raw = await response.text();
-  let body;
-  try {
-    body = raw ? JSON.parse(raw) : {};
-  } catch (err) {
-    console.error(
-      `forwardMultipart: non-JSON response from ${endpoint} (status ${response.status}):`,
-      raw.slice(0, 500)
-    );
-    body = {};
-  }
-  return { status: response.status, body };
-}
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ url, locals, cookies }) {

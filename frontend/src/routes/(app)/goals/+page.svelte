@@ -432,7 +432,7 @@
           <tr class="border-b border-[var(--border-default)] bg-[var(--surface-sunken)]">
             {#each ['Goal', 'Type', 'Target', 'Progress', 'Period', 'Assigned To', 'Status'] as label}
               <th
-                class="px-4 py-3 text-left text-xs font-semibold tracking-wider text-[var(--text-secondary)] uppercase"
+                class="px-4 py-3 text-start text-xs font-semibold tracking-wider text-[var(--text-secondary)] uppercase"
               >
                 {label}
               </th>
@@ -596,7 +596,7 @@
                 max={100}
                 class="h-1.5 w-24 {getProgressColor(entry.percent)}"
               />
-              <span class="w-12 text-right text-sm font-semibold text-[var(--text-primary)]">
+              <span class="w-12 text-end text-sm font-semibold text-[var(--text-primary)]">
                 {entry.percent}%
               </span>
             </div>

@@ -316,17 +316,17 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-[var(--border-default)]">
-              <th class="py-2 text-left font-medium text-[var(--text-secondary)]">Period</th>
-              <th class="py-2 text-right font-medium text-[var(--text-secondary)]">Invoices</th>
-              <th class="py-2 text-right font-medium text-[var(--text-secondary)]">Revenue</th>
+              <th class="py-2 text-start font-medium text-[var(--text-secondary)]">Period</th>
+              <th class="py-2 text-end font-medium text-[var(--text-secondary)]">Invoices</th>
+              <th class="py-2 text-end font-medium text-[var(--text-secondary)]">Revenue</th>
             </tr>
           </thead>
           <tbody>
             {#each revenue.data as item}
               <tr class="border-b border-[var(--border-default)] last:border-b-0">
                 <td class="py-3 text-[var(--text-primary)]">{formatDate(item.period)}</td>
-                <td class="py-3 text-right text-[var(--text-secondary)]">{item.count}</td>
-                <td class="py-3 text-right font-medium text-[var(--color-success-default)]">
+                <td class="py-3 text-end text-[var(--text-secondary)]">{item.count}</td>
+                <td class="py-3 text-end font-medium text-[var(--color-success-default)]">
                   {formatCurrency(Number(item.revenue), orgCurrency)}
                 </td>
               </tr>
@@ -335,10 +335,10 @@
           <tfoot>
             <tr class="border-t border-[var(--border-default)] bg-[var(--surface-sunken)]">
               <td class="py-3 font-medium text-[var(--text-primary)]">Total</td>
-              <td class="py-3 text-right font-medium text-[var(--text-primary)]"
+              <td class="py-3 text-end font-medium text-[var(--text-primary)]"
                 >{revenue.total?.count || 0}</td
               >
-              <td class="py-3 text-right font-bold text-[var(--color-success-default)]">
+              <td class="py-3 text-end font-bold text-[var(--color-success-default)]">
                 {formatCurrency(Number(revenue.total?.revenue || 0), orgCurrency)}
               </td>
             </tr>
@@ -418,7 +418,7 @@
     <!-- Total Outstanding -->
     <div class="flex items-center justify-between border-t border-[var(--border-default)] pt-4">
       <span class="font-medium text-[var(--text-secondary)]">Total Outstanding</span>
-      <div class="text-right">
+      <div class="text-end">
         <p class="text-2xl font-bold text-[var(--text-primary)]">
           {formatCurrency(Number(aging.total?.amount || 0), orgCurrency)}
         </p>

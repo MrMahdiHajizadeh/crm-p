@@ -48,6 +48,8 @@ class ApiHomeView(APIView):
         },
     )
     def get(self, request, format=None):
+        if not request.profile:
+            return Response({"error": "Profile not found"}, status=status.HTTP_403_FORBIDDEN)
         org = request.profile.org
         profile = request.profile
         today = date.today()
@@ -363,7 +365,7 @@ class ActivityListView(APIView):
         if date_from:
             queryset = queryset.filter(created_at__gte=date_from)
         if date_to:
-            queryset = queryset.filter(created_at__lte=date_to)
+            queryset = queryset.filter(created_at__date__lte=date_to)
 
         # Get total count before pagination
         total_count = queryset.count()

@@ -271,7 +271,7 @@ export const actions = {
       'existing customer',
       'partner',
       'public relations',
-      'compaign',
+      'campaign',
       'other'
     ];
     const validStatuses = ['assigned', 'in process', 'converted', 'recycled', 'closed'];
@@ -415,7 +415,7 @@ export const actions = {
       'existing customer',
       'partner',
       'public relations',
-      'compaign',
+      'campaign',
       'other'
     ];
     const validStatuses = ['assigned', 'in process', 'converted', 'recycled', 'closed'];
@@ -792,6 +792,36 @@ export const actions = {
     } catch (err) {
       console.error('Error fetching lead:', err);
       return fail(500, { error: 'Failed to fetch lead' });
+    }
+  },
+
+  /**
+   * Get interactions for a specific lead
+   */
+  getInteractions: async ({ request, locals, cookies }) => {
+    const org = locals.org;
+    if (!org) return fail(401, { error: 'Organization context required' });
+
+    try {
+      const form = await request.formData();
+      const leadId = form.get('leadId')?.toString();
+      if (!leadId) return fail(400, { error: 'Lead ID required' });
+
+      const response = await apiRequest(
+        `/leads/${leadId}/interactions/`,
+        {},
+        { cookies, org }
+      );
+
+      // Django returns either array or { results: [...] }
+      const interactions = Array.isArray(response)
+        ? response
+        : (response.results || []);
+
+      return { success: true, interactions };
+    } catch (err) {
+      console.error('Error fetching interactions:', err);
+      return fail(500, { error: /** @type {any} */ (err)?.message || 'Failed to fetch interactions' });
     }
   }
 };

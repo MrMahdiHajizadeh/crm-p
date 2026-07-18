@@ -335,26 +335,26 @@
     {:else}
       <table class="w-full text-sm">
         <thead>
-          <tr class="border-b border-[var(--border-default)] text-left text-xs text-[var(--text-secondary)]">
+          <tr class="border-b border-[var(--border-default)] text-start text-xs text-[var(--text-secondary)]">
             <th class="py-1.5 font-medium">Agent</th>
-            <th class="py-1.5 text-right font-medium">Handled</th>
-            <th class="py-1.5 text-right font-medium">Avg FRT</th>
-            <th class="py-1.5 text-right font-medium">Breach rate</th>
-            <th class="py-1.5 text-right font-medium">CSAT</th>
+            <th class="py-1.5 text-end font-medium">Handled</th>
+            <th class="py-1.5 text-end font-medium">Avg FRT</th>
+            <th class="py-1.5 text-end font-medium">Breach rate</th>
+            <th class="py-1.5 text-end font-medium">CSAT</th>
           </tr>
         </thead>
         <tbody>
           {#each data.metrics.agents.results as row (row.profile_id)}
             <tr class="border-b border-[var(--border-default)]/40">
               <td class="py-1.5">{row.email || row.name}</td>
-              <td class="py-1.5 text-right tabular-nums">{row.handled}</td>
-              <td class="py-1.5 text-right tabular-nums">
+              <td class="py-1.5 text-end tabular-nums">{row.handled}</td>
+              <td class="py-1.5 text-end tabular-nums">
                 {fmtHours(row.avg_frt_hours)}
               </td>
-              <td class="py-1.5 text-right tabular-nums">
+              <td class="py-1.5 text-end tabular-nums">
                 {fmtPercent(row.breach_rate)}
               </td>
-              <td class="py-1.5 text-right tabular-nums text-[var(--text-secondary)]">
+              <td class="py-1.5 text-end tabular-nums text-[var(--text-secondary)]">
                 {row.csat_avg ?? '—'}
               </td>
             </tr>

@@ -531,7 +531,7 @@
             </div>
 
             <!-- Dates -->
-            <div class="space-y-3 text-right">
+            <div class="space-y-3 text-end">
               {#if isEditing}
                 <div class="flex items-center justify-end gap-2">
                   <Label class="text-muted-foreground">Currency</Label>
@@ -654,9 +654,9 @@
               class="bg-muted/50 text-muted-foreground grid grid-cols-12 gap-4 border-b px-4 py-3 text-sm font-medium"
             >
               <div class="col-span-5">Description</div>
-              <div class="col-span-2 text-right">Quantity</div>
-              <div class="col-span-2 text-right">Rate</div>
-              <div class="col-span-2 text-right">Amount</div>
+              <div class="col-span-2 text-end">Quantity</div>
+              <div class="col-span-2 text-end">Rate</div>
+              <div class="col-span-2 text-end">Amount</div>
               {#if isEditing}<div class="col-span-1"></div>{/if}
             </div>
 
@@ -690,38 +690,38 @@
                     </div>
                   {/if}
                 </div>
-                <div class="col-span-2 text-right">
+                <div class="col-span-2 text-end">
                   {#if isEditing}
                     <Input
                       type="number"
                       bind:value={item.quantity}
                       min="0"
-                      class="border-0 bg-transparent px-0 text-right focus-visible:ring-0"
+                      class="border-0 bg-transparent px-0 text-end focus-visible:ring-0"
                       oninput={() => updateLineItemAmount(index)}
                     />
                   {:else}
                     {item.quantity}
                   {/if}
                 </div>
-                <div class="col-span-2 text-right">
+                <div class="col-span-2 text-end">
                   {#if isEditing}
                     <Input
                       type="number"
                       bind:value={item.rate}
                       min="0"
                       step="0.01"
-                      class="border-0 bg-transparent px-0 text-right focus-visible:ring-0"
+                      class="border-0 bg-transparent px-0 text-end focus-visible:ring-0"
                       oninput={() => updateLineItemAmount(index)}
                     />
                   {:else}
                     {formatCurrency(item.rate, invoice.currency)}
                   {/if}
                 </div>
-                <div class="col-span-2 text-right font-medium">
+                <div class="col-span-2 text-end font-medium">
                   {formatCurrency(item.quantity * item.rate, invoice.currency)}
                 </div>
                 {#if isEditing}
-                  <div class="col-span-1 text-right">
+                  <div class="col-span-1 text-end">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -764,7 +764,7 @@
                     min="0"
                     max="100"
                     step="0.1"
-                    class="h-7 w-16 text-right text-xs"
+                    class="h-7 w-16 text-end text-xs"
                   />
                   <span class="text-muted-foreground">%</span>
                 {:else}

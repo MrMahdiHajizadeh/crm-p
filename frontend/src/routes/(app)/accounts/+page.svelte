@@ -59,36 +59,36 @@
 
   // Industry options for drawer
   const industryOptions = [
-    { value: 'ADVERTISING', label: 'Advertising' },
-    { value: 'AGRICULTURE', label: 'Agriculture' },
-    { value: 'APPAREL & ACCESSORIES', label: 'Apparel & Accessories' },
-    { value: 'AUTOMOTIVE', label: 'Automotive' },
-    { value: 'BANKING', label: 'Banking' },
-    { value: 'BIOTECHNOLOGY', label: 'Biotechnology' },
-    { value: 'BUILDING MATERIALS & EQUIPMENT', label: 'Building Materials & Equipment' },
-    { value: 'CHEMICAL', label: 'Chemical' },
-    { value: 'COMPUTER', label: 'Computer' },
-    { value: 'EDUCATION', label: 'Education' },
-    { value: 'ELECTRONICS', label: 'Electronics' },
-    { value: 'ENERGY', label: 'Energy' },
-    { value: 'ENTERTAINMENT & LEISURE', label: 'Entertainment & Leisure' },
-    { value: 'FINANCE', label: 'Finance' },
-    { value: 'FOOD & BEVERAGE', label: 'Food & Beverage' },
-    { value: 'GROCERY', label: 'Grocery' },
-    { value: 'HEALTHCARE', label: 'Healthcare' },
-    { value: 'INSURANCE', label: 'Insurance' },
-    { value: 'LEGAL', label: 'Legal' },
-    { value: 'MANUFACTURING', label: 'Manufacturing' },
-    { value: 'PUBLISHING', label: 'Publishing' },
-    { value: 'REAL ESTATE', label: 'Real Estate' },
-    { value: 'SERVICE', label: 'Service' },
-    { value: 'SOFTWARE', label: 'Software' },
-    { value: 'SPORTS', label: 'Sports' },
-    { value: 'TECHNOLOGY', label: 'Technology' },
-    { value: 'TELECOMMUNICATIONS', label: 'Telecommunications' },
-    { value: 'TELEVISION', label: 'Television' },
-    { value: 'TRANSPORTATION', label: 'Transportation' },
-    { value: 'VENTURE CAPITAL', label: 'Venture Capital' }
+    { value: 'ADVERTISING', get label() { return $_('industries.advertising'); } },
+    { value: 'AGRICULTURE', get label() { return $_('industries.agriculture'); } },
+    { value: 'APPAREL & ACCESSORIES', get label() { return $_('industries.apparel_accessories'); } },
+    { value: 'AUTOMOTIVE', get label() { return $_('industries.automotive'); } },
+    { value: 'BANKING', get label() { return $_('industries.banking'); } },
+    { value: 'BIOTECHNOLOGY', get label() { return $_('industries.biotechnology'); } },
+    { value: 'BUILDING MATERIALS & EQUIPMENT', get label() { return $_('industries.building_materials_equipment'); } },
+    { value: 'CHEMICAL', get label() { return $_('industries.chemical'); } },
+    { value: 'COMPUTER', get label() { return $_('industries.computer'); } },
+    { value: 'EDUCATION', get label() { return $_('industries.education'); } },
+    { value: 'ELECTRONICS', get label() { return $_('industries.electronics'); } },
+    { value: 'ENERGY', get label() { return $_('industries.energy'); } },
+    { value: 'ENTERTAINMENT & LEISURE', get label() { return $_('industries.entertainment_leisure'); } },
+    { value: 'FINANCE', get label() { return $_('industries.finance'); } },
+    { value: 'FOOD & BEVERAGE', get label() { return $_('industries.food_beverage'); } },
+    { value: 'GROCERY', get label() { return $_('industries.grocery'); } },
+    { value: 'HEALTHCARE', get label() { return $_('industries.healthcare'); } },
+    { value: 'INSURANCE', get label() { return $_('industries.insurance'); } },
+    { value: 'LEGAL', get label() { return $_('industries.legal'); } },
+    { value: 'MANUFACTURING', get label() { return $_('industries.manufacturing'); } },
+    { value: 'PUBLISHING', get label() { return $_('industries.publishing'); } },
+    { value: 'REAL ESTATE', get label() { return $_('industries.real_estate'); } },
+    { value: 'SERVICE', get label() { return $_('industries.service'); } },
+    { value: 'SOFTWARE', get label() { return $_('industries.software'); } },
+    { value: 'SPORTS', get label() { return $_('industries.sports'); } },
+    { value: 'TECHNOLOGY', get label() { return $_('industries.technology'); } },
+    { value: 'TELECOMMUNICATIONS', get label() { return $_('industries.telecommunications'); } },
+    { value: 'TELEVISION', get label() { return $_('industries.television'); } },
+    { value: 'TRANSPORTATION', get label() { return $_('industries.transportation'); } },
+    { value: 'VENTURE CAPITAL', get label() { return $_('industries.venture_capital'); } }
   ];
 
   // Country options for drawer
@@ -462,8 +462,8 @@
 
   // Industry options for filter
   const industryFilterOptions = $derived([
-    { value: '', label: 'All Industries' },
-    ...industries.map((ind) => ({ value: ind, label: ind }))
+    { value: '', get label() { return $_('filters.all_industries'); } },
+    ...industries.map((ind) => ({ value: ind, get label() { return $_('industries.' + ind.toLowerCase().replace(/[^a-z0-9]+/g, '_')); }}))
   ]);
 
   // URL-based filter state from server
@@ -947,7 +947,7 @@
       {#each filteredAccounts as account (account.id)}
         <button
           type="button"
-          class="flex w-full items-start gap-4 p-4 text-left transition-colors hover:bg-[var(--surface-sunken)] {!account.isActive
+          class="flex w-full items-start gap-4 p-4 text-start transition-colors hover:bg-[var(--surface-sunken)] {!account.isActive
             ? 'opacity-60'
             : ''}"
           onclick={() => openAccount(account)}

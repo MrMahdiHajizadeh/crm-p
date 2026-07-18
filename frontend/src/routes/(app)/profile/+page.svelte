@@ -168,7 +168,7 @@
           </Avatar.Root>
 
           <!-- User Info -->
-          <div class="flex-1 text-center sm:text-left">
+          <div class="flex-1 text-center sm:text-start">
             <h2 class="text-foreground text-xl font-semibold">
               {data.user.name || $_('profile.unnamed_user')}
             </h2>

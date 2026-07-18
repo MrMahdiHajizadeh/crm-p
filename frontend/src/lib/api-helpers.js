@@ -230,3 +230,38 @@ export function extractPagination(response, limit = 10) {
     hasPrevious: response.previous !== null
   };
 }
+
+/**
+ * Forward a multipart/form-data request to the backend (file upload wrapper).
+ * apiRequest only handles JSON, so file uploads need a direct fetch.
+ *
+ * @param {string} endpoint - API endpoint (e.g., '/contacts/import/preview/')
+ * @param {File} file - File to upload
+ * @param {{ get?: (name: string) => string | undefined }} cookies - Cookie accessor (server-side)
+ * @returns {Promise<{ status: number, body: Record<string, unknown> }>}
+ */
+export async function forwardMultipart(endpoint, file, cookies) {
+  const API_BASE_URL =
+    /** @type {string} */ (import.meta.env?.PUBLIC_DJANGO_API_URL || 'http://localhost:8000') +
+    '/api';
+  const accessToken = cookies?.get?.('jwt_access');
+  const fd = new FormData();
+  fd.append('file', file, file.name || 'upload.csv');
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    body: fd
+  });
+  const raw = await response.text();
+  let body;
+  try {
+    body = raw ? JSON.parse(raw) : {};
+  } catch (err) {
+    console.error(
+      `forwardMultipart: non-JSON response from ${endpoint} (status ${response.status}):`,
+      raw.slice(0, 500)
+    );
+    body = {};
+  }
+  return { status: response.status, body };
+}

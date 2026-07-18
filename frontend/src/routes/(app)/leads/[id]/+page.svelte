@@ -262,6 +262,8 @@
 <Tabs.Root bind:value={tab} class="px-7 md:px-8">
   <Tabs.List class="">
     <Tabs.Trigger class="" value="overview">Overview</Tabs.Trigger>
+    <Tabs.Trigger class="" value="details">مشخصات</Tabs.Trigger>
+    <Tabs.Trigger class="" value="summary">خلاصه</Tabs.Trigger>
     <Tabs.Trigger class="" value="activity">
       Activity
       <span
@@ -581,31 +583,31 @@
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Source</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {sourceLabel || '—'}
                 </dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Industry</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {industryLabel || '—'}
                 </dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Company</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {lead?.company_name || '—'}
                 </dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Created by</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {lead?.created_by?.email || '—'}
                 </dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Updated</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {lead?.updated_at ? formatRelativeDate(lead.updated_at) : '—'}
                 </dd>
               </div>
@@ -666,7 +668,7 @@
                   <div class="flex items-baseline justify-between gap-3">
                     <dt class="text-[color:var(--text-subtle)]">Last contact</dt>
                     <dd
-                      class="truncate text-right text-[color:var(--text-muted)]"
+                      class="truncate text-end text-[color:var(--text-muted)]"
                       title={formatDate(lead.last_contacted)}
                     >
                       {formatRelativeDate(lead.last_contacted)}
@@ -677,7 +679,7 @@
                   <div class="flex items-baseline justify-between gap-3">
                     <dt class="text-[color:var(--text-subtle)]">Next follow-up</dt>
                     <dd
-                      class="truncate text-right text-[color:var(--text-muted)]"
+                      class="truncate text-end text-[color:var(--text-muted)]"
                       title={formatDate(lead.next_follow_up)}
                     >
                       {formatDate(lead.next_follow_up)}
@@ -704,6 +706,365 @@
               </div>
             {/if}
           </SectionCard>
+      </div>
+    </div>
+  </Tabs.Content>
+
+  <Tabs.Content class="" value="details">
+    <div class="pt-4 pb-8">
+      <div class="mx-auto max-w-3xl">
+        <SectionCard title="مشخصات اصلی">
+          <div class="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">عنوان</p>
+              <p class="mt-1 text-[14px] font-semibold text-[var(--text)]">{lead?.title || '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">نام</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.first_name || '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">نام خانوادگی</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.last_name || '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">ایمیل</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">
+                {#if lead?.email}
+                  <a href="mailto:{lead.email}" class="text-[var(--color-primary-default)] hover:underline">{lead.email}</a>
+                {:else}—{/if}
+              </p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">تلفن</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.phone || '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">عنوان شغلی</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.job_title || '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">شرکت</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.company_name || '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">وب‌سایت</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">
+                {#if lead?.website}
+                  <a href={normalizeUrl(lead.website)} target="_blank" rel="noopener noreferrer" class="text-[var(--color-primary-default)] hover:underline">{lead.website}</a>
+                {:else}—{/if}
+              </p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">لینکدین</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.linkedin_url || '—'}</p>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="وضعیت فروش" class="mt-6">
+          <div class="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">وضعیت</p>
+              <p class="mt-1">
+                {#if normalizedStatus}
+                  <span class="inline-flex items-center rounded-full px-3 py-1 text-[13px] font-medium {getOptionStyle(normalizedStatus, leadStatusOptions)}">
+                    {getOptionLabel(normalizedStatus, leadStatusOptions)}
+                  </span>
+                {:else}—{/if}
+              </p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">امتیاز</p>
+              <p class="mt-1">
+                {#if normalizedRating}
+                  <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[13px] font-medium {getOptionStyle(normalizedRating, leadRatingOptions)}">
+                    <Star class="size-3.5" />
+                    {getOptionLabel(normalizedRating, leadRatingOptions)}
+                  </span>
+                {:else}—{/if}
+              </p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">منبع</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{sourceLabel || '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">صنعت</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{industryLabel || '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">مبلغ فرصت</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">
+                {lead?.opportunity_amount != null ? formatCurrency(lead.opportunity_amount, lead?.currency || 'TOM') : '—'}
+              </p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">احتمال</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{probability != null ? `${probability}%` : '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">تاریخ بسته شدن</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.close_date ? formatDate(lead.close_date) : '—'}</p>
+            </div>
+            <div>
+              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">ارز</p>
+              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.currency || '—'}</p>
+            </div>
+          </div>
+        </SectionCard>
+
+        <SectionCard title="آدرس" class="mt-6">
+          {#if hasAddress}
+            <div class="flex flex-col gap-2">
+              {#if lead?.address_line}<p class="text-[14px] text-[var(--text-muted)]">{lead.address_line}</p>{/if}
+              <p class="text-[14px] text-[var(--text-muted)]">
+                {[lead?.city, lead?.state, lead?.postcode].filter(Boolean).join(' - ') || '—'}
+              </p>
+              {#if lead?.country}<p class="text-[14px] text-[var(--text-muted)]">{getCountryName(lead.country)}</p>{/if}
+            </div>
+          {:else}
+            <p class="text-[13px] italic text-[var(--text-subtle)]">آدرسی ثبت نشده است.</p>
+          {/if}
+        </SectionCard>
+
+        {#if lead?.description}
+          <SectionCard title="یادداشت‌ها" class="mt-6">
+            <p class="text-[13px] leading-relaxed text-[var(--text-muted)] whitespace-pre-wrap">{lead.description}</p>
+          </SectionCard>
+        {/if}
+      </div>
+    </div>
+  </Tabs.Content>
+
+  <Tabs.Content class="" value="summary">
+    <div class="grid grid-cols-1 gap-6 pt-4 pb-8 lg:grid-cols-[1fr_320px]">
+      <!-- Main column -->
+      <div class="flex flex-col gap-6">
+        <!-- Key Info Cards -->
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-4">
+            <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">وضعیت</p>
+            <p class="mt-1.5 text-[15px] font-semibold text-[var(--text)]">
+              {#if normalizedStatus}
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] {getOptionStyle(normalizedStatus, leadStatusOptions)}">
+                  {getOptionLabel(normalizedStatus, leadStatusOptions)}
+                </span>
+              {:else}—{/if}
+            </p>
+          </div>
+          <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-4">
+            <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">امتیاز</p>
+            <p class="mt-1.5 text-[15px] font-semibold text-[var(--text)]">
+              {#if normalizedRating}
+                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[13px] {getOptionStyle(normalizedRating, leadRatingOptions)}">
+                  <Star class="size-3.5" />
+                  {getOptionLabel(normalizedRating, leadRatingOptions)}
+                </span>
+              {:else}—{/if}
+            </p>
+          </div>
+          <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-4">
+            <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">تعاملات</p>
+            <p class="mt-1.5 text-[20px] font-bold tabular-nums text-[var(--text)]">
+              {interactions.length}
+            </p>
+          </div>
+          <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-4">
+            <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">پیگیری بعدی</p>
+            <p class="mt-1.5 text-[15px] font-semibold text-[var(--text)]">
+              {#if lead?.next_follow_up}
+                {formatDate(lead.next_follow_up)}
+              {:else}—{/if}
+            </p>
+          </div>
+        </div>
+
+        <!-- Recent Interactions -->
+        {#if interactions.length > 0}
+          <SectionCard title="آخرین تعاملات">
+            <div class="flex flex-col gap-3">
+              {#each interactions.slice(0, 5) as i (i.id)}
+                <div class="flex items-start gap-3 rounded-lg border border-[var(--border-faint)] p-3 transition-colors hover:bg-[var(--bg-elevated)]">
+                  <div class="flex size-8 shrink-0 items-center justify-center rounded-full border border-[var(--border-faint)] bg-[var(--bg-elevated)] text-[var(--text-muted)]">
+                    {#if i.interaction_type === 'call'}
+                      <Phone class="size-3.5" />
+                    {:else if i.interaction_type === 'email'}
+                      <Mail class="size-3.5" />
+                    {:else if i.interaction_type === 'meeting'}
+                      <Users class="size-3.5" />
+                    {:else}
+                      <FileText class="size-3.5" />
+                    {/if}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-2">
+                      <p class="truncate text-[13px] font-medium text-[var(--text)]">
+                        {i.subject || i.interaction_type_display || i.interaction_type}
+                      </p>
+                      <span class="shrink-0 text-[11px] text-[var(--text-subtle)]">
+                        {formatRelativeDate(i.interaction_date || i.created_at)}
+                      </span>
+                    </div>
+                    {#if i.description}
+                      <p class="mt-0.5 line-clamp-1 text-[12px] text-[var(--text-muted)]">{i.description}</p>
+                    {/if}
+                    <div class="mt-1 flex flex-wrap items-center gap-2">
+                      {#if i.result}
+                        <span class="inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
+                          {i.result_display || i.result}
+                        </span>
+                      {/if}
+                      {#if i.duration_minutes}
+                        <span class="text-[11px] text-[var(--text-subtle)]">{i.duration_minutes} دقیقه</span>
+                      {/if}
+                      {#if i.created_by?.name || i.created_by?.email}
+                        <span class="text-[11px] text-[var(--text-subtle)]">
+                          {i.created_by.name || i.created_by.email}
+                        </span>
+                      {/if}
+                    </div>
+                  </div>
+                </div>
+              {/each}
+              {#if interactions.length > 5}
+                <button
+                  type="button"
+                  onclick={() => tab = 'activity'}
+                  class="text-center text-[12px] font-medium text-[var(--color-primary-default)] hover:underline"
+                >
+                  مشاهده همه {interactions.length} تعامل
+                </button>
+              {/if}
+            </div>
+          </SectionCard>
+        {/if}
+
+        <!-- Upcoming Follow-ups -->
+        {#if lead?.next_follow_up}
+          <SectionCard title="پیگیری بعدی">
+            <div class="flex items-center gap-3">
+              <div class="flex size-10 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
+                <Calendar class="size-5" />
+              </div>
+              <div>
+                <p class="text-[14px] font-semibold text-[var(--text)]">
+                  {formatDate(lead.next_follow_up)}
+                </p>
+                <p class="text-[12px] text-[var(--text-subtle)]">
+                  {formatRelativeDate(lead.next_follow_up)}
+                </p>
+              </div>
+            </div>
+          </SectionCard>
+        {/if}
+
+        <!-- Description -->
+        {#if lead?.description}
+          <SectionCard title="یادداشت‌ها">
+            <p class="text-[13px] leading-relaxed text-[var(--text-muted)]">{lead.description}</p>
+          </SectionCard>
+        {/if}
+      </div>
+
+      <!-- Right rail -->
+      <div class="flex flex-col gap-6">
+        <!-- Contact Info -->
+        <SectionCard title="اطلاعات تماس">
+          <div class="flex flex-col gap-3 text-[12px]">
+            {#if lead?.email}
+              <div class="flex items-center gap-2">
+                <Mail class="size-3.5 shrink-0 text-[var(--text-subtle)]" />
+                <a href="mailto:{lead.email}" class="truncate text-[var(--color-primary-default)] hover:underline">
+                  {lead.email}
+                </a>
+              </div>
+            {/if}
+            {#if lead?.phone}
+              <div class="flex items-center gap-2">
+                <Phone class="size-3.5 shrink-0 text-[var(--text-subtle)]" />
+                <a href="tel:{lead.phone}" class="truncate text-[var(--text-muted)] hover:text-[var(--text)]">
+                  {lead.phone}
+                </a>
+              </div>
+            {/if}
+            {#if lead?.company_name}
+              <div class="flex items-center gap-2">
+                <Building2 class="size-3.5 shrink-0 text-[var(--text-subtle)]" />
+                <span class="truncate text-[var(--text-muted)]">{lead.company_name}</span>
+              </div>
+            {/if}
+            {#if lead?.website}
+              <div class="flex items-center gap-2">
+                <Globe class="size-3.5 shrink-0 text-[var(--text-subtle)]" />
+                <a href={normalizeUrl(lead.website)} target="_blank" rel="noopener noreferrer" class="truncate text-[var(--color-primary-default)] hover:underline">
+                  {lead.website}
+                </a>
+              </div>
+            {/if}
+          </div>
+        </SectionCard>
+
+        <!-- Team & Tags -->
+        <SectionCard title="تیم و برچسب‌ها">
+          <div class="flex flex-col gap-3 text-[12px]">
+            {#if assignedUsers.length > 0}
+              <div>
+                <p class="mb-1.5 text-[11px] font-medium text-[var(--text-subtle)]">محول شده به</p>
+                <div class="flex flex-wrap gap-1.5">
+                  {#each assignedUsers as user (user.id)}
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-[var(--bg-elevated)] px-2.5 py-1 text-[11px] text-[var(--text-muted)]">
+                      <span class="flex size-4 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-[8px] font-semibold text-[var(--color-primary-default)]">
+                        {getNameInitials(user.email, '')}
+                      </span>
+                      {user.email}
+                    </span>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+            {#if tags.length > 0}
+              <div>
+                <p class="mb-1.5 text-[11px] font-medium text-[var(--text-subtle)]">برچسب‌ها</p>
+                <div class="flex flex-wrap gap-1.5">
+                  {#each tags as tag, i (tag.id ?? tag.slug ?? tag.name ?? i)}
+                    <span class="inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2.5 py-1 text-[11px] text-[var(--text-muted)]">
+                      {tag.name}
+                    </span>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
+        </SectionCard>
+
+        <!-- Quick Stats -->
+        <SectionCard title="آمار سریع">
+          <div class="flex flex-col gap-3 text-[12px]">
+            <div class="flex items-center justify-between">
+              <span class="text-[var(--text-subtle)]">منبع</span>
+              <span class="text-[var(--text-muted)]">{sourceLabel || '—'}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[var(--text-subtle)]">صنعت</span>
+              <span class="text-[var(--text-muted)]">{industryLabel || '—'}</span>
+            </div>
+            {#if lead?.opportunity_amount != null}
+              <div class="flex items-center justify-between">
+                <span class="text-[var(--text-subtle)]">مبلغ فرصت</span>
+                <span class="font-medium text-[var(--text)]">{formatCurrency(lead.opportunity_amount, lead?.currency || 'TOM')}</span>
+              </div>
+            {/if}
+            <div class="flex items-center justify-between">
+              <span class="text-[var(--text-subtle)]">ایجاد شده</span>
+              <span class="text-[var(--text-muted)]">{lead?.created_at ? formatRelativeDate(lead.created_at) : '—'}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[var(--text-subtle)]">ایجاد کننده</span>
+              <span class="text-[var(--text-muted)]">{lead?.created_by?.email || '—'}</span>
+            </div>
+          </div>
+        </SectionCard>
       </div>
     </div>
   </Tabs.Content>

@@ -68,35 +68,35 @@
   const stageOptions = [
     {
       value: 'PROSPECTING',
-      label: 'Prospecting',
+      get label() { return $_('opportunities.stage_prospecting'); },
       color: 'bg-[var(--stage-new-bg)] text-[var(--stage-new)] dark:bg-[var(--stage-new)]/15'
     },
     {
       value: 'QUALIFICATION',
-      label: 'Qualification',
+      get label() { return $_('opportunities.stage_qualification'); },
       color:
         'bg-[var(--stage-qualified-bg)] text-[var(--stage-qualified)] dark:bg-[var(--stage-qualified)]/15'
     },
     {
       value: 'PROPOSAL',
-      label: 'Proposal',
+      get label() { return $_('opportunities.stage_proposal'); },
       color:
         'bg-[var(--stage-proposal-bg)] text-[var(--stage-proposal)] dark:bg-[var(--stage-proposal)]/15'
     },
     {
       value: 'NEGOTIATION',
-      label: 'Negotiation',
+      get label() { return $_('opportunities.stage_negotiation'); },
       color:
         'bg-[var(--stage-negotiation-bg)] text-[var(--stage-negotiation)] dark:bg-[var(--stage-negotiation)]/15'
     },
     {
       value: 'CLOSED_WON',
-      label: 'Won',
+      get label() { return $_('opportunities.stage_won'); },
       color: 'bg-[var(--stage-won-bg)] text-[var(--stage-won)] dark:bg-[var(--stage-won)]/15'
     },
     {
       value: 'CLOSED_LOST',
-      label: 'Lost',
+      get label() { return $_('opportunities.stage_lost'); },
       color: 'bg-[var(--stage-lost-bg)] text-[var(--stage-lost)] dark:bg-[var(--stage-lost)]/15'
     }
   ];
@@ -428,7 +428,7 @@
   const filters = $derived(data.filters || {});
 
   // Stage options for filter dropdown (includes ALL option)
-  const stageFilterOptions = $derived([{ value: '', label: 'All Stages' }, ...stageOptions]);
+  const stageFilterOptions = $derived([{ value: '', label: $_('filters.all_stages') }, ...stageOptions]);
 
   // Count active filters (excluding stage since it's handled via chips in header)
   const activeFiltersCount = $derived.by(() => {

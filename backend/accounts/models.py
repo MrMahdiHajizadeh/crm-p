@@ -116,7 +116,7 @@ class AccountEmail(BaseModel):
     from_account = models.ForeignKey(
         Account, related_name="sent_email", on_delete=models.SET_NULL, null=True
     )
-    recipients = models.ManyToManyField(Contact, related_name="recieved_email")
+    recipients = models.ManyToManyField(Contact, related_name="received_email")
     message_subject = models.TextField(null=True)
     message_body = models.TextField(null=True)
     timezone = models.CharField(max_length=100, default="UTC")
@@ -140,7 +140,9 @@ class AccountEmail(BaseModel):
         ]
 
     def __str__(self):
-        return f"{self.message_subject}"
+        if self.message_subject:
+            return self.message_subject
+        return f"Email #{self.pk}"
 
     def save(self, *args, **kwargs):
         """
@@ -187,7 +189,11 @@ class AccountEmailLog(BaseModel):
         ]
 
     def __str__(self):
-        return f"{self.email.message_subject}"
+        if self.email:
+            return f"{self.email.message_subject}"
+        if self.contact:
+            return f"Email log for {self.contact}"
+        return f"Email log #{self.pk}"
 
     def save(self, *args, **kwargs):
         """

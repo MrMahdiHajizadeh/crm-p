@@ -112,7 +112,7 @@
   }
 
   /** @param {string | null | undefined} d */
-  const formatDate = (d) => (d ? new Date(d).toLocaleDateString('fa-IR-u-ca-persian') : '—');
+  const formatDate = (d) => (d ? new Date(d).toLocaleDateString('fa-IR-u-ca-persian') : '�');
 </script>
 
 <svelte:head>
@@ -211,12 +211,12 @@
       </div>
     {:else}
       <table class="w-full text-sm">
-        <thead class="border-b border-[var(--border-default)] bg-[var(--surface-sunken)] text-left text-xs uppercase tracking-wide text-[var(--text-secondary)]">
+        <thead class="border-b border-[var(--border-default)] bg-[var(--surface-sunken)] text-start text-xs uppercase tracking-wide text-[var(--text-secondary)]">
           <tr>
             <th class="px-3 py-2 font-medium">Title</th>
             <th class="px-3 py-2 font-medium">Status</th>
             <th class="px-3 py-2 font-medium">Published</th>
-            <th class="px-3 py-2 text-right font-medium">Tickets</th>
+            <th class="px-3 py-2 text-end font-medium">Tickets</th>
             <th class="px-3 py-2 font-medium">Updated</th>
             <th class="px-3 py-2 font-medium"></th>
           </tr>
@@ -249,10 +249,10 @@
                     Live
                   </span>
                 {:else}
-                  <span class="text-xs text-[var(--text-secondary)]">—</span>
+                  <span class="text-xs text-[var(--text-secondary)]">�</span>
                 {/if}
               </td>
-              <td class="px-3 py-2 text-right text-xs text-[var(--text-secondary)]">
+              <td class="px-3 py-2 text-end text-xs text-[var(--text-secondary)]">
                 {sol.case_count ?? 0}
               </td>
               <td class="px-3 py-2 text-xs text-[var(--text-secondary)]">

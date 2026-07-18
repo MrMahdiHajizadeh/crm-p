@@ -571,25 +571,25 @@
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Industry</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {industryLabel || '—'}
                 </dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Currency</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {account?.currency || '—'}
                 </dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Created by</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {account?.created_by?.email || '—'}
                 </dd>
               </div>
               <div class="flex items-baseline justify-between gap-3">
                 <dt class="text-[color:var(--text-subtle)]">Created</dt>
-                <dd class="truncate text-right text-[color:var(--text-muted)]">
+                <dd class="truncate text-end text-[color:var(--text-muted)]">
                   {account?.created_at ? formatRelativeDate(account.created_at) : '—'}
                 </dd>
               </div>
@@ -737,7 +737,7 @@
                       {getOptionLabel(o.stage, opportunityStageOptions) || o.stage}
                     </Badge>
                   {/if}
-                  <span class="w-24 text-right tabular-nums text-[color:var(--text-muted)]">
+                  <span class="w-24 text-end tabular-nums text-[color:var(--text-muted)]">
                     {formatCurrency(parseFloat(o.amount) || 0, o.currency || accountCurrency)}
                   </span>
                 </li>
@@ -820,7 +820,7 @@
                     </Badge>
                   {/if}
                   {#if t.due_date}
-                    <span class="w-24 text-right text-[11px] text-[color:var(--text-subtle)]">
+                    <span class="w-24 text-end text-[11px] text-[color:var(--text-subtle)]">
                       {formatDate(t.due_date)}
                     </span>
                   {/if}
@@ -860,12 +860,12 @@
                       {inv.status}
                     </Badge>
                   {/if}
-                  <span class="w-24 text-right tabular-nums text-[color:var(--text)]">
+                  <span class="w-24 text-end tabular-nums text-[color:var(--text)]">
                     {formatCurrency(parseFloat(inv.total_amount) || 0, inv.currency || accountCurrency)}
                   </span>
                   {#if parseFloat(inv.amount_due) > 0}
                     <span
-                      class="w-24 text-right tabular-nums text-[11px] text-[color:var(--color-negative-default)]"
+                      class="w-24 text-end tabular-nums text-[11px] text-[color:var(--color-negative-default)]"
                     >
                       due {formatCurrency(parseFloat(inv.amount_due) || 0, inv.currency || accountCurrency)}
                     </span>

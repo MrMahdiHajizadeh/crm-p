@@ -101,4 +101,6 @@ class Contact(AssignableMixin, BaseModel):
         ]
 
     def __str__(self):
-        return self.first_name
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.first_name or self.last_name or "Contact"

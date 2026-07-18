@@ -101,7 +101,7 @@
               </p>
             {/if}
           </div>
-          <div class="text-left sm:text-right">
+          <div class="text-left sm:text-end">
             <div class="flex flex-col gap-2">
               <span
                 class="inline-flex items-center self-start rounded-full px-3 py-1 text-sm font-medium sm:self-end {getStatusColor(
@@ -136,20 +136,20 @@
             <thead>
               <tr class="border-b text-left text-sm text-gray-500">
                 <th class="pb-3 font-medium">Description</th>
-                <th class="pb-3 text-right font-medium">Qty</th>
-                <th class="pb-3 text-right font-medium">Unit Price</th>
-                <th class="pb-3 text-right font-medium">Total</th>
+                <th class="pb-3 text-end font-medium">Qty</th>
+                <th class="pb-3 text-end font-medium">Unit Price</th>
+                <th class="pb-3 text-end font-medium">Total</th>
               </tr>
             </thead>
             <tbody>
               {#each invoice.lineItems as item}
                 <tr class="border-b last:border-b-0">
                   <td class="py-4 text-gray-700">{item.description}</td>
-                  <td class="py-4 text-right text-gray-600">{item.quantity}</td>
-                  <td class="py-4 text-right text-gray-600">
+                  <td class="py-4 text-end text-gray-600">{item.quantity}</td>
+                  <td class="py-4 text-end text-gray-600">
                     {formatCurrency(Number(item.unit_price), invoice.currency)}
                   </td>
-                  <td class="py-4 text-right font-medium text-gray-900">
+                  <td class="py-4 text-end font-medium text-gray-900">
                     {formatCurrency(Number(item.total), invoice.currency)}
                   </td>
                 </tr>

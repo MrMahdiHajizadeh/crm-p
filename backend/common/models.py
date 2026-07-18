@@ -482,14 +482,26 @@ class Document(BaseModel):
 
 
 def generate_key():
-    # Security: Increased from 8 bytes (64 bits) to 32 bytes (256 bits)
+    """Generate a cryptographically secure random API key (64 hex chars)."""
     return binascii.hexlify(os.urandom(32)).decode()
+
+
+def hash_api_key(raw_key: str) -> str:
+    """Hash an API key using HMAC-SHA256 so plaintext keys are never stored."""
+    secret = os.environ.get("SECRET_KEY", "django-insecure-fallback").encode()
+    return "hk_" + hmac.new(secret, raw_key.encode(), hashlib.sha256).hexdigest()
+
+
+def verify_api_key(raw_key: str, stored_hash: str) -> bool:
+    """Verify a raw API key against its stored hash."""
+    return hmac.compare_digest(hash_api_key(raw_key), stored_hash)
 
 
 class APISettings(BaseModel):
     title = models.TextField()
-    # Security: Increased max_length to accommodate 32-byte keys (64 hex chars)
-    apikey = models.CharField(max_length=64, blank=True)
+    # Stores hashed key (prefix "hk_" + 64-char hex = 67 chars).
+    # Raw key is returned only once at creation time via get_or_create_api_key().
+    apikey = models.CharField(max_length=128, blank=True)
     website = models.URLField(max_length=255, null=True)
     lead_assigned_to = models.ManyToManyField(
         Profile, related_name="lead_assignee_users"
@@ -512,8 +524,25 @@ class APISettings(BaseModel):
 
     def save(self, *args, **kwargs):
         if not self.apikey or self.apikey is None or self.apikey == "":
-            self.apikey = generate_key()
+            raw_key = generate_key()
+            self.apikey = hash_api_key(raw_key)
+        elif not self.apikey.startswith("hk_"):
+            # Hash existing plaintext keys on save (transitional — migrate in data migration)
+            self.apikey = hash_api_key(self.apikey)
         super().save(*args, **kwargs)
+
+    @classmethod
+    def get_or_create_api_key(cls, org, title="Default"):
+        """Create a new API settings entry and return the raw key (only time it's visible)."""
+        raw_key = generate_key()
+        api_setting, _ = cls.objects.get_or_create(
+            org=org,
+            title=title,
+            defaults={"apikey": hash_api_key(raw_key)},
+        )
+        if _:
+            return api_setting, raw_key
+        return api_setting, None  # Key already exists, cannot retrieve raw key
 
 
 # Phase 3: JWT Token Tracking

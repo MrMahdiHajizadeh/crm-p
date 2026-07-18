@@ -240,17 +240,17 @@
             <thead>
               <tr class="border-border bg-muted/50 border-b">
                 <th
-                  class="text-muted-foreground px-4 py-3 text-left text-xs font-semibold tracking-wider uppercase"
+                  class="text-muted-foreground px-4 py-3 text-start text-xs font-semibold tracking-wider uppercase"
                 >
                   {$_('common.name')}
                 </th>
                 <th
-                  class="text-muted-foreground px-4 py-3 text-left text-xs font-semibold tracking-wider uppercase"
+                  class="text-muted-foreground px-4 py-3 text-start text-xs font-semibold tracking-wider uppercase"
                 >
                   {$_('common.description')}
                 </th>
                 <th
-                  class="text-muted-foreground px-4 py-3 text-right text-xs font-semibold tracking-wider uppercase"
+                  class="text-muted-foreground px-4 py-3 text-end text-xs font-semibold tracking-wider uppercase"
                 >
                   {$_('common.actions')}
                 </th>
@@ -276,7 +276,7 @@
                       {tag.description || '—'}
                     </span>
                   </td>
-                  <td class="px-4 py-3 text-right">
+                  <td class="px-4 py-3 text-end">
                     <div
                       class="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100"
                     >
@@ -343,17 +343,17 @@
           <thead>
             <tr class="border-border bg-muted/50 border-b">
               <th
-                class="text-muted-foreground px-4 py-3 text-left text-xs font-semibold tracking-wider uppercase"
+                class="text-muted-foreground px-4 py-3 text-start text-xs font-semibold tracking-wider uppercase"
               >
                 Tag name
               </th>
               <th
-                class="text-muted-foreground px-4 py-3 text-left text-xs font-semibold tracking-wider uppercase"
+                class="text-muted-foreground px-4 py-3 text-start text-xs font-semibold tracking-wider uppercase"
               >
                 Description
               </th>
               <th
-                class="text-muted-foreground px-4 py-3 text-right text-xs font-semibold tracking-wider uppercase"
+                class="text-muted-foreground px-4 py-3 text-end text-xs font-semibold tracking-wider uppercase"
               >
                 Actions
               </th>
@@ -379,7 +379,7 @@
                     {tag.description || '—'}
                   </span>
                 </td>
-                <td class="px-4 py-3 text-right">
+                <td class="px-4 py-3 text-end">
                   <form method="POST" action="?/restore" use:enhance class="inline">
                     <input type="hidden" name="tagId" value={tag.id} />
                     <Button

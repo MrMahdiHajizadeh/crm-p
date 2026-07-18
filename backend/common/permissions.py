@@ -73,5 +73,7 @@ class IsSuperAdmin(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
 
-        # Check for super admin email domain
+        # Check for super admin email domain (guard against null email)
+        if not request.user.email:
+            return False
         return request.user.email.endswith("@micropyramid.com")

@@ -1,5 +1,5 @@
 <script>
-  import { X, Trash2, Maximize2 } from '@lucide/svelte';
+  import { X, Trash2, Maximize2, Pencil } from '@lucide/svelte';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Skeleton } from '$lib/components/ui/skeleton/index.js';
@@ -98,6 +98,23 @@
     onDelete?.();
   }
 
+  // Edit mode toggle (view mode: starts read-only, user can toggle to edit)
+  let isEditing = $state(mode === 'create');
+
+  function handleEditToggle() {
+    isEditing = !isEditing;
+  }
+
+  // When mode changes, reset edit state
+  $effect(() => {
+    if (mode) isEditing = mode === 'create';
+  });
+
+  // When data (lead) changes, reset to read-only for view mode
+  $effect(() => {
+    if (data?.id) isEditing = false;
+  });
+
   // Get title value
   const titleValue = $derived(data?.[titleKey] || '');
 
@@ -177,6 +194,18 @@
               {/if}
             </div>
             <div class="flex items-center gap-1">
+              {#if mode === 'view'}
+                <button
+                  type="button"
+                  onclick={handleEditToggle}
+                  aria-label={isEditing ? 'Cancel edit' : 'Edit'}
+                  title={isEditing ? 'Cancel edit' : 'Edit'}
+                  class="text-muted-foreground hover:bg-muted/60 hover:text-foreground inline-flex items-center gap-1.5 h-8 rounded-lg px-2.5 text-xs font-medium transition-all duration-150 {isEditing ? 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-600' : 'hover:bg-muted/60'}"
+                >
+                  <Pencil class="h-3.5 w-3.5" aria-hidden="true" />
+                  {isEditing ? 'انصراف' : 'ویرایش'}
+                </button>
+              {/if}
               {#if fullPageHref && mode !== 'create'}
                 <a
                   href={fullPageHref}
@@ -207,7 +236,7 @@
 
           <!-- Title section with elegant styling -->
           <div class="px-6 pt-8 pb-6">
-            {#if titleEditable}
+            {#if titleEditable && isEditing}
               <input
                 id={titleId}
                 type="text"
@@ -246,7 +275,7 @@
                   options={col.options}
                   placeholder={col.placeholder}
                   emptyText={col.emptyText}
-                  editable={col.editable !== false}
+                  editable={isEditing && col.editable !== false}
                   required={col.required === true}
                   prefix={col.prefix}
                   loading={col.loading === true}

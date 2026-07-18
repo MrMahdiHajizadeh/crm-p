@@ -586,6 +586,14 @@ class InvoiceLineItem(BaseModel):
 
         super().save(*args, **kwargs)
 
+        # Trigger parent invoice recalculation after line item changes
+        if self.invoice_id:
+            self.invoice.recalculate_totals()
+            self.invoice.save(update_fields=[
+                'subtotal', 'discount_amount', 'tax_amount',
+                'total_amount', 'amount_due'
+            ])
+
     @property
     def formatted_unit_price(self):
         if self.invoice and self.invoice.currency:
@@ -913,21 +921,9 @@ class EstimateLineItem(BaseModel):
     discount_value = models.DecimalField(
         _("Discount Value"), max_digits=12, decimal_places=2, default=0
     )
-    discount_amount = models.DecimalField(
-        _("Discount Amount"), max_digits=12, decimal_places=2, default=0
-    )
-
     tax_rate = models.DecimalField(
         _("Tax Rate (%)"), max_digits=5, decimal_places=2, default=0
     )
-    tax_amount = models.DecimalField(
-        _("Tax Amount"), max_digits=12, decimal_places=2, default=0
-    )
-
-    subtotal = models.DecimalField(
-        _("Subtotal"), max_digits=12, decimal_places=2, default=0
-    )
-    total = models.DecimalField(_("Total"), max_digits=12, decimal_places=2, default=0)
 
     order = models.PositiveIntegerField(_("Order"), default=0)
     org = models.ForeignKey(
