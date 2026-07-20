@@ -1,6 +1,6 @@
-<script>
+﻿<script>
   import { untrack } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import KanbanColumn from './KanbanColumn.svelte';
   import { TrendingUp, Users, Flame, Zap } from '@lucide/svelte';
 
@@ -122,7 +122,7 @@
     );
     if (!cardEl) return;
 
-    // Build a crisp, tilted clone for the drag image — the browser default
+    // Build a crisp, tilted clone for the drag image â€” the browser default
     // mirrors the source element AFTER our style changes apply, which makes
     // the ghost look washed out. An explicit clone keeps it sharp and tactile.
     const rect = cardEl.getBoundingClientRect();
@@ -395,7 +395,7 @@
             >
               {col.name}
               <span
-                class="ml-1.5 rounded px-1.5 py-px text-[11px] {mobileActiveColumn === col.id
+                class="ms-1.5 rounded px-1.5 py-px text-[11px] {mobileActiveColumn === col.id
                   ? 'bg-white/20'
                   : 'bg-gray-200/70 dark:bg-white/[0.08]'}"
               >

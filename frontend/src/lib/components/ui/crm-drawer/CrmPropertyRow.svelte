@@ -260,7 +260,7 @@
       <span>
         {label}
         {#if required}
-          <span class="text-destructive ml-0.5" aria-hidden="true">*</span>
+          <span class="text-destructive ms-0.5" aria-hidden="true">*</span>
         {/if}
       </span>
     </label>
@@ -300,7 +300,7 @@
       {:else if type === 'number'}
         <div class="flex items-center">
           {#if prefix}
-            <span class="text-muted-foreground mr-1.5 text-sm font-medium" aria-hidden="true"
+            <span class="text-muted-foreground me-1.5 text-sm font-medium" aria-hidden="true"
               >{prefix}</span
             >
           {/if}
@@ -490,7 +490,7 @@
   {#if error}
     <p
       id={errorId}
-      class="text-destructive ml-32 px-2.5 pt-0.5 pb-1 text-[11px] font-medium"
+      class="text-destructive ms-32 px-2.5 pt-0.5 pb-1 text-[11px] font-medium"
       role="alert"
     >
       {error}

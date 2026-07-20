@@ -1,6 +1,6 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Loader2, Link as LinkIcon } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -158,7 +158,7 @@
 
       {#if searching}
         <div class="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-          <Loader2 class="h-3.5 w-3.5 animate-spin" /> Searching…
+          <Loader2 class="h-3.5 w-3.5 animate-spin" /> Searchingâ€¦
         </div>
       {:else if candidates.length === 0 && query.length >= 2}
         <p class="text-xs text-[var(--text-secondary)]">No matches.</p>
@@ -173,7 +173,7 @@
               >
                 <span class="min-w-0 truncate">{c.name}</span>
                 <span class="shrink-0 text-[10px] text-[var(--text-secondary)]">
-                  {c.status} · {c.priority}
+                  {c.status} Â· {c.priority}
                 </span>
               </button>
             </li>
@@ -196,7 +196,7 @@
         disabled={!selected || submitting}
         onclick={submit}
       >
-        {#if submitting}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+        {#if submitting}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
         Link parent
       </Button>
     </Dialog.Footer>

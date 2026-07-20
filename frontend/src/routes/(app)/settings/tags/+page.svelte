@@ -1,8 +1,8 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Tag,
     Plus,
@@ -90,7 +90,7 @@
         archive: 'Tag archived successfully',
         restore: 'Tag restored successfully'
       };
-      toast.success(messages[form.action] || 'Operation successful');
+      toast.success(messages[form.action] || $_('toasts.operation_successful'));
       closeDialogs();
       invalidateAll();
     } else if (form?.error) {
@@ -167,7 +167,7 @@
       onclick={openCreate}
       class="border-0 bg-[var(--color-primary-default)] text-white hover:bg-[var(--color-primary-dark)]"
     >
-      <Plus class="mr-2 h-4 w-4" />
+      <Plus class="me-2 h-4 w-4" />
       {$_('settings.create_tag')}
     </Button>
   {/snippet}
@@ -183,7 +183,7 @@
           type="text"
           placeholder={$_('settings.search_tags')}
           bind:value={searchQuery}
-          class="bg-background h-9 pl-9"
+          class="bg-background h-9 ps-9"
         />
       </div>
       <div class="flex items-center gap-2">
@@ -229,7 +229,7 @@
               onclick={openCreate}
               class="mt-4 border-0 bg-[var(--color-primary-default)] text-white hover:bg-[var(--color-primary-dark)]"
             >
-              <Plus class="mr-2 h-4 w-4" />
+              <Plus class="me-2 h-4 w-4" />
               {$_('settings.create_tag')}
             </Button>
           {/if}
@@ -273,7 +273,7 @@
                   </td>
                   <td class="px-4 py-3">
                     <span class="text-muted-foreground text-sm">
-                      {tag.description || '—'}
+                      {tag.description || 'â€”'}
                     </span>
                   </td>
                   <td class="px-4 py-3 text-end">
@@ -287,7 +287,7 @@
                         class="text-muted-foreground hover:text-foreground h-8 px-2"
                       >
                         <Pencil class="h-4 w-4" />
-                        <span class="ml-1.5">{$_('common.edit')}</span>
+                        <span class="ms-1.5">{$_('common.edit')}</span>
                       </Button>
                       <DropdownMenu.Root>
                         <DropdownMenu.Trigger>
@@ -376,7 +376,7 @@
                 </td>
                 <td class="px-4 py-3">
                   <span class="text-muted-foreground text-sm">
-                    {tag.description || '—'}
+                    {tag.description || 'â€”'}
                   </span>
                 </td>
                 <td class="px-4 py-3 text-end">

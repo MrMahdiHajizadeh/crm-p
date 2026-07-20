@@ -26,10 +26,15 @@ export async function load({ locals, cookies }) {
     // Use JWT fallback if API fetch fails
   }
 
+  // Get JWT access token from cookies for client-side API sync
+  const jwtAccess = cookies.get('jwt_access') || null;
+
   return {
     user: locals.user,
+    org_id: locals.org?.id || null,
     org_name: locals.org_name || 'BottleCRM',
-    org_settings: orgSettings
+    org_settings: orgSettings,
+    jwt_access: jwtAccess
   };
 }
 

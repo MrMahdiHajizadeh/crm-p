@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { untrack } from 'svelte';
   import {
     History,
@@ -94,7 +94,7 @@
 
   function actorName(activity) {
     return (
-      activity?.user?.user_details?.email || activity?.user?.email || 'System'
+      activity?.user?.name || activity?.user?.email || 'System'
     );
   }
 
@@ -117,15 +117,15 @@
       }
       case 'COMMENT':
         if (m.visibility_changed) {
-          return `${who} changed comment visibility ${m.before ? 'internal' : 'public'} → ${m.after ? 'internal' : 'public'}`;
+          return `${who} changed comment visibility ${m.before ? 'internal' : 'public'} â†’ ${m.after ? 'internal' : 'public'}`;
         }
         if (m.out_of_reopen_window) {
-          return `${who} commented (outside reopen window — ticket stays closed)`;
+          return `${who} commented (outside reopen window â€” ticket stays closed)`;
         }
         return `${who} commented`;
       case 'REOPENED':
         return m.to_status
-          ? `${who} reopened the ticket (→ ${m.to_status})`
+          ? `${who} reopened the ticket (â†’ ${m.to_status})`
           : `${who} reopened the ticket`;
       case 'LINKED_SOLUTION':
         return `${who} linked a knowledge-base solution`;
@@ -161,13 +161,13 @@
       return Object.entries(m.changes)
         .map(
           ([k, v]) =>
-            `${k}: ${v.before == null ? '∅' : String(v.before)} → ${
-              v.after == null ? '∅' : String(v.after)
+            `${k}: ${v.before == null ? 'âˆ…' : String(v.before)} â†’ ${
+              v.after == null ? 'âˆ…' : String(v.after)
             }`
         )
         .join('\n');
     }
-    if (m._truncated) return '(metadata truncated — payload too large)';
+    if (m._truncated) return '(metadata truncated â€” payload too large)';
     return null;
   }
 </script>
@@ -213,7 +213,7 @@
           </div>
           {#if a.user}
             <span
-              class="ml-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--surface-muted)] text-[10px] font-medium text-[var(--text-secondary)]"
+              class="ms-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--surface-muted)] text-[10px] font-medium text-[var(--text-secondary)]"
               title={actorName(a)}
             >
               {getInitials(actorName(a))}
@@ -232,7 +232,7 @@
           disabled={loading}
         >
           {#if loading}
-            <Loader2 class="mr-2 h-3.5 w-3.5 animate-spin" />
+            <Loader2 class="me-2 h-3.5 w-3.5 animate-spin" />
           {/if}
           Load older
         </Button>

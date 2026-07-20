@@ -1,10 +1,10 @@
-<script>
+﻿<script>
   import { Plus, Trash2 } from '@lucide/svelte';
   import { page } from '$app/stores';
   import { goto, invalidateAll } from '$app/navigation';
   import { enhance } from '$app/forms';
   import { tick } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { _ } from '$lib/i18n';
 
   import { PageHeader } from '$lib/components/layout';
@@ -679,7 +679,7 @@
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="mr-2"
+          class="me-2"
         >
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
@@ -809,7 +809,7 @@
         <div
           class="mb-4 flex size-16 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--surface-sunken)]"
         >
-          <span class="text-4xl">🔄</span>
+          <span class="text-4xl">ðŸ”„</span>
         </div>
         <h3 class="text-lg font-medium text-[var(--text-primary)]">No recurring invoices yet</h3>
         <p class="text-sm text-[var(--text-secondary)]">
@@ -880,7 +880,7 @@
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="mr-2"
+                class="me-2"
               >
                 <rect x="6" y="4" width="4" height="16" />
                 <rect x="14" y="4" width="4" height="16" />
@@ -897,7 +897,7 @@
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="mr-2"
+                class="me-2"
               >
                 <polygon points="5 3 19 12 5 21 5 3" />
               </svg>
@@ -922,7 +922,7 @@
         <div class="mb-3 flex items-center justify-between">
           <h4 class="text-muted-foreground text-sm font-medium">Line Items</h4>
           <Button variant="ghost" size="sm" class="text-primary" onclick={addLineItem}>
-            <Plus class="mr-2 h-4 w-4" />
+            <Plus class="me-2 h-4 w-4" />
             Add Line Item
           </Button>
         </div>

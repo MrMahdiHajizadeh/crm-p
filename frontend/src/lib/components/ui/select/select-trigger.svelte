@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Select as SelectPrimitive } from 'bits-ui';
   import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
   import { cn } from '$lib/utils.js';
@@ -18,7 +18,7 @@
   data-size={size}
   class={cn(
     [
-      'flex w-fit items-center justify-between gap-2 px-3 pr-2.5',
+      'flex w-fit items-center justify-between gap-2 px-3 pe-2.5',
       'rounded-[var(--r-md)] border border-[color:var(--border)]',
       'bg-[color:var(--bg-input)] text-[13px] text-[color:var(--text)]',
       'whitespace-nowrap outline-none select-none leading-none',

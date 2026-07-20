@@ -4,7 +4,7 @@
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { onMount, tick } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Briefcase,
     Building2,
@@ -592,7 +592,8 @@
    */
   function createEnhanceHandler(successMessage) {
     return () => {
-      return async ({ result }) => {
+      return async ({ result, update }) => {
+        await update();
         isSubmitting = false;
         if (result.type === 'success') {
           toast.success(successMessage);
@@ -847,7 +848,7 @@
         {#snippet cellSuffix(row, column)}
           {#if column.key === 'subject' && row.escalationCount > 0}
             <span
-              class="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 align-middle text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+              class="ms-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-1.5 py-0.5 align-middle text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
               title={row.lastEscalationFiredAt
                 ? `Escalated ${row.escalationCount}× — last ${new Date(row.lastEscalationFiredAt).toLocaleString('fa-IR-u-ca-persian')}`
                 : `Escalated ${row.escalationCount}×`}
@@ -858,7 +859,7 @@
           {/if}
           {#if column.key === 'subject' && (row.isProblem || row.childCount > 0)}
             <span
-              class="ml-2 inline-flex items-center gap-1 rounded-full bg-purple-100 px-1.5 py-0.5 align-middle text-[10px] font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
+              class="ms-2 inline-flex items-center gap-1 rounded-full bg-purple-100 px-1.5 py-0.5 align-middle text-[10px] font-medium text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
               title={row.isProblem
                 ? `Problem ticket · ${row.childCount} linked child${row.childCount === 1 ? '' : 'ren'}`
                 : `${row.childCount} linked child${row.childCount === 1 ? '' : 'ren'}`}
@@ -973,7 +974,7 @@
     </Button>
     <Button onclick={handleSave} disabled={isSubmitting}>
       {#if isSubmitting}
-        <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+        <Loader2 class="me-2 h-4 w-4 animate-spin" />
         Creating...
       {:else}
         Create Ticket

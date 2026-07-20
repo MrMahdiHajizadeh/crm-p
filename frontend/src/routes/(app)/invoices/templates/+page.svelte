@@ -1,9 +1,9 @@
-<script>
+﻿<script>
   import { page } from '$app/stores';
   import { goto, invalidateAll } from '$app/navigation';
   import { enhance } from '$app/forms';
   import { tick } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
 
   import { PageHeader } from '$lib/components/layout';
   import { CrmDrawer } from '$lib/components/ui/crm-drawer';
@@ -326,7 +326,7 @@
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="mr-2"
+          class="me-2"
         >
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
@@ -405,7 +405,7 @@
         <div
           class="mb-4 flex size-16 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--surface-sunken)]"
         >
-          <span class="text-4xl">🎨</span>
+          <span class="text-4xl">ðŸŽ¨</span>
         </div>
         <h3 class="text-lg font-medium text-[var(--text-primary)]">No templates yet</h3>
         <p class="text-sm text-[var(--text-secondary)]">Create your first invoice template</p>

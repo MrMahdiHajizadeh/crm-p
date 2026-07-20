@@ -46,14 +46,8 @@ class TaskListView(APIView, LimitOffsetPagination):
             self.model.objects.filter(org=self.request.profile.org)
             .select_related("account", "opportunity", "case", "lead")
             .prefetch_related("assigned_to__user", "tags")
-            .order_by("-id")
+            .order_by("-created_at")
         )
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            queryset = queryset.filter(
-                Q(assigned_to__in=[self.request.profile])
-                | Q(created_by=self.request.profile.user)
-            )
-
         if params:
             if params.get("title"):
                 queryset = queryset.filter(title__icontains=params.get("title"))
@@ -814,6 +808,33 @@ class TaskCommentView(APIView):
     def get_object(self, pk):
         return self.model.objects.get(pk=pk, org=self.request.profile.org)
 
+    def get_task(self, pk):
+        from tasks.models import Task
+        return Task.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Tasks"],
+        parameters=swagger_params.organization_params,
+        responses={200: CommentSerializer(many=True)},
+        description="List comments for a task, or get a single comment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get comments for a task, or a single comment by its ID."""
+        try:
+            comment = self.get_object(pk)
+            return Response(CommentSerializer(comment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        task = self.get_task(pk)
+        content_type = ContentType.objects.get_for_model(task.__class__)
+        comments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=task.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(CommentSerializer(comments, many=True).data)
+
     @extend_schema(
         tags=["Tasks"],
         parameters=swagger_params.organization_params,
@@ -937,6 +958,36 @@ class TaskCommentView(APIView):
 class TaskAttachmentView(APIView):
     model = Attachments
     permission_classes = (IsAuthenticated, HasOrgContext)
+
+    def get_object(self, pk):
+        return self.model.objects.get(pk=pk)
+
+    def get_task(self, pk):
+        from tasks.models import Task
+        return Task.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Tasks"],
+        parameters=swagger_params.organization_params,
+        responses={200: AttachmentsSerializer(many=True)},
+        description="List attachments for a task, or get a single attachment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get attachments for a task, or a single attachment by its ID."""
+        try:
+            attachment = self.get_object(pk)
+            return Response(AttachmentsSerializer(attachment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        task = self.get_task(pk)
+        content_type = ContentType.objects.get_for_model(task.__class__)
+        attachments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=task.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(AttachmentsSerializer(attachments, many=True).data)
 
     @extend_schema(
         tags=["Tasks"],

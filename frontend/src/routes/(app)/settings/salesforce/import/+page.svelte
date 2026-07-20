@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { SectionCard } from '$lib/components/ui/section-card/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
@@ -75,7 +75,7 @@
     if (form?.importCancelled) toast.success('Import cancelled');
   });
 
-  // ── Polling ──────────────────────────────────────────────────────────
+  // â”€â”€ Polling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   let pollInFlight = false;
 
   async function pollJobStatus() {
@@ -138,7 +138,7 @@
     return () => stopPolling();
   });
 
-  // ── Helpers ──────────────────────────────────────────────────────────
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   function toggleType(/** @type {string} */ value) {
     const s = new Set(selectedTypes);
     s.has(value) ? s.delete(value) : s.add(value);
@@ -263,7 +263,7 @@
               <XCircle class="size-4" />
               {isCancelling ? 'Cancelling...' : 'Cancel Import'}
             </Button>
-            <span class="text-muted-foreground ml-2 text-xs">Already-imported data will be kept.</span>
+            <span class="text-muted-foreground ms-2 text-xs">Already-imported data will be kept.</span>
           </form>
         </div>
     </SectionCard>
@@ -402,7 +402,7 @@
             {#each importHistory as job}
               {@const isExpanded = expandedJobs.has(job.id)}
               <Table.Row class="cursor-pointer hover:bg-muted/50" onclick={() => toggleJobExpand(job.id)}>
-                <Table.Cell class="w-8 pr-0">
+                <Table.Cell class="w-8 pe-0">
                   {#if isExpanded}
                     <ChevronDown class="text-muted-foreground size-4" />
                   {:else}
@@ -440,7 +440,7 @@
                                 <div class="min-w-0 flex-1 text-xs">
                                   <span class="text-muted-foreground">{getObjectLabel(err.object_type)}</span>
                                   {#if err.salesforce_id}
-                                    <span class="text-muted-foreground/60 ml-1">({err.salesforce_id})</span>
+                                    <span class="text-muted-foreground/60 ms-1">({err.salesforce_id})</span>
                                   {/if}
                                   <p class="text-foreground mt-0.5 break-words">{err.error}</p>
                                 </div>
@@ -462,9 +462,9 @@
                                 <div class="min-w-0 flex-1 text-xs">
                                   <span class="text-muted-foreground">{getObjectLabel(skip.object_type)}</span>
                                   {#if skip.salesforce_id}
-                                    <span class="text-muted-foreground/60 ml-1">({skip.salesforce_id})</span>
+                                    <span class="text-muted-foreground/60 ms-1">({skip.salesforce_id})</span>
                                   {/if}
-                                  <span class="text-foreground ml-1">{skip.error}</span>
+                                  <span class="text-foreground ms-1">{skip.error}</span>
                                 </div>
                               </div>
                             {/each}

@@ -929,6 +929,18 @@ class EstimateLineItem(BaseModel):
     org = models.ForeignKey(
         Org, on_delete=models.CASCADE, related_name="estimate_line_items"
     )
+    subtotal = models.DecimalField(
+        _("Subtotal"), max_digits=12, decimal_places=2, default=0
+    )
+    discount_amount = models.DecimalField(
+        _("Discount Amount"), max_digits=12, decimal_places=2, default=0
+    )
+    tax_amount = models.DecimalField(
+        _("Tax Amount"), max_digits=12, decimal_places=2, default=0
+    )
+    total = models.DecimalField(
+        _("Total"), max_digits=12, decimal_places=2, default=0
+    )
 
     class Meta:
         verbose_name = "Estimate Line Item"

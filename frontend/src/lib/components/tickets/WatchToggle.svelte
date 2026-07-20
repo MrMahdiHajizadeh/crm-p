@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { untrack } from 'svelte';
   import { Eye, EyeOff, Loader2 } from '@lucide/svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
 

@@ -2,7 +2,7 @@
  * Supervision Page - Server Load
  *
  * Fetches all user activities with filtering options.
- * Only accessible to admin users.
+ * All org members can view activities (RLS removed for team-wide visibility).
  *
  * Django endpoint: GET /api/activities/
  */
@@ -15,11 +15,6 @@ export async function load({ locals, cookies, url }) {
   const org = locals.org;
   if (!org) {
     throw error(401, 'Organization context required');
-  }
-
-  const profile = locals.profile;
-  if (!profile || (profile.role !== 'ADMIN' && !locals.user?.is_superuser)) {
-    throw error(403, 'Only admins can access supervision page');
   }
 
   // Build query params from URL

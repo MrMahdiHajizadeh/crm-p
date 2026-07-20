@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -16,6 +16,7 @@
     Building2,
     Target,
     Sparkles,
+    Filter,
   } from '@lucide/svelte';
   import { PageHeader } from '$lib/components/layout';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -23,12 +24,22 @@
   import { formatRelativeDate, formatDate } from '$lib/utils/formatting.js';
   import InteractionDialog from '$lib/components/ui/interaction/InteractionDialog.svelte';
 
-  /** @type {{ data: { groups: { overdue: any[], today: any[], tomorrow: any[], thisWeek: any[], later: any[] } } }} */
+  /** @type {{ data: { groups: { overdue: any[], today: any[], tomorrow: any[], thisWeek: any[], later: any[] }, myOnly?: boolean } }} */
   let { data } = $props();
 
   let groups = $derived(data.groups || {
     overdue: [], today: [], tomorrow: [], thisWeek: [], later: []
   });
+
+  const myOnly = $derived(data.myOnly || false);
+
+  function toggleMyOnly() {
+    if (myOnly) {
+      goto('/follow-ups');
+    } else {
+      goto('/follow-ups?my_only=true');
+    }
+  }
 
   // Count totals
   const totalCount = $derived(
@@ -101,7 +112,7 @@
 </script>
 
 <svelte:head>
-  <title>{$_('followups.title')} · BottleCRM</title>
+  <title>{$_('followups.title')} Â· BottleCRM</title>
 </svelte:head>
 
 <PageHeader
@@ -115,11 +126,24 @@
   entityType={selectedInteraction?.entity_type || 'Lead'}
   entityId={selectedInteraction?.entity_id || ''}
   entityName={selectedInteraction?.entity_name || ''}
+  completedInteractionId={selectedInteraction?.id || ''}
   onClose={() => { showDialog = false; selectedInteraction = null; }}
   onSuccess={handleInteractionSuccess}
 />
 
 <div class="px-7 pb-8 md:px-8">
+  <!-- Toggle: All / My Only -->
+  <div class="mb-5 flex items-center justify-end">
+    <button
+      type="button"
+      class="inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition-all duration-200 {myOnly ? 'border-[var(--color-primary-default)]/30 bg-[var(--color-primary-light)] text-[var(--color-primary-default)] dark:bg-[var(--color-primary-default)]/15' : 'border-[var(--border-default)] bg-[var(--surface-raised)] text-[var(--text-secondary)] hover:border-[var(--border-default)] hover:text-[var(--text-primary)]'}"
+      onclick={toggleMyOnly}
+    >
+      <Filter class="size-4" />
+      {myOnly ? $_('followups.my_only') : $_('followups.all_followups')}
+    </button>
+  </div>
+
   {#if totalCount === 0}
     <div class="flex flex-col items-center justify-center py-20 text-center">
       <Calendar class="mb-4 size-12 text-[var(--text-subtle)]" />
@@ -147,7 +171,7 @@
                       <!-- Top row: entity type badge + name + date -->
                       <div class="mb-1.5 flex items-center gap-2">
                         <Badge variant="secondary" class="text-[10px] uppercase tracking-wider">
-                          <svelte:component this={entityIcons[item.entity_type] || Target} class="mr-1 size-3" />
+                          <svelte:component this={entityIcons[item.entity_type] || Target} class="me-1 size-3" />
                           {item.entity_type}
                         </Badge>
                         <button
@@ -158,7 +182,7 @@
                             goto(`/${routeMap[item.entity_type] || item.entity_type.toLowerCase()}/${item.entity_id}`);
                           }}
                         >
-                          {item.entity_name || '—'}
+                          {item.entity_name || 'â€”'}
                         </button>
                       </div>
 
@@ -177,7 +201,7 @@
                           <span>{item.duration_minutes} min</span>
                         {/if}
                         <span>
-                          <Calendar class="mr-1 inline size-3" />
+                          <Calendar class="me-1 inline size-3" />
                           {formatRelativeDate(item.follow_up_date)}
                         </span>
                         {#if item.created_by?.name}

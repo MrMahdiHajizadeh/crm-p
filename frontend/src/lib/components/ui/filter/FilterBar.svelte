@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Filter, X, ChevronDown, ChevronUp, Sparkles } from '@lucide/svelte';
   import { cn } from '$lib/utils.js';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -141,7 +141,7 @@
           </span>
         {/if}
         {#if collapsible}
-          <div class="ml-1 transition-transform duration-200" class:rotate-180={isExpanded}>
+          <div class="ms-1 transition-transform duration-200" class:rotate-180={isExpanded}>
             <ChevronDown class="h-4 w-4 opacity-50" />
           </div>
         {/if}

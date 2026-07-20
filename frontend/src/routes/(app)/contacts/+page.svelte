@@ -1,9 +1,9 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { page } from '$app/stores';
   import { tick, onMount, untrack } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Plus,
     Eye,
@@ -25,7 +25,7 @@
   import { CustomFieldsPanel } from '$lib/components/custom-fields';
   import { CommentSection } from '$lib/components/ui/comment-section';
   import ContactImportDrawer from '$lib/components/contacts/ContactImportDrawer.svelte';
-  import { getCurrentUser } from '$lib/api.js';
+  import { getCurrentUser, contacts as contactsApi } from '$lib/api.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { CrmTable } from '$lib/components/ui/crm-table';
@@ -317,7 +317,7 @@
     : null;
 
   // If we're entering create mode pre-filled from an account, mirror what the
-  // $effect URL sync would normally do — but synchronously, so the first paint
+  // $effect URL sync would normally do â€” but synchronously, so the first paint
   // already shows the read-only Account row.
   if (initialAction === 'create' && initialAccountId) {
     accountId = initialAccountId;
@@ -389,7 +389,7 @@
     `${drawerFormData.firstName || ''} ${drawerFormData.lastName || ''}`.trim() || ''
   );
 
-  // URL sync — handles client-side navigation changes after first paint.
+  // URL sync â€” handles client-side navigation changes after first paint.
   // Initial deep links are seeded synchronously above.
   $effect(() => {
     const viewId = $page.url.searchParams.get('view');
@@ -553,7 +553,7 @@
   // Contacts are already filtered server-side
   const filteredContacts = $derived(contacts);
 
-  // Active row (highlighted in the table) — seeded from ?view= so the deep-linked
+  // Active row (highlighted in the table) â€” seeded from ?view= so the deep-linked
   // row is highlighted immediately on first paint.
   /** @type {string | null} */
   let activeRowId = $state(initialViewId || null);
@@ -677,26 +677,42 @@
     if (drawerMode !== 'view' || !selectedContact) return;
 
     isSubmitting = true;
-    formState.contactId = selectedContact.id;
-    formState.firstName = drawerFormData.firstName || '';
-    formState.lastName = drawerFormData.lastName || '';
-    formState.email = drawerFormData.email || '';
-    formState.phone = drawerFormData.phone || '';
-    formState.organization = drawerFormData.organization || '';
-    formState.title = drawerFormData.title || '';
-    formState.department = drawerFormData.department || '';
-    formState.doNotCall = drawerFormData.doNotCall || false;
-    formState.linkedInUrl = drawerFormData.linkedInUrl || '';
-    formState.addressLine = drawerFormData.addressLine || '';
-    formState.city = drawerFormData.city || '';
-    formState.state = drawerFormData.state || '';
-    formState.postcode = drawerFormData.postcode || '';
-    formState.country = drawerFormData.country || '';
-    formState.description = drawerFormData.description || '';
-    formState.tags = drawerFormData.tags || [];
+    try {
+      const payload = {
+        first_name: drawerFormData.firstName || undefined,
+        last_name: drawerFormData.lastName || undefined,
+        email: drawerFormData.email || undefined,
+        phone: drawerFormData.phone || undefined,
+        organization: drawerFormData.organization || undefined,
+        title: drawerFormData.title || undefined,
+        department: drawerFormData.department || undefined,
+        do_not_call: drawerFormData.doNotCall || false,
+        linkedin_url: drawerFormData.linkedInUrl || undefined,
+        address_line: drawerFormData.addressLine || undefined,
+        city: drawerFormData.city || undefined,
+        state: drawerFormData.state || undefined,
+        postcode: drawerFormData.postcode || undefined,
+        country: drawerFormData.country || undefined,
+        description: drawerFormData.description || undefined,
+        tags: drawerFormData.tags || [],
+      };
 
-    await tick();
-    updateForm.requestSubmit();
+      Object.keys(payload).forEach(k => { if (payload[k] === undefined) delete payload[k]; });
+
+      await contactsApi.update(selectedContact.id, payload);
+
+      toast.success($_('notifications.contact_updated') || 'Contact updated successfully');
+      drawerOpen = false;
+      const url = new URL($page.url);
+      url.searchParams.delete('view');
+      url.searchParams.delete('action');
+      await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+    } catch (err) {
+      toast.error(err.message || 'Failed to update contact');
+      console.error('Update contact error:', err);
+    } finally {
+      isSubmitting = false;
+    }
   }
 
   /**
@@ -706,26 +722,44 @@
     if (drawerMode !== 'create') return;
 
     isSubmitting = true;
-    formState.accountId = accountFromUrl ? accountId : '';
-    formState.firstName = drawerFormData.firstName || '';
-    formState.lastName = drawerFormData.lastName || '';
-    formState.email = drawerFormData.email || '';
-    formState.phone = drawerFormData.phone || '';
-    formState.organization = drawerFormData.organization || '';
-    formState.title = drawerFormData.title || '';
-    formState.department = drawerFormData.department || '';
-    formState.doNotCall = drawerFormData.doNotCall || false;
-    formState.linkedInUrl = drawerFormData.linkedInUrl || '';
-    formState.addressLine = drawerFormData.addressLine || '';
-    formState.city = drawerFormData.city || '';
-    formState.state = drawerFormData.state || '';
-    formState.postcode = drawerFormData.postcode || '';
-    formState.country = drawerFormData.country || '';
-    formState.description = drawerFormData.description || '';
-    formState.tags = drawerFormData.tags || [];
+    try {
+      const payload = {
+        first_name: drawerFormData.firstName || undefined,
+        last_name: drawerFormData.lastName || undefined,
+        email: drawerFormData.email || undefined,
+        phone: drawerFormData.phone || undefined,
+        organization: drawerFormData.organization || undefined,
+        title: drawerFormData.title || undefined,
+        department: drawerFormData.department || undefined,
+        do_not_call: drawerFormData.doNotCall || false,
+        linkedin_url: drawerFormData.linkedInUrl || undefined,
+        address_line: drawerFormData.addressLine || undefined,
+        city: drawerFormData.city || undefined,
+        state: drawerFormData.state || undefined,
+        postcode: drawerFormData.postcode || undefined,
+        country: drawerFormData.country || undefined,
+        description: drawerFormData.description || undefined,
+        tags: drawerFormData.tags || [],
+        account: accountFromUrl ? accountId : undefined,
+      };
 
-    await tick();
-    createForm.requestSubmit();
+      // Clean up undefined values
+      Object.keys(payload).forEach(k => { if (payload[k] === undefined) delete payload[k]; });
+
+      await contactsApi.create(payload);
+
+      toast.success($_('notifications.contact_created') || 'Contact created successfully');
+      drawerOpen = false;
+      const url = new URL($page.url);
+      url.searchParams.delete('view');
+      url.searchParams.delete('action');
+      await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+    } catch (err) {
+      toast.error(err.message || 'Failed to create contact');
+      console.error('Create contact error:', err);
+    } finally {
+      isSubmitting = false;
+    }
   }
 
   /**
@@ -747,7 +781,8 @@
    */
   function createEnhanceHandler(successMessage, closeOnSuccess = true) {
     return () => {
-      return async ({ result }) => {
+      return async ({ result, update }) => {
+        await update();
         isSubmitting = false;
         if (result.type === 'success') {
           toast.success(successMessage);
@@ -821,7 +856,7 @@
       Import CSV
     </Button>
     <Button onclick={openCreate}>
-      <Plus class="mr-2 h-4 w-4" />
+      <Plus class="me-2 h-4 w-4" />
       New Contact
     </Button>
   {/snippet}
@@ -1014,6 +1049,7 @@
   <input type="hidden" name="country" value={formState.country} />
   <input type="hidden" name="description" value={formState.description} />
   <input type="hidden" name="tags" value={JSON.stringify(formState.tags)} />
+  <button type="submit" class="hidden" aria-hidden="true"></button>
 </form>
 
 <form
@@ -1040,6 +1076,7 @@
   <input type="hidden" name="country" value={formState.country} />
   <input type="hidden" name="description" value={formState.description} />
   <input type="hidden" name="tags" value={JSON.stringify(formState.tags)} />
+  <button type="submit" class="hidden" aria-hidden="true"></button>
 </form>
 
 <form
@@ -1050,6 +1087,7 @@
   class="hidden"
 >
   <input type="hidden" name="contactId" value={formState.contactId} />
+  <button type="submit" class="hidden" aria-hidden="true"></button>
 </form>
 
 <ContactImportDrawer bind:open={importOpen} />

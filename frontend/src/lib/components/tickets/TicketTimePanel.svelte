@@ -1,7 +1,7 @@
 ﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { onDestroy, onMount } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Clock,
     Pause,
@@ -191,7 +191,7 @@
       <Clock class="h-4 w-4" />
       Time
       <span
-        class="ml-2 rounded bg-[var(--surface-muted)] px-2 py-0.5 text-[10px] uppercase text-[var(--text-secondary)]"
+        class="ms-2 rounded bg-[var(--surface-muted)] px-2 py-0.5 text-[10px] uppercase text-[var(--text-secondary)]"
       >
         {formatMinutes(totalMinutes)}
         {#if billableMinutes > 0}
@@ -257,7 +257,7 @@
               <span
                 class="inline-flex h-6 min-w-[3rem] items-center justify-center rounded bg-emerald-100 px-1.5 text-[11px] font-medium tabular-nums text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100"
               >
-                <Loader2 class="mr-1 h-3 w-3 animate-spin" />
+                <Loader2 class="me-1 h-3 w-3 animate-spin" />
                 {formatMinutes(runningMinutes(e))}
               </span>
             {/if}

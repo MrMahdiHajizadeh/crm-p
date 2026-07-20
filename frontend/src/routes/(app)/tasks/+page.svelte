@@ -3,7 +3,7 @@
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { onMount, tick, untrack } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Plus,
     ChevronLeft,
@@ -710,7 +710,8 @@
    */
   function createEnhanceHandler(successMessage, closeSheet = false) {
     return () => {
-      return async (/** @type {any} */ { result }) => {
+      return async (/** @type {any} */ { result, update }) => {
+        await update();
         if (result.type === 'success') {
           toast.success(successMessage);
           if (closeSheet) {
@@ -1179,7 +1180,7 @@
             onclick={() => updateViewMode('list')}
             class="h-8 px-3"
           >
-            <List class="mr-1.5 h-4 w-4" />
+            <List class="me-1.5 h-4 w-4" />
             List
           </Button>
           <Button
@@ -1188,7 +1189,7 @@
             onclick={() => updateViewMode('kanban')}
             class="h-8 px-3"
           >
-            <Columns class="mr-1.5 h-4 w-4" />
+            <Columns class="me-1.5 h-4 w-4" />
             Board
           </Button>
           <Button
@@ -1197,7 +1198,7 @@
             onclick={() => updateViewMode('calendar')}
             class="h-8 px-3"
           >
-            <Calendar class="mr-1.5 h-4 w-4" />
+            <Calendar class="me-1.5 h-4 w-4" />
             Calendar
           </Button>
         </div>
@@ -1237,7 +1238,7 @@
         {/if}
 
         <Button onclick={() => addNewTask()}>
-          <Plus class="mr-2 h-4 w-4" />
+          <Plus class="me-2 h-4 w-4" />
           {$_('tasks.create')}
         </Button>
       </div>
@@ -1483,7 +1484,7 @@
                 <Calendar class="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
                 <p class="text-muted-foreground text-sm">No tasks scheduled for this date</p>
                 <Button onclick={() => addNewTask()} variant="outline" size="sm" class="mt-4">
-                  <Plus class="mr-2 h-4 w-4" />
+                  <Plus class="me-2 h-4 w-4" />
                   Add Task
                 </Button>
               </div>
@@ -1585,12 +1586,12 @@
       <Button variant="outline" size="sm" onclick={closeTaskSheet}>Cancel</Button>
       {#if isCompleted}
         <Button variant="outline" size="sm" onclick={reopenSelectedTask}>
-          <RotateCcw class="mr-2 h-4 w-4" />
+          <RotateCcw class="me-2 h-4 w-4" />
           Reopen
         </Button>
       {:else}
         <Button variant="outline" size="sm" onclick={completeSelectedTask}>
-          <CheckCircle2 class="mr-2 h-4 w-4" />
+          <CheckCircle2 class="me-2 h-4 w-4" />
           Complete
         </Button>
       {/if}

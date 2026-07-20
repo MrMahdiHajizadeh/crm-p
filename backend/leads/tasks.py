@@ -100,9 +100,11 @@ def send_email_to_assigned_user(recipients, lead_id, org_id, source=""):
         if profile:
             recipients_list.append(profile.user.email)
             context = {}
-            context["url"] = settings.DOMAIN_NAME
+            context["url"] = f"{settings.DOMAIN_NAME}/leads/{lead.id}/view/"
             context["user"] = profile.user
             context["lead"] = lead
+            context["lead_instance"] = lead
+            context["lead_detail_url"] = f"{settings.DOMAIN_NAME}/leads/{lead.id}/view/"
             context["created_by"] = created_by
             context["source"] = source
             subject = "Assigned a lead for you. "

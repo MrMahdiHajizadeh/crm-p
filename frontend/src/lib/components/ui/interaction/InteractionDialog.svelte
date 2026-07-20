@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
@@ -19,8 +19,9 @@
    *   entityType?: string,
    *   entityId?: string,
    *   entityName?: string,
+   *   completedInteractionId?: string,
    * }} */
-  let { open, onClose, onSuccess, entityType = 'Lead', entityId = '', entityName = '' } = $props();
+  let { open, onClose, onSuccess, entityType = 'Lead', entityId = '', entityName = '', completedInteractionId = '' } = $props();
 
   // Interaction type options
   const interactionTypes = [
@@ -234,4 +235,7 @@
   <input type="hidden" name="description" value={description} />
   <input type="hidden" name="result" value={result || ''} />
   <input type="hidden" name="follow_up_date" value={followUpDate ? new Date(followUpDate).toISOString() : ''} />
+  {#if completedInteractionId}
+    <input type="hidden" name="completed_interaction_id" value={completedInteractionId} />
+  {/if}
 </form>

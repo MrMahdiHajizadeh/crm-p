@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.db.models import Q, Sum, F, DecimalField
 from django.db.models.functions import Coalesce
@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from accounts.models import Account
 from accounts.serializer import AccountSerializer
 from common import serializer, swagger_params
-from common.models import Activity
+from common.models import Activity, Profile
 from common.utils import STAGES
 from contacts.models import Contact
 from contacts.serializer import ContactSerializer
@@ -54,6 +54,8 @@ class ApiHomeView(APIView):
         profile = request.profile
         today = date.today()
 
+        is_admin = profile.role == "ADMIN" or request.user.is_superuser
+
         accounts = Account.objects.filter(is_active=True, org=org)
         contacts = Contact.objects.filter(org=org)
         leads = Lead.objects.filter(org=org).exclude(
@@ -62,24 +64,12 @@ class ApiHomeView(APIView):
         opportunities = Opportunity.objects.filter(org=org)
         tasks = Task.objects.filter(org=org)
 
-        is_admin = profile.role == "ADMIN" or request.user.is_superuser
-
         if not is_admin:
-            accounts = accounts.filter(
-                Q(assigned_to=profile) | Q(created_by=profile.user)
-            )
-            contacts = contacts.filter(
-                Q(assigned_to__id__in=[profile.id]) | Q(created_by=profile.user)
-            )
-            leads = leads.filter(
-                Q(assigned_to__id__in=[profile.id]) | Q(created_by=profile.user)
-            ).exclude(status="closed")
-            opportunities = opportunities.filter(
-                Q(assigned_to__id__in=[profile.id]) | Q(created_by=profile.user)
-            )
-            tasks = tasks.filter(
-                Q(assigned_to__id__in=[profile.id]) | Q(created_by=profile.user)
-            )
+            accounts = accounts.filter(Q(created_by=request.user) | Q(assigned_to=profile)).distinct()
+            contacts = contacts.filter(Q(created_by=request.user) | Q(assigned_to=profile)).distinct()
+            leads = leads.filter(Q(created_by=request.user) | Q(assigned_to=profile)).distinct()
+            opportunities = opportunities.filter(Q(created_by=request.user) | Q(assigned_to=profile)).distinct()
+            tasks = tasks.filter(Q(created_by=request.user) | Q(assigned_to=profile)).distinct()
 
         # Build base context (existing)
         context = {}
@@ -251,6 +241,66 @@ class ApiHomeView(APIView):
             for g in active_goals
         ]
 
+        # Team/Personal performance metrics
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        month_start = today.replace(day=1)
+
+        def compute_user_stats(user):
+            """Compute performance stats for a given User."""
+            user_profile = Profile.objects.filter(org=org, user=user).first()
+            if user_profile:
+                user_leads = Lead.objects.filter(org=org).filter(
+                    Q(created_by=user) | Q(assigned_to=user_profile)
+                ).distinct()
+                user_contacts = Contact.objects.filter(org=org).filter(
+                    Q(created_by=user) | Q(assigned_to=user_profile)
+                ).distinct()
+                user_accounts = Account.objects.filter(org=org, is_active=True).filter(
+                    Q(created_by=user) | Q(assigned_to=user_profile)
+                ).distinct()
+            else:
+                user_leads = Lead.objects.filter(org=org, created_by=user)
+                user_contacts = Contact.objects.filter(org=org, created_by=user)
+                user_accounts = Account.objects.filter(org=org, created_by=user, is_active=True)
+            user_followups = user_leads.filter(next_follow_up__isnull=False)
+
+            return {
+                "leads_count": user_leads.count(),
+                "contacts_count": user_contacts.count(),
+                "accounts_count": user_accounts.count(),
+                "followups_today": user_followups.filter(next_follow_up=today).count(),
+                "followups_week": user_followups.filter(
+                    next_follow_up__gte=week_start, next_follow_up__lte=today
+                ).count(),
+                "followups_month": user_followups.filter(
+                    next_follow_up__gte=month_start, next_follow_up__lte=today
+                ).count(),
+                "followups_total": user_followups.count(),
+            }
+
+        my_stats = compute_user_stats(request.user)
+
+        team_members = []
+        if is_admin:
+            profiles_qs = Profile.objects.filter(
+                org=org, is_active=True
+            ).select_related("user")
+            for p in profiles_qs:
+                user_stats = compute_user_stats(p.user)
+                team_members.append({
+                    "user_id": str(p.user.id),
+                    "user_name": p.user.name or p.user.email or p.user.phone or "",
+                    "user_email": p.user.email or "",
+                    "role": p.role,
+                    "stats": user_stats,
+                })
+
+        context["is_admin"] = is_admin
+        context["team_performance"] = {
+            "my_stats": my_stats,
+            "team_members": team_members,
+        }
+
         # Include recent activities (avoid separate API call)
         activities = (
             Activity.objects.filter(org=org)
@@ -341,12 +391,8 @@ class ActivityListView(APIView):
         date_from = request.query_params.get("date_from", None)
         date_to = request.query_params.get("date_to", None)
 
-        # Query activities for this organization
+        # Query activities for this organization — all members see all activities
         queryset = Activity.objects.filter(org=request.profile.org)
-
-        # Non-admin users can only see their own activities
-        if not is_admin:
-            queryset = queryset.filter(user=request.profile)
 
         # Filter by entity type if specified
         if entity_type:

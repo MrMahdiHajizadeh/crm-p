@@ -1,5 +1,5 @@
-<script>
-  import { toast } from 'svelte-sonner';
+﻿<script>
+  import { toast } from '$lib/components/ui/toast/index.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -8,7 +8,7 @@
   /**
    * Agent-facing KB suggester. Typeahead over published solutions in the
    * org; "Insert" pastes the solution body into the active textarea AND
-   * records the ticket↔solution link via the existing endpoint.
+   * records the ticketâ†”solution link via the existing endpoint.
    *
    * @type {{
    *   ticketId: string,
@@ -110,7 +110,7 @@
           type="text"
           placeholder="Search solutions…"
           bind:value={query}
-          class="h-8 pl-7 text-sm"
+          class="h-8 ps-7 text-sm"
         />
       </div>
     </div>
@@ -119,7 +119,7 @@
         <div
           class="flex items-center justify-center gap-2 p-4 text-xs text-[var(--text-secondary)]"
         >
-          <Loader2 class="h-3.5 w-3.5 animate-spin" /> Loading…
+          <Loader2 class="h-3.5 w-3.5 animate-spin" /> Loadingâ€¦
         </div>
       {:else if results.length === 0}
         <div class="p-4 text-center text-xs text-[var(--text-secondary)]">

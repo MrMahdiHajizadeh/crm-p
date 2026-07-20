@@ -7,3 +7,4 @@ export { default as PipelineChart } from './PipelineChart.svelte';
 export { default as TaskList } from './TaskList.svelte';
 export { default as HotLeadsPanel } from './HotLeadsPanel.svelte';
 export { default as OpportunitiesTable } from './OpportunitiesTable.svelte';
+export { default as TeamPerformance } from './TeamPerformance.svelte';

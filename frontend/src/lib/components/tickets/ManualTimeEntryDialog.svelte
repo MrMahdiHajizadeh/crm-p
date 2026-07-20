@@ -1,13 +1,13 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Loader2 } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
 
   /**
    * Manual time entry creation. The "now" defaults make backfilling a 30-min
-   * session straightforward — just type a description and submit.
+   * session straightforward â€” just type a description and submit.
    *
    * @type {{
    *   ticketId: string,
@@ -160,7 +160,7 @@
         onclick={submit}
         title={!description.trim() ? 'Add a description first' : undefined}
       >
-        {#if submitting}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+        {#if submitting}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
         Save entry
       </Button>
     </Dialog.Footer>

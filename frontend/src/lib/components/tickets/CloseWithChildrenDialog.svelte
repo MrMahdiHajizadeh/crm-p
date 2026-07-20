@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Loader2 } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';
@@ -109,7 +109,7 @@
     <div class="space-y-3">
       {#if loading}
         <div class="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-          <Loader2 class="h-3.5 w-3.5 animate-spin" /> Inspecting ticket tree…
+          <Loader2 class="h-3.5 w-3.5 animate-spin" /> Inspecting ticket treeâ€¦
         </div>
       {:else if openDescendants.length > 0}
         <div class="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900/40 dark:bg-amber-900/20">
@@ -170,7 +170,7 @@
         Cancel
       </Button>
       <Button type="button" disabled={submitting} onclick={submit}>
-        {#if submitting}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+        {#if submitting}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
         Close ticket
       </Button>
     </Dialog.Footer>

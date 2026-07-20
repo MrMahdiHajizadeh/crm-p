@@ -194,7 +194,7 @@
               tabindex="0"
               onclick={(e) => { e.stopPropagation(); e.preventDefault(); handleClear(); }}
               onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); e.preventDefault(); handleClear(); } }}
-              class="-mr-1 ml-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-sm hover:bg-[color:var(--violet)]/15"
+              class="-me-1 ms-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-sm hover:bg-[color:var(--violet)]/15"
               aria-label="Clear filter"
             >
               <X class="size-3" />
@@ -240,7 +240,7 @@
               style="animation-delay: {i * 30}ms"
               onclick={() => handlePreset(preset)}
             >
-              <Clock class="mr-2 h-3 w-3 opacity-50" />
+              <Clock class="me-2 h-3 w-3 opacity-50" />
               {preset.label}
             </Button>
           {/each}

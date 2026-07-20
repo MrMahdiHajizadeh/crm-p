@@ -1,7 +1,7 @@
 ﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { onMount, untrack } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { ShieldCheck, Loader2, X, Check, Ban } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
 
@@ -217,7 +217,7 @@
         disabled={pending}
         onclick={requestApproval}
       >
-        {#if pending}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+        {#if pending}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
         Request approval to close
       </Button>
     </div>
@@ -254,7 +254,7 @@
             disabled={pending}
             onclick={() => approve(latest.id)}
           >
-            <Check class="mr-1 h-3.5 w-3.5" />
+            <Check class="me-1 h-3.5 w-3.5" />
             Approve
           </Button>
           <Button
@@ -263,7 +263,7 @@
             disabled={pending}
             onclick={() => (rejectingId = rejectingId === latest.id ? null : latest.id)}
           >
-            <X class="mr-1 h-3.5 w-3.5" />
+            <X class="me-1 h-3.5 w-3.5" />
             Reject
           </Button>
           {#if currentProfileId && latest.requested_by?.id === currentProfileId}
@@ -273,7 +273,7 @@
               disabled={pending}
               onclick={() => cancel(latest.id)}
             >
-              <Ban class="mr-1 h-3.5 w-3.5" />
+              <Ban class="me-1 h-3.5 w-3.5" />
               Cancel my request
             </Button>
           {:else if isAdmin}
@@ -283,7 +283,7 @@
               disabled={pending}
               onclick={() => cancel(latest.id)}
             >
-              <Ban class="mr-1 h-3.5 w-3.5" />
+              <Ban class="me-1 h-3.5 w-3.5" />
               Cancel (admin)
             </Button>
           {/if}
@@ -324,7 +324,7 @@
             disabled={pending}
             onclick={requestApproval}
           >
-            {#if pending}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+            {#if pending}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
             Request approval again
           </Button>
         </div>
@@ -338,7 +338,7 @@
           <ul class="mt-1 space-y-1">
             {#each approvals.slice(1) as a (a.id)}
               <li class="rounded bg-[var(--surface-muted)] p-1.5">
-                <span class={`mr-2 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${badgeClass(a.state)}`}>
+                <span class={`me-2 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${badgeClass(a.state)}`}>
                   {a.state}
                 </span>
                 <span class="text-[var(--text-secondary)]">

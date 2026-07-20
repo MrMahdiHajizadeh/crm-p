@@ -15,7 +15,7 @@
 </script>
 
 <svelte:head>
-  <title>How did we do? — {data.survey?.orgName ?? 'CSAT survey'}</title>
+  <title>{$_('csat.page_title', { org: data.survey?.orgName || $_('csat.default_org') })}</title>
   <meta name="robots" content="noindex" />
 </svelte:head>
 

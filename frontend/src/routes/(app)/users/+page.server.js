@@ -23,56 +23,7 @@
  */
 
 import { error, fail } from '@sveltejs/kit';
-import { env } from '$env/dynamic/public';
-
-const API_BASE_URL = `${env.PUBLIC_DJANGO_API_URL}/api`;
-
-/**
- * Flatten nested API validation errors into a readable message.
- * @param {unknown} value
- * @returns {string[]}
- */
-function collectErrorMessages(value) {
-  if (!value) return [];
-  if (typeof value === 'string') return [value];
-  if (Array.isArray(value)) {
-    return value.flatMap((item) => collectErrorMessages(item));
-  }
-  if (typeof value === 'object') {
-    return Object.values(value).flatMap((item) => collectErrorMessages(item));
-  }
-  return [];
-}
-
-/**
- * Make authenticated API request
- * @param {string} endpoint
- * @param {Object} options
- * @param {Object} context
- * @returns {Promise<any>}
- */
-async function apiRequest(endpoint, options = {}, context) {
-  const { cookies, org } = context;
-  const accessToken = cookies.get('jwt_access');
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-      org: org.id,
-      ...options.headers
-    }
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: response.statusText }));
-    const messages = collectErrorMessages(errorData.errors || errorData.error);
-    throw new Error(messages[0] || response.statusText);
-  }
-
-  return await response.json();
-}
+import { apiRequest } from '$lib/api-helpers.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals, cookies }) {
@@ -193,7 +144,7 @@ export const actions = {
         '/users/',
         {
           method: 'POST',
-          body: JSON.stringify(userData)
+          body: userData
         },
         { cookies, org }
       );
@@ -242,7 +193,7 @@ export const actions = {
         `/user/${user_id}/`,
         {
           method: 'PATCH',
-          body: JSON.stringify({ role })
+          body: { role }
         },
         { cookies, org }
       );
@@ -283,7 +234,7 @@ export const actions = {
         `/user/${user_id}/status/`,
         {
           method: 'POST',
-          body: JSON.stringify({ status: 'Inactive' })
+          body: { status: 'Inactive' }
         },
         { cookies, org }
       );
@@ -317,7 +268,7 @@ export const actions = {
         `/user/${user_id}/status/`,
         {
           method: 'POST',
-          body: JSON.stringify({ status: 'Active' })
+          body: { status: 'Active' }
         },
         { cookies, org }
       );
@@ -352,12 +303,12 @@ export const actions = {
         '/teams/',
         {
           method: 'POST',
-          body: JSON.stringify({
+          body: {
             name,
             description,
             assign_users: true,
             users
-          })
+          }
         },
         { cookies, org }
       );
@@ -400,11 +351,11 @@ export const actions = {
         `/teams/${teamId}/`,
         {
           method: 'PUT',
-          body: JSON.stringify({
+          body: {
             name,
             description,
             assign_users: users
-          })
+          }
         },
         { cookies, org }
       );

@@ -1,16 +1,14 @@
 import { error } from '@sveltejs/kit';
 import { apiRequest } from '$lib/api-helpers.js';
 
-/** Compute the Mon..Sun ISO-week range for `date`. */
+/** Compute the Mon..Sun ISO-week range for `date` using local time. */
 function isoWeekRange(/** @type {Date} */ date) {
-  const d = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  );
-  const dayOfWeek = (d.getUTCDay() + 6) % 7; // Mon=0
-  d.setUTCDate(d.getUTCDate() - dayOfWeek);
-  const start = d.toISOString().slice(0, 10);
-  d.setUTCDate(d.getUTCDate() + 6);
-  const end = d.toISOString().slice(0, 10);
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const dayOfWeek = (d.getDay() + 6) % 7; // Mon=0
+  d.setDate(d.getDate() - dayOfWeek);
+  const start = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  d.setDate(d.getDate() + 6);
+  const end = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   return { start, end };
 }
 
@@ -53,10 +51,7 @@ export async function load({ url, locals, cookies }) {
       /** @param {any} p */ (p) => ({
         id: p.id,
         email: p.user_details?.email || p.email || 'Unknown',
-        name:
-          p.user_details?.first_name || p.user_details?.last_name
-            ? `${p.user_details?.first_name || ''} ${p.user_details?.last_name || ''}`.trim()
-            : ''
+        name: p.user_details?.name || ''
       })
     );
     return {

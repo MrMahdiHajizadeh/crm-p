@@ -1,9 +1,9 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
   import { tick, onMount, untrack } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Plus,
     Building2,
@@ -372,7 +372,7 @@
   // Check if account is closed (inactive)
   const isClosed = $derived(selectedAccount?.isActive === false);
 
-  // URL sync for drawer state — handles client-side navigation changes after first paint.
+  // URL sync for drawer state â€” handles client-side navigation changes after first paint.
   // The initial deep link is already handled synchronously above.
   $effect(() => {
     const viewId = $page.url.searchParams.get('view');
@@ -541,7 +541,7 @@
     return accounts;
   });
 
-  // Active row (highlighted in the table) — seeded from ?view= so the deep-linked row
+  // Active row (highlighted in the table) â€” seeded from ?view= so the deep-linked row
   // is highlighted immediately on first paint.
   /** @type {string | null} */
   let activeRowId = $state(initialViewId || null);
@@ -706,7 +706,8 @@
    */
   function createEnhanceHandler(successMessage, shouldCloseDrawer = false) {
     return () => {
-      return async ({ result }) => {
+      return async ({ result, update }) => {
+        await update();
         isSubmitting = false;
         if (result.type === 'success') {
           toast.success(successMessage);
@@ -864,7 +865,7 @@
         </DropdownMenu.Content>
       </DropdownMenu.Root>
       <Button onclick={openCreate} disabled={false}>
-        <Plus class="mr-2 h-4 w-4" />
+        <Plus class="me-2 h-4 w-4" />
         New Account
       </Button>
     </div>
@@ -1105,21 +1106,21 @@
           </p>
           <div class="flex gap-2">
             <Button variant="outline" size="sm" onclick={handleAddContact} class="flex-1">
-              <Users class="mr-1.5 h-3.5 w-3.5" />
+              <Users class="me-1.5 h-3.5 w-3.5" />
               Add Contact
             </Button>
             <Button variant="outline" size="sm" onclick={handleAddOpportunity} class="flex-1">
-              <Target class="mr-1.5 h-3.5 w-3.5" />
+              <Target class="me-1.5 h-3.5 w-3.5" />
               Add Opportunity
             </Button>
           </div>
           <div class="mt-2 flex gap-2">
             <Button variant="outline" size="sm" onclick={handleAddTicket} class="flex-1">
-              <AlertTriangle class="mr-1.5 h-3.5 w-3.5" />
+              <AlertTriangle class="me-1.5 h-3.5 w-3.5" />
               Add Ticket
             </Button>
             <Button variant="outline" size="sm" onclick={handleAddTask} class="flex-1">
-              <CheckSquare class="mr-1.5 h-3.5 w-3.5" />
+              <CheckSquare class="me-1.5 h-3.5 w-3.5" />
               Add Task
             </Button>
           </div>
@@ -1174,7 +1175,7 @@
         onclick={handleReopen}
         disabled={isSubmitting}
       >
-        <Unlock class="mr-1.5 size-4" />
+        <Unlock class="me-1.5 size-4" />
         Reopen Account
       </Button>
     {:else}
@@ -1185,7 +1186,7 @@
         onclick={handleClose}
         disabled={isSubmitting}
       >
-        <Lock class="mr-1.5 size-4" />
+        <Lock class="me-1.5 size-4" />
         Close Account
       </Button>
       <Button onclick={handleDrawerUpdate} disabled={isSubmitting || !drawerFormData.name?.trim()}>

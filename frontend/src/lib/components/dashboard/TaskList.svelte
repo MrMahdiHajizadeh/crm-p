@@ -171,7 +171,7 @@
         {btn.label}
         {#if btn.id === 'overdue' && overdueTasks.length > 0}
           <Badge
-            class="ml-1.5 h-4 min-w-4 bg-[var(--task-overdue)] px-1 text-[10px] font-bold text-white"
+            class="ms-1.5 h-4 min-w-4 bg-[var(--task-overdue)] px-1 text-[10px] font-bold text-white"
           >
             {overdueTasks.length}
           </Badge>

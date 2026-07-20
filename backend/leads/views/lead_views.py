@@ -58,13 +58,7 @@ class LeadListView(APIView, LimitOffsetPagination):
                 "tags",
                 "assigned_to",
             )
-        ).order_by("-id")
-        if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
-            queryset = queryset.filter(
-                Q(assigned_to__in=[self.request.profile])
-                | Q(created_by=self.request.profile.user)
-            )
-
+        ).order_by("-created_at")
         if params:
             if params.get("name"):
                 queryset = queryset.filter(
@@ -385,15 +379,7 @@ class LeadDetailView(APIView):
         ]
         if self.request.profile.user == self.lead_obj.created_by:
             user_assgn_list.append(self.request.profile.user)
-        if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
-            if self.request.profile.id not in user_assgn_list:
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You do not have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+        # All users have full access to all leads within their org
 
         lead_content_type = ContentType.objects.get_for_model(Lead)
         comments = Comment.objects.filter(
@@ -416,7 +402,7 @@ class LeadDetailView(APIView):
                 ).values("user__email")
             )
         elif self.request.profile.user != self.lead_obj.created_by:
-            users_mention = [{"username": self.lead_obj.created_by.username}]
+            users_mention = [{"user__email": self.lead_obj.created_by.email}]
         else:
             users_mention = list(self.lead_obj.assigned_to.all().values("user__email"))
         lead_content_type = ContentType.objects.get_for_model(Lead)
@@ -436,7 +422,7 @@ class LeadDetailView(APIView):
             ).order_by("user__email")
         else:
             users = Profile.objects.filter(
-                role="ADMIN", org=self.request.profile.org
+                is_active=True, org=self.request.profile.org
             ).order_by("user__email")
         user_assgn_list = [
             assigned_to.id
@@ -445,15 +431,7 @@ class LeadDetailView(APIView):
 
         if self.request.profile.user == self.lead_obj.created_by:
             user_assgn_list.append(self.request.profile.id)
-        if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
-            if self.request.profile.id not in user_assgn_list:
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You do not have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+        # All users have full access to all leads within their org
         team_ids = [user.id for user in self.lead_obj.get_team_users]
         all_user_ids = [user.id for user in users]
         users_excluding_team_id = set(all_user_ids) - set(team_ids)
@@ -524,6 +502,8 @@ class LeadDetailView(APIView):
     def get(self, request, pk, **kwargs):
         self.lead_obj = self.get_object(pk)
         context = self.get_context_data(**kwargs)
+        if isinstance(context, Response):
+            return context
         return Response(context)
 
     @extend_schema(
@@ -552,18 +532,7 @@ class LeadDetailView(APIView):
                 {"error": True, "errors": "User company doesnot match with header...."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        if self.request.profile.role != "ADMIN" and not self.request.user.is_superuser:
-            if not (
-                (self.request.profile.user == self.lead_obj.created_by)
-                or (self.request.profile in self.lead_obj.assigned_to.all())
-            ):
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You do not have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+        # All users can comment on any lead in their org
         if params.get("comment"):
             lead_content_type = ContentType.objects.get_for_model(Lead)
             Comment.objects.create(

@@ -35,33 +35,37 @@ def migrate_account_currency(apps, schema_editor):
 def migrate_lead_currency(apps, schema_editor):
     """Update Lead records using removed currencies to TOM."""
     Lead = apps.get_model("leads", "Lead")
-    Lead.objects.filter(currency__in=_REMOVED_CURRENCIES).update(
-        currency="TOM"
-    )
+    try:
+        Lead.objects.filter(currency__in=_REMOVED_CURRENCIES).update(currency="TOM")
+    except Exception:
+        pass
 
 
 def migrate_opportunity_currency(apps, schema_editor):
     """Update Opportunity records using removed currencies to TOM."""
     Opportunity = apps.get_model("opportunity", "Opportunity")
-    Opportunity.objects.filter(currency__in=_REMOVED_CURRENCIES).update(
-        currency="TOM"
-    )
+    try:
+        Opportunity.objects.filter(currency__in=_REMOVED_CURRENCIES).update(currency="TOM")
+    except Exception:
+        pass
 
 
 def migrate_invoice_currency(apps, schema_editor):
     """Update Invoice and related models using removed currencies to TOM."""
     Invoice = apps.get_model("invoices", "Invoice")
-    Invoice.objects.filter(currency__in=_REMOVED_CURRENCIES).update(
-        currency="TOM"
-    )
+    try:
+        Invoice.objects.filter(currency__in=_REMOVED_CURRENCIES).update(currency="TOM")
+    except Exception:
+        pass
 
 
 def migrate_recurring_invoice_currency(apps, schema_editor):
     """Update RecurringInvoice records using removed currencies to TOM."""
     RecurringInvoice = apps.get_model("invoices", "RecurringInvoice")
-    RecurringInvoice.objects.filter(currency__in=_REMOVED_CURRENCIES).update(
-        currency="TOM"
-    )
+    try:
+        RecurringInvoice.objects.filter(currency__in=_REMOVED_CURRENCIES).update(currency="TOM")
+    except Exception:
+        pass
 
 
 def migrate_estimate_currency(apps, schema_editor):

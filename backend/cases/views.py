@@ -145,7 +145,7 @@ class CaseListView(APIView, LimitOffsetPagination):
     def get_context_data(self, **kwargs):
         params = self.request.query_params
         queryset = self.model.objects.filter(org=self.request.profile.org).order_by(
-            "-id"
+            "-created_at"
         )
         # COORDINATION_DECISIONS.md D4: hide soft-deleted cases by default; admins may opt in.
         include_deleted = (
@@ -981,6 +981,32 @@ class CaseCommentView(APIView):
     def get_object(self, pk):
         return self.model.objects.get(pk=pk, org=self.request.profile.org)
 
+    def get_case(self, pk):
+        return Case.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Cases"],
+        parameters=swagger_params.organization_params,
+        responses={200: CommentSerializer(many=True)},
+        description="List comments for a case, or get a single comment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get comments for a case, or a single comment by its ID."""
+        try:
+            comment = self.get_object(pk)
+            return Response(CommentSerializer(comment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        case = self.get_case(pk)
+        content_type = ContentType.objects.get_for_model(case.__class__)
+        comments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=case.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(CommentSerializer(comments, many=True).data)
+
     @extend_schema(
         tags=["Cases"],
         parameters=swagger_params.organization_params,
@@ -1103,6 +1129,35 @@ class CaseCommentView(APIView):
 class CaseAttachmentView(APIView):
     model = Attachments
     permission_classes = (IsAuthenticated, HasOrgContext)
+
+    def get_object(self, pk):
+        return self.model.objects.get(pk=pk)
+
+    def get_case(self, pk):
+        return Case.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Cases"],
+        parameters=swagger_params.organization_params,
+        responses={200: AttachmentsSerializer(many=True)},
+        description="List attachments for a case, or get a single attachment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get attachments for a case, or a single attachment by its ID."""
+        try:
+            attachment = self.get_object(pk)
+            return Response(AttachmentsSerializer(attachment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        case = self.get_case(pk)
+        content_type = ContentType.objects.get_for_model(case.__class__)
+        attachments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=case.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(AttachmentsSerializer(attachments, many=True).data)
 
     @extend_schema(
         tags=["Cases"],

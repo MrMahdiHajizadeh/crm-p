@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { toast } from '$lib/components/ui/toast/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';

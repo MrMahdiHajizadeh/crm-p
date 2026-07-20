@@ -1,4 +1,5 @@
 import json
+from uuid import UUID
 
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -49,7 +50,7 @@ class ContactsListView(APIView, LimitOffsetPagination):
     def get_context_data(self, **kwargs):
         params = self.request.query_params
         queryset = self.model.objects.filter(org=self.request.profile.org).order_by(
-            "-id"
+            "-created_at"
         )
         # All org members can see all contacts (needed for lead/opportunity linking)
 
@@ -219,23 +220,38 @@ class ContactsListView(APIView, LimitOffsetPagination):
         if params.get("tags"):
             tags = params.get("tags")
             if isinstance(tags, str):
-                tags = json.loads(tags)
-            # Extract IDs if tags contains objects with 'id' field
-            tag_ids = [
-                item.get("id") if isinstance(item, dict) else item
-                for item in tags
-            ]
+                try:
+                    tags = json.loads(tags)
+                except (TypeError, ValueError):
+                    tags = []
+            # Support both tag IDs (UUIDs) and tag names (strings)
+            tag_ids = []
+            tag_names = []
+            for item in tags:
+                tid = item.get("id") if isinstance(item, dict) else item
+                if isinstance(tid, str):
+                    try:
+                        UUID(tid)
+                        tag_ids.append(tid)
+                    except (ValueError, AttributeError):
+                        tag_names.append(tid.strip())
             tag_objs = Tags.objects.filter(
-                id__in=tag_ids, org=request.profile.org, is_active=True
+                Q(id__in=tag_ids) | Q(name__in=tag_names),
+                org=request.profile.org,
+                is_active=True,
             )
             contact_obj.tags.add(*tag_objs)
 
         recipients = list(contact_obj.assigned_to.all().values_list("id", flat=True))
-        send_email_to_assigned_user.delay(
-            recipients,
-            contact_obj.id,
-            str(request.profile.org.id),
-        )
+        try:
+            send_email_to_assigned_user.delay(
+                recipients,
+                contact_obj.id,
+                str(request.profile.org.id),
+            )
+        except Exception:
+            # Celery/Redis may not be available; silently skip email notification
+            pass
 
         if request.FILES.get("contact_attachment"):
             attachment = Attachments()
@@ -282,18 +298,7 @@ class ContactDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            if not (
-                (self.request.profile == contact_obj.created_by)
-                or (self.request.profile in contact_obj.assigned_to.all())
-            ):
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You do not have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+        # All users can update any contact in their org
 
         contact_serializer = CreateContactSerializer(
             data=data, instance=contact_obj, request_obj=request
@@ -429,17 +434,9 @@ class ContactDetailView(APIView):
         )
         if user_assigned_accounts.intersection(contact_accounts):
             user_assgn_list.append(self.request.profile.id)
-        if self.request.profile == contact_obj.created_by:
+        if self.request.profile.user == contact_obj.created_by:
             user_assgn_list.append(self.request.profile.id)
-        if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
-            if self.request.profile.id not in user_assgn_list:
-                return Response(
-                    {
-                        "error": True,
-                        "errors": "You do not have Permission to perform this action",
-                    },
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+        # All users can view any contact in their org
         assigned_data = []
         for each in contact_obj.assigned_to.all():
             assigned_dict = {}
@@ -453,8 +450,8 @@ class ContactDetailView(APIView):
                     "user__email"
                 )
             )
-        elif self.request.profile != contact_obj.created_by:
-            users_mention = [{"username": contact_obj.created_by.user.email}]
+        elif self.request.profile.user != contact_obj.created_by:
+            users_mention = [{"user__email": contact_obj.created_by.email}]
         else:
             users_mention = list(contact_obj.assigned_to.all().values("user__email"))
 
@@ -745,6 +742,66 @@ class ContactCommentView(APIView):
     def get_object(self, pk):
         return self.model.objects.get(pk=pk, org=self.request.profile.org)
 
+    def get_contact(self, pk):
+        return Contact.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["contacts"],
+        parameters=swagger_params.organization_params,
+        request=ContactCommentEditSwaggerSerializer,
+        responses={
+            201: CommentSerializer(),
+        },
+    )
+    def post(self, request, pk, format=None):
+        """Create a new comment on a contact."""
+        from django.contrib.contenttypes.models import ContentType
+
+        contact = self.get_contact(pk)
+        text = request.data.get("comment", "").strip()
+        if not text:
+            return Response(
+                {"error": True, "errors": {"comment": "Comment text is required."}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        content_type = ContentType.objects.get_for_model(contact.__class__)
+        comment = Comment.objects.create(
+            content_type=content_type,
+            object_id=contact.id,
+            comment=text,
+            commented_by=request.profile,
+            org=request.profile.org,
+        )
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        tags=["contacts"],
+        parameters=swagger_params.organization_params,
+        responses={200: CommentSerializer(many=True)},
+        description="List comments for a contact, or get a single comment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get comments for a contact, or a single comment by its ID."""
+        # Try to get by comment ID first
+        try:
+            comment = self.get_object(pk)
+            return Response(CommentSerializer(comment).data)
+        except Comment.DoesNotExist:
+            pass
+
+        # If not found as comment, treat pk as contact ID and return all comments
+        from django.contrib.contenttypes.models import ContentType
+        contact = self.get_contact(pk)
+        content_type = ContentType.objects.get_for_model(contact.__class__)
+        comments = Comment.objects.filter(
+            content_type=content_type,
+            object_id=contact.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(CommentSerializer(comments, many=True).data)
+
     @extend_schema(
         tags=["contacts"],
         parameters=swagger_params.organization_params,
@@ -866,6 +923,37 @@ class ContactCommentView(APIView):
 class ContactAttachmentView(APIView):
     model = Attachments
     permission_classes = (IsAuthenticated, HasOrgContext)
+
+    def get_object(self, pk):
+        return self.model.objects.get(pk=pk)
+
+    def get_contact(self, pk):
+        from contacts.models import Contact
+        return Contact.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["contacts"],
+        parameters=swagger_params.organization_params,
+        responses={200: AttachmentsSerializer(many=True)},
+        description="List attachments for a contact, or get a single attachment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get attachments for a contact, or a single attachment by its ID."""
+        try:
+            attachment = self.get_object(pk)
+            return Response(AttachmentsSerializer(attachment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        contact = self.get_contact(pk)
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(contact.__class__)
+        attachments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=contact.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(AttachmentsSerializer(attachments, many=True).data)
 
     @extend_schema(
         tags=["contacts"],

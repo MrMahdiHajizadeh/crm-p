@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
 
@@ -65,7 +65,7 @@
           stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
-          class="mr-2"
+          class="me-2"
         >
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>

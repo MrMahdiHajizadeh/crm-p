@@ -59,7 +59,7 @@
   import { Timeline, TimelineItem } from '$lib/components/ui/timeline';
   import InteractionDialog from '$lib/components/ui/interaction/InteractionDialog.svelte';
   import * as Sheet from '$lib/components/ui/sheet/index.js';
-  import { getCurrentUser } from '$lib/api.js';
+  import { getCurrentUser, leads as leadsApi } from '$lib/api.js';
   import { browser } from '$app/environment';
   import { orgSettings } from '$lib/stores/org.js';
   import { ViewToggle } from '$lib/components/ui/view-toggle';
@@ -477,9 +477,20 @@
     }
   }
 
-  onMount(() => {
-    loadColumnVisibility();
-    currentUser = getCurrentUser();
+  // Auto-refresh every 30s for real-time sync across all org members
+  let refreshInterval;
+  $effect(() => {
+    // Only run in browser, clean up on destroy
+    if (typeof window !== 'undefined') {
+      loadColumnVisibility();
+      currentUser = getCurrentUser();
+      refreshInterval = setInterval(() => {
+        invalidateAll();
+      }, 30000);
+      return () => {
+        if (refreshInterval) clearInterval(refreshInterval);
+      };
+    }
   });
 
   // Save to localStorage when column visibility changes
@@ -1103,45 +1114,59 @@
 
     isSaving = true;
     try {
-      // Populate form state
-      formState.salutation = createFormData.salutation || '';
-      formState.title = createFormData.title || '';
-      formState.firstName = createFormData.firstName || '';
-      formState.lastName = createFormData.lastName || '';
-      formState.email = createFormData.email || '';
-      formState.phone = createFormData.phone || '';
-      formState.jobTitle = createFormData.jobTitle || '';
-      formState.company = createFormData.company || '';
-      formState.website = createFormData.website || '';
-      formState.linkedinUrl = createFormData.linkedinUrl || '';
-      formState.status = createFormData.status || 'ASSIGNED';
-      formState.source = createFormData.leadSource || '';
-      formState.rating = createFormData.rating || '';
-      formState.industry = createFormData.industry || '';
-      formState.opportunityAmount = createFormData.opportunityAmount || '';
-      formState.currency = createFormData.currency || $orgSettings.default_currency || 'USD';
-      formState.probability = createFormData.probability || '';
-      formState.closeDate = createFormData.closeDate || '';
-      formState.lastContacted = createFormData.lastContacted || '';
-      formState.nextFollowUp = createFormData.nextFollowUp || '';
-      formState.addressLine = createFormData.addressLine || '';
-      formState.city = createFormData.city || '';
-      formState.state = createFormData.state || '';
-      formState.postcode = createFormData.postcode || '';
-      formState.country = createFormData.country || '';
-      formState.description = createFormData.description || '';
-      formState.assignedTo = createFormData.assignedTo || [];
-      formState.teams = createFormData.teams || [];
-      formState.contacts = createFormData.contacts || [];
-      formState.tags = createFormData.tags || [];
+      // Build payload in Django snake_case format for the REST API
+      const payload = {
+        title: createFormData.title,
+        salutation: createFormData.salutation || undefined,
+        first_name: createFormData.firstName || undefined,
+        last_name: createFormData.lastName || undefined,
+        email: createFormData.email || undefined,
+        phone: createFormData.phone || undefined,
+        job_title: createFormData.jobTitle || undefined,
+        company_name: createFormData.company || undefined,
+        website: createFormData.website || undefined,
+        linkedin_url: createFormData.linkedinUrl || undefined,
+        status: (createFormData.status || 'ASSIGNED').toLowerCase().replace(/_/g, ' '),
+        source: (createFormData.leadSource || '').toLowerCase() || undefined,
+        rating: createFormData.rating || undefined,
+        industry: createFormData.industry || undefined,
+        opportunity_amount: createFormData.opportunityAmount ? parseFloat(createFormData.opportunityAmount) : undefined,
+        currency: createFormData.currency || $orgSettings.default_currency || 'USD',
+        probability: createFormData.probability ? parseInt(createFormData.probability) : undefined,
+        close_date: createFormData.closeDate || undefined,
+        address_line: createFormData.addressLine || undefined,
+        city: createFormData.city || undefined,
+        state: createFormData.state || undefined,
+        postcode: createFormData.postcode || undefined,
+        country: createFormData.country || undefined,
+        last_contacted: createFormData.lastContacted || undefined,
+        next_follow_up: createFormData.nextFollowUp || undefined,
+        description: createFormData.description || undefined,
+        assigned_to: createFormData.assignedTo || [],
+        teams: createFormData.teams || [],
+        contacts: createFormData.contacts || [],
+        tags: createFormData.tags || []
+      };
 
-      await tick();
+      // Clean up undefined values
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === undefined) delete payload[key];
+      });
 
-      // Use the hidden form with use:enhance instead of raw fetch
-      createForm.requestSubmit();
+      await leadsApi.create(payload);
+
+      toast.success($_('notifications.lead_created') || 'Lead created successfully');
+      drawerOpen = false;
+      drawerData = null;
+      const url = new URL($page.url);
+      url.searchParams.delete('view');
+      url.searchParams.delete('action');
+      await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
     } catch (err) {
+      toast.error(err.message || 'Failed to create lead');
+      console.error('Create lead error:', err);
+    } finally {
       isSaving = false;
-      toast.error('An unexpected error occurred');
     }
   }
 
@@ -1320,7 +1345,8 @@
    * @param {any} lead
    */
   function getFullName(lead) {
-    return `${lead.firstName} ${lead.lastName}`.trim();
+    const parts = [lead.firstName, lead.lastName].filter(Boolean);
+    return parts.length > 0 ? parts.join(' ') : (lead.title || '');
   }
 
   /**
@@ -1485,7 +1511,8 @@
    */
   function createEnhanceHandler(successMessage, shouldCloseDrawer = true) {
     return () => {
-      return async ({ result }) => {
+      return async ({ result, update }) => {
+        await update();
         isSaving = false;
         if (result.type === 'success') {
           toast.success(successMessage);
@@ -1626,7 +1653,7 @@
         {/if}
 
         <Button onclick={openCreate}>
-          <Plus class="mr-2 h-4 w-4" />
+          <Plus class="me-2 h-4 w-4" />
           New Lead
         </Button>
       </div>
@@ -1889,7 +1916,7 @@
             interactionDialogOpen = true;
           }}
         >
-          <Plus class="mr-1 size-3" />
+          <Plus class="me-1 size-3" />
           ??? ?????
         </Button>
       </div>
@@ -1933,12 +1960,12 @@
                         <span class="text-[var(--text-subtle)]"> ({i.duration_minutes} ?????)</span>
                       {/if}
                       {#if i.result}
-                        <span class="ml-1.5 inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
+                        <span class="ms-1.5 inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
                           {i.result_display || i.result}
                         </span>
                       {/if}
                       {#if i.follow_up_date}
-                        <span class="ml-1.5 text-[11px] text-[var(--text-subtle)]">
+                        <span class="ms-1.5 text-[11px] text-[var(--text-subtle)]">
                           ? {formatDate(i.follow_up_date)}
                         </span>
                       {/if}
@@ -2061,7 +2088,7 @@
                       <div>
                         <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">?????? ????</p>
                         <p class="mt-1 text-[13px] text-[var(--text)]">
-                          <Calendar class="ml-1 inline size-3" />
+                          <Calendar class="ms-1 inline size-3" />
                           {formatDate(i.follow_up_date)}
                         </p>
                       </div>
@@ -2104,7 +2131,7 @@
       <Button variant="outline" onclick={closeDrawer}>{$_('common.cancel')}</Button>
       <Button onclick={handleCreateLead} disabled={isSaving}>
         {#if isSaving}
-          <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 class="me-2 h-4 w-4 animate-spin" />
           {$_('common.saving')}
         {:else}
           {$_('leads.create')}
@@ -2114,13 +2141,13 @@
       <Button variant="outline" onclick={closeDrawer} disabled={isSaving}>{$_('common.cancel')}</Button>
       {#if drawerData?.status !== 'converted'}
         <Button variant="outline" onclick={handleDrawerConvert} disabled={isSaving}>
-          <ArrowRightCircle class="mr-2 h-4 w-4" />
+          <ArrowRightCircle class="me-2 h-4 w-4" />
           {$_('leads.convert')}
         </Button>
       {/if}
       <Button onclick={handleDrawerUpdate} disabled={isSaving}>
         {#if isSaving}
-          <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+          <Loader2 class="me-2 h-4 w-4 animate-spin" />
           Saving...
         {:else}
           Save
@@ -2187,6 +2214,7 @@
   <input type="hidden" name="teams" value={JSON.stringify(formState.teams)} />
   <input type="hidden" name="contacts" value={JSON.stringify(formState.contacts)} />
   <input type="hidden" name="tags" value={JSON.stringify(formState.tags)} />
+  <button type="submit" class="hidden" aria-hidden="true"></button>
 </form>
 
 <form
@@ -2233,6 +2261,7 @@
   <input type="hidden" name="teams" value={JSON.stringify(formState.teams)} />
   <input type="hidden" name="contacts" value={JSON.stringify(formState.contacts)} />
   <input type="hidden" name="tags" value={JSON.stringify(formState.tags)} />
+  <button type="submit" class="hidden" aria-hidden="true"></button>
 </form>
 
 <form
@@ -2243,6 +2272,7 @@
   class="hidden"
 >
   <input type="hidden" name="leadId" value={formState.leadId} />
+  <button type="submit" class="hidden" aria-hidden="true"></button>
 </form>
 
 <form
@@ -2253,6 +2283,7 @@
   class="hidden"
 >
   <input type="hidden" name="leadId" value={formState.leadId} />
+  <button type="submit" class="hidden" aria-hidden="true"></button>
 </form>
 
 <form
@@ -2266,4 +2297,5 @@
   <input type="hidden" name="status" bind:value={kanbanFormState.status} />
   <input type="hidden" name="aboveLeadId" bind:value={kanbanFormState.aboveLeadId} />
   <input type="hidden" name="belowLeadId" bind:value={kanbanFormState.belowLeadId} />
+  <button type="submit" class="hidden" aria-hidden="true"></button>
 </form>

@@ -154,7 +154,24 @@
     "earlier": "Earlier",
     "show_more": "Show more ({{count}} more)",
     "system": "System",
-    "currency_note": "{{currency}} only ({{count}} in other currencies)"
+    "currency_note": "{{currency}} only ({{count}} in other currencies)",
+    "team_performance": {
+      "my_title": "My Performance",
+      "team_title": "Team Performance",
+      "leads": "Leads",
+      "contacts": "Contacts",
+      "accounts": "Accounts",
+      "followups": "Follow-ups",
+      "followups_today": "Follow-ups Today",
+      "followups_week": "Follow-ups This Week",
+      "followups_month": "Follow-ups This Month",
+      "followups_total": "Total Follow-ups",
+      "today": "Today",
+      "this_week": "This Week",
+      "this_month": "This Month",
+      "total": "Total",
+      "member": "Member"
+    }
   },
   "common": {
     "save": "Save",
@@ -795,7 +812,9 @@
     "later": "Later",
     "empty_title": "No follow-ups needed",
     "empty_desc": "When you set a follow-up date on a lead or contact, it will appear here.",
-    "log_interaction": "Log Interaction"
+    "log_interaction": "Log Interaction",
+    "my_only": "My Follow-ups Only",
+    "all_followups": "All Follow-ups"
   },
   "supervision": {
     "title": "Supervision",
@@ -814,6 +833,9 @@
     "entity_case": "Case",
     "entity_task": "Task",
     "entity_invoice": "Invoice",
+    "entity_event": "Event",
+    "entity_document": "Document",
+    "entity_team": "Team",
     "reset_filters": "Reset",
     "filter_entity": "Type",
     "filter_action": "Action",
@@ -831,6 +853,72 @@
     "empty_desc": "No activities match the selected filters.",
     "page_info": "Page {{page}} of {{total}}",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "action_assign": "Assign",
+    "action_status_changed": "Status Change",
+    "action_priority_changed": "Priority Change",
+    "action_approved": "Approved",
+    "action_rejected": "Rejected",
+    "action_escalated": "Escalated",
+    "action_routed": "Routed",
+    "action_merged": "Merged",
+    "action_time_logged": "Time Logged"
+  },
+  "toasts": {
+    "solution_deleted": "Solution deleted",
+    "solution_created": "Solution created",
+    "delete_failed": "Delete failed",
+    "create_failed": "Failed to create",
+    "save_failed": "Save failed",
+    "operation_successful": "Operation successful",
+    "copy_failed": "Copy failed",
+    "rule_created": "Rule created",
+    "rule_updated": "Rule updated",
+    "tag_created": "Tag created successfully",
+    "tag_updated": "Tag updated successfully",
+    "tag_archived": "Tag archived successfully",
+    "tag_restored": "Tag restored successfully",
+    "opportunity_updated": "Opportunity updated"
+  },
+  "placeholders": {
+    "first_name": "First name",
+    "last_name": "Last name",
+    "select_country": "Select country",
+    "select_industry": "Select industry",
+    "select_account": "Select account",
+    "company_name": "Company name",
+    "job_title": "Job title",
+    "department": "Department",
+    "street_address": "Street address",
+    "city": "City",
+    "state_province": "State/Province",
+    "postal_code": "Postal code",
+    "add_notes": "Add notes about this contact...",
+    "add_account_notes": "Add notes about this account..."
+  },
+  "labels": {
+    "unnamed": "Unnamed",
+    "untitled": "Untitled",
+    "unknown_account": "Unknown Account",
+    "closed": "Closed",
+    "edit": "Edit"
+  },
+  "errors": {
+    "not_found": "Not Found",
+    "error": "Error"
+  },
+  "csat": {
+    "page_title": "How did we do? — {{org}}",
+    "default_org": "CSAT survey"
+  },
+  "goals": {
+    "title": "Sales Goals",
+    "status_on_track": "On Track",
+    "status_behind": "Behind",
+    "status_at_risk": "At Risk",
+    "status_completed": "Completed",
+    "target": "Target",
+    "achieved": "Achieved",
+    "progress": "Progress"
   }
 }

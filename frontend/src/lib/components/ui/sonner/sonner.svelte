@@ -1,5 +1,5 @@
-<script>
-  import { Toaster as Sonner } from 'svelte-sonner';
+﻿<script>
+  import { Toaster as Sonner } from '$lib/components/ui/toast/index.js';
   import { mode } from 'mode-watcher';
 
   let { ...restProps } = $props();

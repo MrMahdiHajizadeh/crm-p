@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { ChevronDown, Check, X } from '@lucide/svelte';
   import { cn } from '$lib/utils.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
@@ -116,7 +116,7 @@
                   handleClear();
                 }
               }}
-              class="-mr-1 ml-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-sm hover:bg-[color:var(--violet)]/15"
+              class="-me-1 ms-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-sm hover:bg-[color:var(--violet)]/15"
               aria-label="Clear filter"
             >
               <X class="size-3" />

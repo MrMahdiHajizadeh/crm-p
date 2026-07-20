@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { goto } from '$app/navigation';
   import { enhance } from '$app/forms';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Loader2 } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import PageHeader from '$lib/components/layout/PageHeader.svelte';
@@ -17,10 +17,10 @@
     return async ({ result, update }) => {
       submitting = false;
       if (result.type === 'redirect') {
-        toast.success('Solution created');
+        toast.success($_('toasts.solution_created'));
         await update();
       } else if (result.type === 'failure') {
-        toast.error(/** @type {any} */ (result.data)?.error || 'Failed to create');
+        toast.error(/** @type {any} */ (result.data)?.error || $_('toasts.create_failed'));
         await update({ reset: false });
       }
     };
@@ -60,7 +60,7 @@
         class="resize-y rounded border border-[var(--border-default)] bg-[var(--surface-default)] p-2 text-sm font-mono"
       >{form?.description ?? ''}</textarea>
       <span class="text-xs text-[var(--text-secondary)]">
-        Markdown is fine — agents will see this when linking to a ticket.
+        Markdown is fine â€” agents will see this when linking to a ticket.
       </span>
     </label>
 
@@ -89,7 +89,7 @@
     <div class="flex items-center justify-end gap-2">
       <Button type="button" variant="ghost" onclick={() => goto('/solutions')}>Cancel</Button>
       <Button type="submit" disabled={submitting}>
-        {#if submitting}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+        {#if submitting}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
         Create solution
       </Button>
     </div>

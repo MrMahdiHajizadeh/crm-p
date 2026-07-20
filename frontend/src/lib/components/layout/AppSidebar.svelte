@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { untrack } from 'svelte';
   import { page } from '$app/stores';
   import { afterNavigate, goto } from '$app/navigation';
@@ -70,10 +70,10 @@
   // Using $ prefix auto-subscribes to the Svelte store in runes mode.
   let mergedSettings = $derived({ ...org_settings, ...$orgSettingsStore });
 
-  // Tier badge — hidden when JWT doesn't carry one (spec §8 "No tier in JWT")
+  // Tier badge â€” hidden when JWT doesn't carry one (spec Â§8 "No tier in JWT")
   const tier = $derived(org_settings?.tier ?? null);
 
-  // Workspace gradient seed — first-letter monogram fallback for the avatar
+  // Workspace gradient seed â€” first-letter monogram fallback for the avatar
   const orgInitial = $derived((org_name || 'B').charAt(0).toUpperCase());
 
   const sidebar = Sidebar.useSidebar();
@@ -155,7 +155,7 @@
   };
 
   // Auto-open dropdown if a child route is active. Untrack the openDropdowns
-  // read so this effect only re-fires on currentPath changes — otherwise the
+  // read so this effect only re-fires on currentPath changes â€” otherwise the
   // user's onOpenChange (closing the panel) would re-trigger the effect and
   // immediately re-open it, fighting the click.
   $effect(() => {
@@ -180,7 +180,7 @@
     }
   });
 
-  // Five-section IA per spec §4
+  // Five-section IA per spec Â§4
   const workspaceItems = [
     { href: '/', label: 'sidebar.home', icon: Home, type: 'link', preload: 'off', count: undefined },
     { href: '/leads', label: 'sidebar.pipeline', icon: Activity, type: 'link', preload: 'off', count: undefined }
@@ -207,9 +207,6 @@
         { href: '/solutions', label: 'sidebar.knowledge_base', icon: BookOpen, preload: 'off', count: undefined }
       ]
     },
-    { href: '/tasks', label: 'sidebar.tasks', icon: CheckSquare, type: 'link', preload: 'off', count: undefined },
-    { href: '/timesheet', label: 'sidebar.timesheet', icon: Clock, type: 'link', preload: 'off', count: undefined },
-    { href: '/goals', label: 'sidebar.goals', icon: Trophy, type: 'link', preload: 'off', count: undefined }
   ];
 
   const managementItems = [
@@ -266,7 +263,7 @@
   collapsible="icon"
   class="hubspot-sidebar border-sidebar-border/60 bg-sidebar border-r"
 >
-  <!-- Workspace switcher row (spec §5.1) -->
+  <!-- Workspace switcher row (spec Â§5.1) -->
   <Sidebar.Header
     class="border-b border-[color:var(--sidebar-border)] px-3 py-3 group-data-[collapsible=icon]:px-2"
   >
@@ -358,7 +355,7 @@
                               >{item.count}</span>
                             {/if}
                             <ChevronDown
-                              class="ml-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
+                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
                             />
                           </button>
                         {/snippet}
@@ -367,7 +364,7 @@
                   </Collapsible.Trigger>
                   <Collapsible.Content>
                     <Sidebar.MenuSub
-                      class="ml-0 mt-0.5 mb-1 space-y-px border-none p-0"
+                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
                     >
                       {#each item.children as navChild}
                         <Sidebar.MenuSubItem>
@@ -501,7 +498,7 @@
                               >{item.count}</span>
                             {/if}
                             <ChevronDown
-                              class="ml-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
+                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
                             />
                           </button>
                         {/snippet}
@@ -510,7 +507,7 @@
                   </Collapsible.Trigger>
                   <Collapsible.Content>
                     <Sidebar.MenuSub
-                      class="ml-0 mt-0.5 mb-1 space-y-px border-none p-0"
+                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
                     >
                       {#each item.children as navChild}
                         <Sidebar.MenuSubItem>
@@ -644,7 +641,7 @@
                               >{item.count}</span>
                             {/if}
                             <ChevronDown
-                              class="ml-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
+                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
                             />
                           </button>
                         {/snippet}
@@ -653,7 +650,7 @@
                   </Collapsible.Trigger>
                   <Collapsible.Content>
                     <Sidebar.MenuSub
-                      class="ml-0 mt-0.5 mb-1 space-y-px border-none p-0"
+                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
                     >
                       {#each item.children as navChild}
                         <Sidebar.MenuSubItem>
@@ -835,7 +832,7 @@
                               >{item.count}</span>
                             {/if}
                             <ChevronDown
-                              class="ml-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
+                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
                             />
                           </button>
                         {/snippet}
@@ -844,7 +841,7 @@
                   </Collapsible.Trigger>
                   <Collapsible.Content>
                     <Sidebar.MenuSub
-                      class="ml-0 mt-0.5 mb-1 space-y-px border-none p-0"
+                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
                     >
                       {#each item.children as navChild}
                         <Sidebar.MenuSubItem>
@@ -978,7 +975,7 @@
                               >{item.count}</span>
                             {/if}
                             <ChevronDown
-                              class="ml-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
+                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
                             />
                           </button>
                         {/snippet}
@@ -987,7 +984,7 @@
                   </Collapsible.Trigger>
                   <Collapsible.Content>
                     <Sidebar.MenuSub
-                      class="ml-0 mt-0.5 mb-1 space-y-px border-none p-0"
+                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
                     >
                       {#each item.children as navChild}
                         <Sidebar.MenuSubItem>

@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { X, ChevronLeft } from '@lucide/svelte';
   import { cn } from '$lib/utils.js';
   import { sidePanelHidden } from './index.js';
@@ -52,7 +52,7 @@
         type="button"
         onclick={close}
         aria-label="Hide side panel"
-        class="-mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-[color:var(--text-subtle)] hover:bg-[color:var(--bg-hover)] hover:text-[color:var(--text)]"
+        class="-me-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-[color:var(--text-subtle)] hover:bg-[color:var(--bg-hover)] hover:text-[color:var(--text)]"
       >
         <X class="size-4" />
       </button>

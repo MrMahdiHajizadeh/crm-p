@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 
 from common.models import APISettings, Attachments, Comment
 from common.permissions import HasOrgContext
-from common.serializer import LeadCommentSerializer
+from common.serializer import AttachmentsSerializer, CommentSerializer, LeadCommentSerializer
 from contacts.models import Contact
 from leads import swagger_params
 from leads.forms import LeadListForm
@@ -67,6 +67,67 @@ class LeadCommentView(APIView):
 
     def get_object(self, pk):
         return self.model.objects.get(pk=pk, org=self.request.profile.org)
+
+    def get_lead(self, pk):
+        from leads.models import Lead
+        return Lead.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        responses={200: CommentSerializer(many=True)},
+        description="List comments for a lead, or get a single comment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get comments for a lead, or a single comment by its ID."""
+        # Try to get by comment ID first
+        try:
+            comment = self.get_object(pk)
+            return Response(CommentSerializer(comment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        # If not found as comment, treat pk as lead ID and return all comments
+        from django.contrib.contenttypes.models import ContentType
+        lead = self.get_lead(pk)
+        content_type = ContentType.objects.get_for_model(lead.__class__)
+        comments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=lead.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(CommentSerializer(comments, many=True).data)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        request=LeadCommentEditSwaggerSerializer,
+        responses={
+            201: CommentSerializer(),
+        },
+    )
+    def post(self, request, pk, format=None):
+        """Create a new comment on a lead."""
+        from django.contrib.contenttypes.models import ContentType
+
+        lead = self.get_lead(pk)
+        text = request.data.get("comment", "").strip()
+        if not text:
+            return Response(
+                {"error": True, "errors": {"comment": "Comment text is required."}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        content_type = ContentType.objects.get_for_model(lead.__class__)
+        comment = Comment.objects.create(
+            content_type=content_type,
+            object_id=lead.id,
+            comment=text,
+            commented_by=request.profile,
+            org=request.profile.org,
+        )
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         tags=["Leads"],
@@ -190,6 +251,36 @@ class LeadCommentView(APIView):
 class LeadAttachmentView(APIView):
     model = Attachments
     permission_classes = (IsAuthenticated, HasOrgContext)
+
+    def get_object(self, pk):
+        return self.model.objects.get(pk=pk)
+
+    def get_lead(self, pk):
+        return Lead.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Leads"],
+        parameters=swagger_params.organization_params,
+        responses={200: AttachmentsSerializer(many=True)},
+        description="List attachments for a lead, or get a single attachment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get attachments for a lead, or a single attachment by its ID."""
+        try:
+            attachment = self.get_object(pk)
+            return Response(AttachmentsSerializer(attachment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        lead = self.get_lead(pk)
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(lead.__class__)
+        attachments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=lead.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(AttachmentsSerializer(attachments, many=True).data)
 
     @extend_schema(
         tags=["Leads"],
@@ -460,10 +551,15 @@ class FollowUpListView(APIView):
         tomorrow_end = today_end + timezone.timedelta(days=1)
         week_end = today_start + timezone.timedelta(days=7)
 
+        my_only = request.query_params.get("my_only", "").lower() == "true"
+
         base_qs = InteractionLog.objects.filter(
             org=request.profile.org,
             follow_up_date__isnull=False,
         ).select_related("created_by")
+
+        if my_only:
+            base_qs = base_qs.filter(created_by=request.user)
 
         result = {
             "overdue": [],

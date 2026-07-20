@@ -1359,7 +1359,7 @@
       {/if}
 
       <Button onclick={addNewRow} disabled={isLoading}>
-        <Plus class="mr-2 h-4 w-4" />
+        <Plus class="me-2 h-4 w-4" />
         New
       </Button>
     </div>
@@ -1574,7 +1574,7 @@
                 {#if !isClosed}
                   <button
                     type="button"
-                    class="ml-2 rounded-[var(--radius-md)] p-1 text-[var(--text-tertiary)] hover:bg-[var(--surface-raised)] hover:text-[var(--color-negative-default)] disabled:cursor-not-allowed disabled:opacity-50"
+                    class="ms-2 rounded-[var(--radius-md)] p-1 text-[var(--text-tertiary)] hover:bg-[var(--surface-raised)] hover:text-[var(--color-negative-default)] disabled:cursor-not-allowed disabled:opacity-50"
                     onclick={() => deleteLineItem(item.id)}
                     disabled={isDeletingLineItem === item.id}
                   >
@@ -1647,7 +1647,7 @@
                       <Select.Item value={product.value}>
                         {product.label}
                         {#if product.sku}
-                          <span class="ml-1 text-xs text-gray-400">({product.sku})</span>
+                          <span class="ms-1 text-xs text-gray-400">({product.sku})</span>
                         {/if}
                       </Select.Item>
                     {/each}
@@ -1709,7 +1709,7 @@
           onclick={handleMarkWon}
           disabled={isLoading}
         >
-          <Trophy class="mr-1.5 size-4" />
+          <Trophy class="me-1.5 size-4" />
           Mark Won
         </Button>
         <Button
@@ -1718,7 +1718,7 @@
           onclick={handleMarkLost}
           disabled={isLoading}
         >
-          <XCircle class="mr-1.5 size-4" />
+          <XCircle class="me-1.5 size-4" />
           Mark Lost
         </Button>
       {/if}
@@ -1732,7 +1732,7 @@
                 class="text-[var(--color-primary-default)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-default)]"
                 disabled={isLoading}
               >
-                <Receipt class="mr-1.5 size-4" />
+                <Receipt class="me-1.5 size-4" />
                 Create Invoice
               </Button>
             {/snippet}

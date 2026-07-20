@@ -1,7 +1,7 @@
 ﻿<script>
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { SectionCard } from '$lib/components/ui/section-card/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';

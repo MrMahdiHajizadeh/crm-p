@@ -2,7 +2,7 @@
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Building2,
     Globe,
@@ -261,7 +261,7 @@
                         type="text"
                         bind:value={formDomain}
                         placeholder={$_('settings.domain_placeholder')}
-                        class="h-11 border-[var(--border-default)] bg-[var(--bg-subtle)] pl-10 text-base transition-colors focus:border-[var(--accent-primary)] focus:bg-transparent"
+                        class="h-11 border-[var(--border-default)] bg-[var(--bg-subtle)] ps-10 text-base transition-colors focus:border-[var(--accent-primary)] focus:bg-transparent"
                       />
                     </div>
                   </div>

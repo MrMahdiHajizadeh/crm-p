@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { GitMerge, Loader2 } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Dialog from '$lib/components/ui/dialog/index.js';

@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from common.models import Attachments, Comment
 from common.permissions import HasOrgContext
-from common.serializer import CommentSerializer
+from common.serializer import AttachmentsSerializer, CommentSerializer
 from opportunity import swagger_params
 from opportunity.serializer import OpportunityCommentEditSwaggerSerializer
 
@@ -17,6 +17,34 @@ class OpportunityCommentView(APIView):
 
     def get_object(self, pk):
         return self.model.objects.get(pk=pk, org=self.request.profile.org)
+
+    def get_opportunity(self, pk):
+        from opportunity.models import Opportunity
+        return Opportunity.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Opportunities"],
+        parameters=swagger_params.organization_params,
+        responses={200: CommentSerializer(many=True)},
+        description="List comments for an opportunity, or get a single comment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get comments for an opportunity, or a single comment by its ID."""
+        try:
+            comment = self.get_object(pk)
+            return Response(CommentSerializer(comment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        opportunity = self.get_opportunity(pk)
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(opportunity.__class__)
+        comments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=opportunity.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(CommentSerializer(comments, many=True).data)
 
     @extend_schema(
         tags=["Opportunities"],
@@ -140,6 +168,37 @@ class OpportunityCommentView(APIView):
 class OpportunityAttachmentView(APIView):
     model = Attachments
     permission_classes = (IsAuthenticated, HasOrgContext)
+
+    def get_object(self, pk):
+        return self.model.objects.get(pk=pk)
+
+    def get_opportunity(self, pk):
+        from opportunity.models import Opportunity
+        return Opportunity.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Opportunities"],
+        parameters=swagger_params.organization_params,
+        responses={200: AttachmentsSerializer(many=True)},
+        description="List attachments for an opportunity, or get a single attachment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get attachments for an opportunity, or a single attachment by its ID."""
+        try:
+            attachment = self.get_object(pk)
+            return Response(AttachmentsSerializer(attachment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        opportunity = self.get_opportunity(pk)
+        from django.contrib.contenttypes.models import ContentType
+        content_type = ContentType.objects.get_for_model(opportunity.__class__)
+        attachments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=opportunity.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(AttachmentsSerializer(attachments, many=True).data)
 
     @extend_schema(
         tags=["Opportunities"],

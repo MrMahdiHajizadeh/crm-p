@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { User, Mail, Phone, Building2, Calendar, Edit, Save, X, Check } from '@lucide/svelte';
   import { validatePhoneNumber, formatPhoneNumber } from '$lib/utils/phone.js';
@@ -101,10 +101,10 @@
       disabled={isSubmitting}
     >
       {#if isEditing}
-        <X class="mr-2 h-4 w-4" />
+        <X class="me-2 h-4 w-4" />
         {$_('common.cancel')}
       {:else}
-        <Edit class="mr-2 h-4 w-4" />
+        <Edit class="me-2 h-4 w-4" />
         {$_('profile.edit_profile')}
       {/if}
     </Button>
@@ -253,7 +253,7 @@
               </Button>
               <Button type="submit" disabled={isSubmitting || !!phoneError}>
                 {#if isSubmitting}
-                  <svg class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <svg class="me-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle
                       class="opacity-25"
                       cx="12"
@@ -270,7 +270,7 @@
                   </svg>
                   {$_('common.saving')}
                 {:else}
-                  <Save class="mr-2 h-4 w-4" />
+                  <Save class="me-2 h-4 w-4" />
                   {$_('profile.save_changes')}
                 {/if}
               </Button>

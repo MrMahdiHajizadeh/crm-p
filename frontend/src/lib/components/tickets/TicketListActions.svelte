@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Plus, Eye, Filter, List, Columns, Upload } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -41,7 +41,7 @@
       onclick={() => onViewMode('list')}
       class="h-8 px-3"
     >
-      <List class="mr-1.5 h-4 w-4" />List
+      <List class="me-1.5 h-4 w-4" />List
     </Button>
     <Button
       variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
@@ -49,7 +49,7 @@
       onclick={() => onViewMode('kanban')}
       class="h-8 px-3"
     >
-      <Columns class="mr-1.5 h-4 w-4" />Board
+      <Columns class="me-1.5 h-4 w-4" />Board
     </Button>
   </div>
 
@@ -107,6 +107,6 @@
   {/if}
 
   <Button onclick={onCreate}>
-    <Plus class="mr-2 h-4 w-4" />New Ticket
+    <Plus class="me-2 h-4 w-4" />New Ticket
   </Button>
 </div>

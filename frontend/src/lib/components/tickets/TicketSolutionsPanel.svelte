@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Plus, X, BookOpen } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
 
@@ -27,7 +27,7 @@
       Knowledge Base ({linked.length})
     </h3>
     <Button size="sm" variant="ghost" onclick={() => (pickerOpen = !pickerOpen)}>
-      <Plus class="mr-1 h-3 w-3" />
+      <Plus class="me-1 h-3 w-3" />
       Link solution
     </Button>
   </div>
@@ -46,7 +46,7 @@
           <a href="/solutions" class="text-[var(--text-primary)] underline">
             Visit Knowledge Base
           </a>
-          to publish one — only Live articles appear here.
+          to publish one â€” only Live articles appear here.
         </div>
       {:else if filteredAvailable.length === 0}
         <p class="px-1 py-2 text-xs text-[var(--text-secondary)]">

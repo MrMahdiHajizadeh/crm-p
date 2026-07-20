@@ -28,9 +28,7 @@ export async function load({ cookies, locals }) {
       profiles: (usersRes.active_users?.active_users || []).map((u) => ({
         id: u.id,
         name:
-          u.user_details?.first_name && u.user_details?.last_name
-            ? `${u.user_details.first_name} ${u.user_details.last_name}`
-            : u.user_details?.email || u.email
+          u.user_details?.name || u.user_details?.email || u.email
       })),
       teams: (teamsRes.teams || teamsRes.results || []).map((t) => ({
         id: t.id,

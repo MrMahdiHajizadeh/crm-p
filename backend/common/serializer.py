@@ -178,7 +178,11 @@ class CommentUserSerializer(serializers.ModelSerializer):
 
     def get_user_details(self, obj):
         if obj.user:
-            return {"email": obj.user.email, "profile_pic": obj.user.profile_pic}
+            return {
+                "email": obj.user.email,
+                "name": obj.user.name or "",
+                "profile_pic": obj.user.profile_pic,
+            }
         return None
 
 
@@ -337,26 +341,6 @@ class CustomFieldDefinitionSerializer(serializers.ModelSerializer):
                 )
 
         return attrs
-
-
-class ActivitySerializer(serializers.ModelSerializer):
-    """Activity timeline row, used by audit-log feeds (Cases first)."""
-
-    user = CommentUserSerializer(read_only=True)
-
-    class Meta:
-        model = Activity
-        fields = (
-            "id",
-            "action",
-            "user",
-            "entity_type",
-            "entity_id",
-            "entity_name",
-            "description",
-            "metadata",
-            "created_at",
-        )
 
 
 class OrgProfileCreateSerializer(serializers.ModelSerializer):

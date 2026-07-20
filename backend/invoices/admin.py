@@ -297,10 +297,8 @@ class EstimateLineItemInline(admin.TabularInline):
         "discount_type",
         "discount_value",
         "tax_rate",
-        "total",
         "order",
     )
-    readonly_fields = ("total",)
 
 
 @admin.register(Estimate)
@@ -345,7 +343,6 @@ class EstimateLineItemAdmin(admin.ModelAdmin):
         "product",
         "quantity",
         "unit_price",
-        "total",
         "order",
     )
     list_filter = ("estimate__status", "created_at")

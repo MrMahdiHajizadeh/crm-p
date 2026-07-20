@@ -1,519 +1,1691 @@
 ﻿<script>
   import { enhance } from '$app/forms';
-  import { invalidateAll } from '$app/navigation';
-  import PageHeader from '$lib/components/layout/PageHeader.svelte';
+  import { invalidateAll, goto } from '$app/navigation';
+  import { page } from '$app/stores';
+  import { onMount, tick, untrack } from 'svelte';
+  import { toast } from '$lib/components/ui/toast/index.js';
+  import {
+    Plus,
+    ChevronLeft,
+    ChevronRight,
+    CheckSquare,
+    Building2,
+    Calendar,
+    List,
+    Flag,
+    Circle,
+    CheckCircle2,
+    Clock,
+    RotateCcw,
+    Users,
+    User,
+    Eye,
+    FileText,
+    Target,
+    Briefcase,
+    UserPlus,
+    Tag,
+    Contact,
+    Link2,
+    Columns
+  } from '@lucide/svelte';
+  import { TaskKanban } from '$lib/components/ui/task-kanban';
+  import { PageHeader, FilterStrip, ViewTabs, FilterPill } from '$lib/components/layout';
+  import { Button } from '$lib/components/ui/button/index.js';
+  import { SectionCard } from '$lib/components/ui/section-card/index.js';
+  import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+  import { CrmDrawer } from '$lib/components/ui/crm-drawer';
+  import { CommentSection } from '$lib/components/ui/comment-section';
+  import CustomFieldsPanel from '$lib/components/custom-fields/CustomFieldsPanel.svelte';
+  import { getCurrentUser } from '$lib/api.js';
+  import { SearchInput, SelectFilter, DateRangeFilter, TagFilter } from '$lib/components/ui/filter';
+  import { Pagination } from '$lib/components/ui/pagination';
+  import { cn } from '$lib/utils.js';
+  import { TASK_STATUSES as statuses, PRIORITIES as priorities } from '$lib/constants/filters.js';
+  import { CrmTable } from '$lib/components/ui/crm-table';
+  import { formatRelativeDate } from '$lib/utils/formatting.js';
+  import { _ } from '$lib/i18n';
 
-  export let data;
+  // Account from URL param (for quick action from account page)
+  let accountFromUrl = $state(false);
+  let accountNameFromUrl = $state('');
+  let accountIdFromUrl = $state('');
 
-  let showAddColumn = false;
-  let newColumnName = '';
-  let newColumnColor = '#6B7280';
+  // Status and priority options with colors - using design system tokens
+  const statusOptions = [
+    {
+      value: 'New',
+      get label() { return $_('filters.new'); },
+      color:
+        'bg-[var(--task-upcoming-bg)] text-[var(--task-upcoming)] dark:bg-[var(--task-upcoming)]/15'
+    },
+    {
+      value: 'In Progress',
+      get label() { return $_('filters.in_progress'); },
+      color:
+        'bg-[var(--task-due-today-bg)] text-[var(--task-due-today)] dark:bg-[var(--task-due-today)]/15'
+    },
+    {
+      value: 'Completed',
+      get label() { return $_('filters.completed'); },
+      color:
+        'bg-[var(--task-completed-bg)] text-[var(--task-completed)] dark:bg-[var(--task-completed)]/15'
+    }
+  ];
 
-  // Track which column is showing the add task form
-  let addingTaskToColumn = null;
-  let newTaskTitle = '';
-  let newTaskDescription = '';
-  let newTaskPriority = 'medium';
+  const priorityOptions = [
+    {
+      value: 'High',
+      get label() { return $_('filters.high'); },
+      color:
+        'bg-[var(--priority-high-bg)] text-[var(--priority-high)] dark:bg-[var(--priority-high)]/15'
+    },
+    {
+      value: 'Medium',
+      get label() { return $_('filters.medium'); },
+      color:
+        'bg-[var(--priority-medium-bg)] text-[var(--priority-medium)] dark:bg-[var(--priority-medium)]/15'
+    },
+    {
+      value: 'Low',
+      get label() { return $_('filters.low'); },
+      color:
+        'bg-[var(--priority-low-bg)] text-[var(--priority-low)] dark:bg-[var(--priority-low)]/15'
+    }
+  ];
 
-  // Drag and drop state
-  let draggedTask = null;
-  let dragOverColumn = null;
-
-  const priorityColors = {
-    low: '#10B981',
-    medium: '#F59E0B',
-    high: '#EF4444',
-    urgent: '#7C3AED'
+  // Empty task template for create mode
+  const emptyTask = {
+    subject: '',
+    description: '',
+    status: 'New',
+    priority: 'Medium',
+    dueDate: '',
+    accountId: '',
+    opportunityId: '',
+    ticketId: '',
+    leadId: '',
+    assignedTo: /** @type {string[]} */ ([]),
+    contacts: /** @type {string[]} */ ([]),
+    teams: /** @type {string[]} */ ([]),
+    tags: /** @type {string[]} */ ([])
   };
 
-  function handleDragStart(event, task, columnId) {
-    draggedTask = { ...task, sourceColumnId: columnId };
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', task.id);
-  }
+  /**
+   * @typedef {'text' | 'email' | 'number' | 'date' | 'select' | 'checkbox' | 'relation'} ColumnType
+   * @typedef {{ key: string, label: string, type: ColumnType, width?: string, canHide?: boolean, editable?: boolean, relationIcon?: string, getValue?: (row: any) => any, options?: { value: string, label: string, color: string }[] }} TaskColumn
+   */
 
-  function handleDragOver(event, columnId) {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-    dragOverColumn = columnId;
-  }
-
-  function handleDragLeave() {
-    dragOverColumn = null;
-  }
-
-  async function handleDrop(event, targetColumnId) {
-    event.preventDefault();
-    dragOverColumn = null;
-
-    if (!draggedTask) return;
-
-    // Don't do anything if dropped in same column
-    if (draggedTask.sourceColumnId === targetColumnId) {
-      draggedTask = null;
-      return;
+  /**
+   * Get the related entity display for a task
+   * @param {any} row
+   * @returns {{ name: string } | null}
+   */
+  function getRelatedEntity(row) {
+    if (row.lead) {
+      const leadName =
+        row.lead.title || `${row.lead.firstName || ''} ${row.lead.lastName || ''}`.trim() || 'Lead';
+      return { name: `Lead: ${leadName}` };
     }
+    if (row.opportunity) {
+      return { name: `Opp: ${row.opportunity.name || 'Opportunity'}` };
+    }
+    if (row.case_) {
+      return { name: `Ticket: ${row.case_.subject || row.case_.name || 'Ticket'}` };
+    }
+    if (row.account) {
+      return { name: `Account: ${row.account.name || 'Account'}` };
+    }
+    return null;
+  }
 
-    // Submit the move via form action
-    const formData = new FormData();
-    formData.append('taskId', draggedTask.id);
-    formData.append('columnId', targetColumnId);
-    formData.append('order', '0'); // Add to top of column
-
-    try {
-      const response = await fetch('?/moveTask', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (response.ok) {
-        await invalidateAll();
+  /** @type {TaskColumn[]} */
+  const taskColumns = [
+    {
+      key: 'subject',
+      label: $_('tasks.subject'),
+      type: 'text',
+      width: 'w-64',
+      canHide: false,
+      editable: false
+    },
+    {
+      key: 'relatedTo',
+      label: $_('common.related_to'),
+      type: 'relation',
+      width: 'w-48',
+      relationIcon: 'link',
+      editable: false,
+      getValue: getRelatedEntity
+    },
+    { key: 'dueDate', label: $_('tasks.due_date'), type: 'date', width: 'w-36', editable: false },
+    { key: 'priority', label: $_('tasks.priority'), type: 'select', options: priorityOptions, width: 'w-28' },
+    { key: 'status', label: $_('common.status'), type: 'select', options: statusOptions, width: 'w-36' },
+    {
+      key: 'assignedTo',
+      label: $_('common.assigned_to'),
+      type: 'relation',
+      width: 'w-36',
+      relationIcon: 'user',
+      editable: false,
+      getValue: (/** @type {any} */ row) => {
+        const assigned = row.assignedTo || [];
+        if (assigned.length === 0) return null;
+        if (assigned.length === 1) return assigned[0];
+        return { name: `${assigned.length} users` };
       }
-    } catch (err) {
-      console.error('Failed to move task:', err);
+    },
+    // Hidden by default
+    {
+      key: 'account',
+      label: $_('common.account'),
+      type: 'relation',
+      width: 'w-40',
+      relationIcon: 'building',
+      canHide: true,
+      editable: false,
+      getValue: (/** @type {any} */ row) => row.account
+    },
+    {
+      key: 'contacts',
+      label: $_('common.contacts'),
+      type: 'relation',
+      width: 'w-36',
+      relationIcon: 'contact',
+      canHide: true,
+      editable: false,
+      getValue: (/** @type {any} */ row) => {
+        const contacts = row.contacts || [];
+        if (contacts.length === 0) return null;
+        if (contacts.length === 1) return contacts[0];
+        return { name: `${contacts.length} contacts` };
+      }
+    },
+    {
+      key: 'teams',
+      label: $_('common.teams'),
+      type: 'relation',
+      width: 'w-36',
+      relationIcon: 'users',
+      canHide: true,
+      editable: false,
+      getValue: (/** @type {any} */ row) => {
+        const teams = row.teams || [];
+        if (teams.length === 0) return null;
+        if (teams.length === 1) return teams[0];
+        return { name: `${teams.length} teams` };
+      }
+    },
+    {
+      key: 'tags',
+      label: $_('common.tags'),
+      type: 'relation',
+      width: 'w-32',
+      relationIcon: 'tag',
+      canHide: true,
+      editable: false,
+      getValue: (/** @type {any} */ row) => {
+        const tags = row.tags || [];
+        if (tags.length === 0) return null;
+        if (tags.length === 1) return tags[0];
+        return { name: `${tags.length} tags` };
+      }
+    }
+  ];
+
+  // Default visible columns (6 columns: Task, Related To, Due Date, Priority, Status, Assigned To)
+  const DEFAULT_VISIBLE_COLUMNS = [
+    'subject',
+    'relatedTo',
+    'dueDate',
+    'priority',
+    'status',
+    'assignedTo'
+  ];
+
+  // Column visibility state - use defaults
+  const STORAGE_KEY = 'tasks-table-columns';
+  let visibleColumns = $state([...DEFAULT_VISIBLE_COLUMNS]);
+  let currentUser = $state(null);
+
+  // Load column visibility from localStorage
+  onMount(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        visibleColumns = parsed.filter((/** @type {string} */ key) =>
+          taskColumns.some((c) => c.key === key)
+        );
+      } catch (e) {
+        console.error('Failed to parse saved columns:', e);
+      }
+    }
+    currentUser = getCurrentUser();
+  });
+
+  // Save column visibility when changed
+  $effect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(visibleColumns));
+  });
+
+  /**
+   * @param {string} key
+   */
+  function isColumnVisible(key) {
+    return visibleColumns.includes(key);
+  }
+
+  /**
+   * @param {string} key
+   */
+  function toggleColumn(key) {
+    const column = taskColumns.find((c) => c.key === key);
+    if (column?.canHide === false) return;
+
+    if (visibleColumns.includes(key)) {
+      visibleColumns = visibleColumns.filter((k) => k !== key);
+    } else {
+      visibleColumns = [...visibleColumns, key];
+    }
+  }
+
+  const columnCounts = $derived({
+    visible: visibleColumns.length,
+    total: taskColumns.length
+  });
+
+  /** @type {{ data: any }} */
+  let { data } = $props();
+
+  // Computed values - tasks come from server
+  const tasks = $derived(data.tasks || []);
+  const pagination = $derived(data.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 });
+
+  // Dropdown options from server (loaded with page data)
+  const formOptions = $derived(data.formOptions || {});
+  const accounts = $derived(formOptions.accounts || []);
+  const users = $derived(formOptions.users || []);
+  const contacts = $derived(formOptions.contacts || []);
+  const teams = $derived(formOptions.teams || []);
+  const opportunities = $derived(formOptions.opportunities || []);
+  const cases = $derived(formOptions.cases || []);
+  const leads = $derived(formOptions.leads || []);
+  const allTags = $derived(formOptions.tags || []);
+
+  // Dropdown options are now loaded server-side with page data
+  // No lazy loading needed
+
+  /**
+   * Get account name from server-provided accounts list
+   * @param {string} id
+   */
+  function fetchAccountName(id) {
+    const account = accounts.find((a) => a.id === id);
+    if (account) {
+      accountNameFromUrl = account.name;
+    } else {
+      accountNameFromUrl = 'Unknown Account';
+    }
+  }
+
+  /**
+   * Clear URL params for accountId and action
+   */
+  function clearUrlParams() {
+    const url = new URL($page.url);
+    url.searchParams.delete('action');
+    url.searchParams.delete('accountId');
+    goto(url.pathname, { replaceState: true, invalidateAll: true });
+    accountFromUrl = false;
+    accountNameFromUrl = '';
+    accountIdFromUrl = '';
+  }
+
+  // URL-based filter state from server
+  const filters = $derived(data.filters || {});
+
+  // Status options for filter dropdown
+  const statusFilterOptions = $derived([{ value: '', label: $_('filters.all_statuses') }, ...statusOptions]);
+
+  // Priority options for filter dropdown
+  const priorityFilterOptions = $derived([
+    { value: '', label: 'All Priorities' },
+    ...priorityOptions
+  ]);
+
+  // Count active filters (excluding status since it's handled via chips in header)
+  const activeFiltersCount = $derived.by(() => {
+    let count = 0;
+    if (filters.search) count++;
+    if (filters.priority) count++;
+    if (filters.assigned_to?.length > 0) count++;
+    if (filters.tags?.length > 0) count++;
+    if (filters.due_date_gte || filters.due_date_lte) count++;
+    return count;
+  });
+
+  /**
+   * Update URL with new filters
+   * @param {Record<string, any>} newFilters
+   */
+  async function updateFilters(newFilters) {
+    const url = new URL($page.url);
+    // Clear existing filter params
+    ['search', 'status', 'priority', 'assigned_to', 'tags', 'due_date_gte', 'due_date_lte'].forEach(
+      (key) => url.searchParams.delete(key)
+    );
+    // Set new params
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        value.forEach((v) => url.searchParams.append(key, v));
+      } else if (value && value !== 'ALL') {
+        url.searchParams.set(key, value);
+      }
+    });
+    await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+  }
+
+  /**
+   * Clear all filters
+   */
+  function clearFilters() {
+    updateFilters({});
+  }
+
+  /**
+   * Handle page change
+   * @param {number} newPage
+   */
+  async function handlePageChange(newPage) {
+    const url = new URL($page.url);
+    url.searchParams.set('page', newPage.toString());
+    await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+  }
+
+  /**
+   * Handle limit change
+   * @param {number} newLimit
+   */
+  async function handleLimitChange(newLimit) {
+    const url = new URL($page.url);
+    url.searchParams.set('limit', newLimit.toString());
+    url.searchParams.set('page', '1'); // Reset to first page
+    await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+  }
+
+  // Status counts for filter chips
+  const activeStatuses = ['New', 'In Progress'];
+  const activeTaskCount = $derived(
+    tasks.filter((/** @type {any} */ t) => activeStatuses.includes(t.status)).length
+  );
+  const completedCount = $derived(
+    tasks.filter((/** @type {any} */ t) => t.status === 'Completed').length
+  );
+
+  // Status chip filter state (client-side quick filter on top of server filters)
+  let statusChipFilter = $state('ALL');
+
+  // Filtered tasks - server already applies main filters, just apply status chip
+  const filteredTasks = $derived.by(() => {
+    let filtered = tasks;
+    if (statusChipFilter === 'active') {
+      filtered = filtered.filter((/** @type {any} */ t) => activeStatuses.includes(t.status));
+    } else if (statusChipFilter === 'completed') {
+      filtered = filtered.filter((/** @type {any} */ t) => t.status === 'Completed');
+    }
+    return filtered;
+  });
+
+  // Local data for optimistic updates. Initialize synchronously from props so SSR
+  // renders the actual rows instead of flashing "No tasks" until $effect runs on hydration.
+  let localTasks = $state(
+    /** @type {any[]} */ (untrack(() => (data.tasks ? [...data.tasks] : [])))
+  );
+
+  $effect(() => {
+    localTasks = [...filteredTasks];
+  });
+
+  // Active row (highlighted in the table) � null until the user clicks a row.
+  /** @type {string | null} */
+  let activeRowId = $state(null);
+
+  // Row detail sheet state
+  let sheetOpen = $state(false);
+  /** @type {string | null} */
+  let selectedTaskId = $state(null);
+
+  // View mode state (list, kanban, or calendar) - sync with server data
+  /** @type {'list' | 'kanban' | 'calendar'} */
+  let viewMode = $state('list');
+
+  // Sync viewMode when data changes (e.g., on navigation)
+  $effect(() => {
+    if (data.viewMode) {
+      viewMode = data.viewMode;
+    }
+  });
+
+  // Kanban data from server
+  const kanbanData = $derived(data.kanbanData);
+
+  // Form references for server actions
+  /** @type {HTMLFormElement} */
+  let createForm;
+  /** @type {HTMLFormElement} */
+  let updateForm;
+  /** @type {HTMLFormElement} */
+  let deleteForm;
+  /** @type {HTMLFormElement} */
+  let completeForm;
+  /** @type {HTMLFormElement} */
+  let reopenForm;
+  /** @type {HTMLFormElement} */
+  let moveTaskForm;
+
+  // Kanban form state for drag-drop
+  let kanbanFormState = $state({
+    taskId: '',
+    status: '',
+    stageId: '',
+    aboveTaskId: '',
+    belowTaskId: ''
+  });
+
+  // Form data state
+  let formState = $state({
+    taskId: '',
+    subject: '',
+    description: '',
+    status: 'New',
+    priority: 'Medium',
+    dueDate: '',
+    accountId: '',
+    accountName: '',
+    opportunityId: '',
+    opportunityName: '',
+    ticketId: '',
+    caseName: '',
+    leadId: '',
+    leadName: '',
+    assignedTo: /** @type {string[]} */ ([]),
+    contacts: /** @type {string[]} */ ([]),
+    teams: /** @type {string[]} */ ([]),
+    tags: /** @type {string[]} */ ([])
+  });
+
+  /**
+   * NotionTable callback - handle inline row changes
+   * @param {any} row
+   * @param {string} field
+   * @param {any} value
+   */
+  async function handleRowChange(row, field, value) {
+    // Optimistically update local state
+    localTasks = localTasks.map((t) => (t.id === row.id ? { ...t, [field]: value } : t));
+
+    // Prepare form state and submit to server
+    formState.taskId = row.id;
+    formState.subject = field === 'subject' ? value : row.subject || '';
+    formState.description = row.description || '';
+    formState.status = field === 'status' ? value : row.status || 'New';
+    formState.priority = field === 'priority' ? value : row.priority || 'Medium';
+    formState.dueDate = row.dueDate ? row.dueDate.split('T')[0] : '';
+    formState.accountId = row.account?.id || '';
+    formState.opportunityId = row.opportunity?.id || '';
+    formState.ticketId = row.case_?.id || '';
+    formState.leadId = row.lead?.id || '';
+    formState.assignedTo = (row.assignedTo || []).map((/** @type {any} */ a) => a.id);
+    formState.contacts = (row.contacts || []).map((/** @type {any} */ c) => c.id);
+    formState.teams = (row.teams || []).map((/** @type {any} */ t) => t.id);
+    formState.tags = (row.tags || []).map((/** @type {any} */ t) => t.id);
+
+    await tick();
+    updateForm.requestSubmit();
+  }
+
+  /**
+   * NotionTable callback - handle row click to open sheet
+   * @param {any} row
+   */
+  function handleRowClick(row) {
+    openTaskSheet(row.id);
+  }
+
+  /**
+   * @param {string} dateStr
+   */
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fa-IR-u-ca-persian', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  /**
+   * @param {string} value
+   * @param {{ value: string, label: string, color: string }[]} options
+   */
+  function getOptionStyle(value, options) {
+    const option = options.find((o) => o.value === value);
+    return option?.color ?? 'bg-[var(--surface-sunken)] text-[var(--text-secondary)]';
+  }
+
+  /**
+   * @param {string} value
+   * @param {{ value: string, label: string, color: string }[]} options
+   */
+  function getOptionLabel(value, options) {
+    const option = options.find((o) => o.value === value);
+    return option?.label ?? value;
+  }
+
+  /**
+   * @param {string} [initialStatus]
+   */
+  async function addNewTask(initialStatus) {
+    // Check for account pre-fill from URL params
+    const accountIdParam = $page.url.searchParams.get('accountId');
+    if (accountIdParam && !accountFromUrl) {
+      accountIdFromUrl = accountIdParam;
+      accountFromUrl = true;
+      fetchAccountName(accountIdParam);
     }
 
-    draggedTask = null;
+    // Open the sheet for creating a new task
+    selectedTaskId = null;
+    formState = {
+      taskId: '',
+      subject: '',
+      description: '',
+      status: initialStatus || 'New',
+      priority: 'Medium',
+      dueDate: '',
+      accountId: accountIdFromUrl || '',
+      accountName: accountNameFromUrl || '',
+      opportunityId: '',
+      opportunityName: '',
+      ticketId: '',
+      caseName: '',
+      leadId: '',
+      leadName: '',
+      assignedTo: [],
+      contacts: [],
+      teams: [],
+      tags: []
+    };
+    sheetOpen = true;
   }
 
-  function handleDragEnd() {
-    draggedTask = null;
-    dragOverColumn = null;
+  /**
+   * Add a card from a kanban column (status column id matches status name)
+   * @param {string} columnId
+   */
+  function handleAddCardFromColumn(columnId) {
+    // For status-mode kanban the column id is the status name (e.g. "New")
+    addNewTask(columnId);
   }
 
-  function startAddingTask(columnId) {
-    addingTaskToColumn = columnId;
-    newTaskTitle = '';
-    newTaskDescription = '';
-    newTaskPriority = 'medium';
+  // URL sync for action param (quick action from account page)
+  $effect(() => {
+    const action = $page.url.searchParams.get('action');
+
+    if (action === 'create' && !sheetOpen) {
+      addNewTask();
+    }
+  });
+
+  // Row detail sheet functions
+  /**
+   * @param {string} taskId
+   */
+  function openTaskSheet(taskId) {
+    selectedTaskId = taskId;
+    const task = localTasks.find((t) => t.id === taskId);
+    if (task) {
+      formState = {
+        taskId: task.id,
+        subject: task.subject || '',
+        description: task.description || '',
+        status: task.status || 'New',
+        priority: task.priority || 'Medium',
+        dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+        accountId: task.account?.id || '',
+        accountName: task.account?.name || '',
+        opportunityId: task.opportunity?.id || '',
+        opportunityName: task.opportunity?.name || '',
+        ticketId: task.case_?.id || '',
+        caseName: task.case_?.name || '',
+        leadId: task.lead?.id || '',
+        leadName: task.lead?.name || '',
+        assignedTo: (task.assignedTo || []).map((/** @type {any} */ a) => a.id),
+        contacts: (task.contacts || []).map((/** @type {any} */ c) => c.id),
+        teams: (task.teams || []).map((/** @type {any} */ t) => t.id),
+        tags: (task.tags || []).map((/** @type {any} */ t) => t.id)
+      };
+    }
+    sheetOpen = true;
   }
 
-  function cancelAddingTask() {
-    addingTaskToColumn = null;
+  function closeTaskSheet() {
+    sheetOpen = false;
+    selectedTaskId = null;
+    // Clear account URL params if they were set
+    if (accountFromUrl) {
+      clearUrlParams();
+    }
   }
 
-  function formatDate(date) {
-    if (!date) return '';
-    return new Date(date).toLocaleDateString('fa-IR-u-ca-persian', {
-      month: 'short',
-      day: 'numeric'
-    });
+  async function deleteSelectedTask() {
+    if (!selectedTaskId) return;
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    formState.taskId = selectedTaskId;
+    await tick();
+    deleteForm.requestSubmit();
+  }
+
+  async function completeSelectedTask() {
+    if (!selectedTaskId) return;
+    formState.taskId = selectedTaskId;
+    await tick();
+    completeForm.requestSubmit();
+  }
+
+  async function reopenSelectedTask() {
+    if (!selectedTaskId) return;
+    formState.taskId = selectedTaskId;
+    await tick();
+    reopenForm.requestSubmit();
+  }
+
+  // Get selected task data
+  const selectedTask = $derived(localTasks.find((t) => t.id === selectedTaskId));
+  const isCreateMode = $derived(selectedTaskId === null && sheetOpen);
+  const isCompleted = $derived(formState.status === 'Completed');
+
+  /**
+   * Create enhance handler for form actions
+   * @param {string} successMessage
+   * @param {boolean} closeSheet
+   */
+  function createEnhanceHandler(successMessage, closeSheet = false) {
+    return () => {
+      return async (/** @type {any} */ { result, update }) => {
+        await update();
+        if (result.type === 'success') {
+          toast.success(successMessage);
+          if (closeSheet) {
+            closeTaskSheet();
+          }
+          await invalidateAll();
+        } else if (result.type === 'failure') {
+          toast.error(result.data?.error || 'Operation failed');
+        } else if (result.type === 'error') {
+          toast.error('An unexpected error occurred');
+        }
+      };
+    };
+  }
+
+  // Calendar state
+  let today = new Date();
+  let currentDate = $state(new Date(today));
+  let selectedDate = $state(today.toISOString().slice(0, 10));
+
+  // Persian month names indexed by Gregorian month (0=Jan, 11=Dec)
+  // Mapping: Jan???, Feb?????, Mar??????, Apr????????, May?????????, Jun??????,
+  //          Jul????, Aug??????, Sep???????, Oct????, Nov?????, Dec????
+  const monthNames = [
+    '??', '????', '?????', '???????', '????????', '?????',
+    '???', '?????', '??????', '???', '????', '???'
+  ];
+
+  // Calendar computed values
+  const calendarYear = $derived(currentDate.getFullYear());
+  const calendarMonth = $derived(currentDate.getMonth());
+  const monthStart = $derived(new Date(calendarYear, calendarMonth, 1));
+  const monthEnd = $derived(new Date(calendarYear, calendarMonth + 1, 0));
+  const startDay = $derived(monthStart.getDay());
+  const daysInMonth = $derived(monthEnd.getDate());
+
+  const calendar = $derived.by(() => {
+    /** @type {(Date | null)[]} */
+    let cal = [];
+    for (let i = 0; i < startDay; i++) cal.push(null);
+    for (let d = 1; d <= daysInMonth; d++)
+      cal.push(new Date(Date.UTC(calendarYear, calendarMonth, d)));
+    while (cal.length % 7 !== 0) cal.push(null);
+    return cal;
+  });
+
+  // Group filtered tasks by due date for calendar
+  const tasksByDate = $derived.by(() => {
+    /** @type {Record<string, any[]>} */
+    const grouped = {};
+    for (const t of filteredTasks) {
+      if (!t.dueDate) continue;
+      const date = (typeof t.dueDate === 'string' ? t.dueDate : t.dueDate?.toISOString?.())?.slice(
+        0,
+        10
+      );
+      if (!date) continue;
+      if (!grouped[date]) grouped[date] = [];
+      grouped[date].push(t);
+    }
+    return grouped;
+  });
+
+  const selectedTasks = $derived(tasksByDate[selectedDate] || []);
+
+  // Monthly stats for calendar
+  const monthlyTaskDates = $derived(
+    Object.keys(tasksByDate).filter((dateStr) => {
+      const taskDate = new Date(dateStr);
+      return taskDate.getFullYear() === calendarYear && taskDate.getMonth() === calendarMonth;
+    })
+  );
+
+  const totalMonthlyTasks = $derived(
+    monthlyTaskDates.reduce((total, dateStr) => total + tasksByDate[dateStr].length, 0)
+  );
+
+  /**
+   * Format date to YYYY-MM-DD string
+   * @param {Date} date
+   */
+  function formatDateString(date) {
+    return date.toISOString().slice(0, 10);
+  }
+
+  /**
+   * Check if date is today
+   * @param {Date|null} date
+   */
+  function isTodayDate(date) {
+    return !!(date && formatDateString(date) === today.toISOString().slice(0, 10));
+  }
+
+  /**
+   * Check if date has tasks
+   * @param {Date|null} date
+   */
+  function hasTasksOnDate(date) {
+    return !!(date && tasksByDate[formatDateString(date)]?.length > 0);
+  }
+
+  /**
+   * Select a day on the calendar
+   * @param {Date|null} date
+   */
+  function selectDay(date) {
+    if (date) {
+      selectedDate = formatDateString(date);
+    }
+  }
+
+  function previousMonth() {
+    currentDate = new Date(calendarYear, calendarMonth - 1, 1);
+  }
+
+  function nextMonth() {
+    currentDate = new Date(calendarYear, calendarMonth + 1, 1);
+  }
+
+  function goToToday() {
+    currentDate = new Date(today);
+    selectedDate = today.toISOString().slice(0, 10);
+  }
+
+  // Account options for sheet
+  const accountOptions = $derived([
+    { value: '', label: 'None' },
+    ...accounts.map((/** @type {any} */ a) => ({ value: a.id, label: a.name }))
+  ]);
+
+  // User options for drawer
+  const userOptions = $derived(
+    users.map((/** @type {any} */ u) => ({ value: u.id, label: u.name }))
+  );
+
+  // Team options for drawer
+  const teamOptions = $derived(
+    teams.map((/** @type {any} */ t) => ({ value: t.id, label: t.name }))
+  );
+
+  // Contact options for drawer
+  const contactOptions = $derived(
+    contacts.map((/** @type {any} */ c) => ({ value: c.id, label: c.name }))
+  );
+
+  // Opportunity options for drawer
+  const opportunityOptions = $derived([
+    { value: '', label: 'None' },
+    ...opportunities.map((/** @type {any} */ o) => ({ value: o.id, label: o.name }))
+  ]);
+
+  // Ticket options for drawer
+  const caseOptions = $derived([
+    { value: '', label: 'None' },
+    ...cases.map((/** @type {any} */ c) => ({ value: c.id, label: c.name }))
+  ]);
+
+  // Lead options for drawer
+  const leadOptions = $derived([
+    { value: '', label: 'None' },
+    ...leads.map((/** @type {any} */ l) => ({ value: l.id, label: l.name }))
+  ]);
+
+  // Tag options for drawer
+  const tagOptions = $derived(
+    allTags.map((/** @type {any} */ t) => ({ value: t.id, label: t.name }))
+  );
+
+  // Drawer columns for NotionDrawer (derived to use dynamic options)
+  // Parent entity fields (account, opportunity, case, lead) are only shown in edit mode
+  // Exception: when creating from account quick action, show account as readonly and hide other parent fields
+  const drawerColumns = $derived([
+    { key: 'subject', label: $_('tasks.subject'), type: 'text', icon: FileText },
+    { key: 'status', label: $_('common.status'), type: 'select', icon: Circle, options: statusOptions },
+    { key: 'priority', label: $_('tasks.priority'), type: 'select', icon: Flag, options: priorityOptions },
+    { key: 'dueDate', label: $_('tasks.due_date'), type: 'date', icon: Calendar },
+    // Parent entity field handling:
+    // - In edit mode: show readonly for the existing parent entity
+    // - In create mode with accountFromUrl: show account as readonly only
+    // - In create mode without accountFromUrl: show nothing (parent fields not available in create)
+    ...(selectedTaskId
+      ? (() => {
+          const task = localTasks.find((t) => t.id === selectedTaskId);
+          if (!task) return [];
+          if (task.account)
+            return [{ key: 'accountName', label: $_('common.account'), type: 'readonly', icon: Building2 }];
+          if (task.lead)
+            return [{ key: 'leadName', label: 'Lead', type: 'readonly', icon: UserPlus }];
+          if (task.opportunity)
+            return [
+              { key: 'opportunityName', label: 'Opportunity', type: 'readonly', icon: Target }
+            ];
+          if (task.case_)
+            return [{ key: 'caseName', label: 'Ticket', type: 'readonly', icon: Briefcase }];
+          return [];
+        })()
+      : accountFromUrl
+        ? [
+            {
+              key: 'accountDisplay',
+              label: $_('common.account'),
+              type: 'readonly',
+              icon: Building2,
+              getValue: () => accountNameFromUrl || 'Loading...'
+            }
+          ]
+        : []),
+    {
+      key: 'assignedTo',
+      label: $_('common.assigned_to'),
+      type: 'multiselect',
+      icon: User,
+      options: userOptions
+    },
+    {
+      key: 'contacts',
+      label: $_('common.contact'),
+      type: 'multiselect',
+      icon: Contact,
+      options: contactOptions
+    },
+    { key: 'teams', label: $_('common.teams'), type: 'multiselect', icon: Users, options: teamOptions },
+    { key: 'tags', label: $_('common.tags'), type: 'multiselect', icon: Tag, options: tagOptions },
+    { key: 'description', label: $_('common.description'), type: 'textarea' },
+    {
+      key: 'createdBy',
+      label: $_('common.created_by'),
+      type: 'readonly',
+      icon: User,
+      getValue: (data) => data.createdBy?.name || data.createdBy?.email || '-'
+    }
+  ]);
+
+  // Drawer form data state
+  let drawerFormData = $state(/** @type {Record<string, any>} */ ({ ...emptyTask }));
+
+  // Sync drawerFormData when formState changes
+  $effect(() => {
+    drawerFormData = {
+      subject: formState.subject,
+      description: formState.description,
+      status: formState.status,
+      priority: formState.priority,
+      dueDate: formState.dueDate,
+      accountId: formState.accountId,
+      accountName: formState.accountName,
+      opportunityId: formState.opportunityId,
+      opportunityName: formState.opportunityName,
+      ticketId: formState.ticketId,
+      caseName: formState.caseName,
+      leadId: formState.leadId,
+      leadName: formState.leadName,
+      assignedTo: formState.assignedTo,
+      contacts: formState.contacts,
+      teams: formState.teams,
+      tags: formState.tags
+    };
+  });
+
+  /**
+   * Handle field changes from CrmDrawer - just updates local state
+   * @param {string} field
+   * @param {any} value
+   */
+  function handleDrawerFieldChange(field, value) {
+    // Update drawerFormData only - no auto-save
+    drawerFormData = { ...drawerFormData, [field]: value };
+
+    // Also update formState
+    formState = { ...formState, [field]: value };
+  }
+
+  /**
+   * Handle save for view/edit mode
+   */
+  async function handleDrawerUpdate() {
+    if (!selectedTaskId) return;
+
+    await tick();
+    updateForm.requestSubmit();
+  }
+
+  /**
+   * Handle drawer save (for create mode)
+   */
+  async function handleDrawerSave() {
+    await tick();
+    if (selectedTaskId) {
+      updateForm.requestSubmit();
+    } else {
+      createForm.requestSubmit();
+    }
+  }
+
+  /**
+   * Handle view mode change (sync with URL for kanban data loading)
+   * @param {'list' | 'kanban' | 'calendar'} mode
+   */
+  async function updateViewMode(mode) {
+    viewMode = mode;
+    const url = new URL($page.url);
+    if (mode === 'list') {
+      url.searchParams.delete('view');
+    } else {
+      url.searchParams.set('view', mode);
+    }
+    await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+  }
+
+  /**
+   * Handle kanban status change (drag-drop)
+   * @param {string} taskId
+   * @param {string} newStatus
+   * @param {string} _columnId
+   * @param {string | null} aboveTaskId
+   * @param {string | null} belowTaskId
+   */
+  async function handleKanbanStatusChange(taskId, newStatus, _columnId, aboveTaskId, belowTaskId) {
+    kanbanFormState.taskId = taskId;
+    kanbanFormState.status = newStatus;
+    kanbanFormState.stageId = '';
+    kanbanFormState.aboveTaskId = aboveTaskId || '';
+    kanbanFormState.belowTaskId = belowTaskId || '';
+    await tick();
+    moveTaskForm.requestSubmit();
+  }
+
+  /**
+   * Handle kanban card click (open drawer)
+   * Kanban tasks have different field names than list tasks, so we handle both cases
+   * @param {any} task
+   */
+  function handleKanbanCardClick(task) {
+    // First try to find in localTasks (list data - has full details)
+    const listTask = localTasks.find((t) => t.id === task.id);
+
+    if (listTask) {
+      // Use list data which has full details
+      openTaskSheet(task.id);
+    } else {
+      // Use kanban task data directly (different field names)
+      selectedTaskId = task.id;
+
+      // Extract related entity info from kanban data
+      const relatedEntity = task.related_entity;
+      let accountId = '';
+      let accountName = '';
+      let leadId = '';
+      let leadName = '';
+      let opportunityId = '';
+      let opportunityName = '';
+      let ticketId = '';
+      let caseName = '';
+
+      if (relatedEntity) {
+        if (relatedEntity.type === 'account') {
+          accountId = relatedEntity.id;
+          accountName = relatedEntity.name;
+        } else if (relatedEntity.type === 'lead') {
+          leadId = relatedEntity.id;
+          leadName = relatedEntity.name;
+        } else if (relatedEntity.type === 'opportunity') {
+          opportunityId = relatedEntity.id;
+          opportunityName = relatedEntity.name;
+        } else if (relatedEntity.type === 'case') {
+          ticketId = relatedEntity.id;
+          caseName = relatedEntity.name;
+        }
+      }
+
+      formState = {
+        taskId: task.id,
+        subject: task.title || '', // kanban uses 'title'
+        description: '', // Not available in kanban card data
+        status: task.status || 'New',
+        priority: task.priority || 'Medium',
+        dueDate: task.due_date ? task.due_date.split('T')[0] : '', // kanban uses 'due_date'
+        accountId,
+        accountName,
+        opportunityId,
+        opportunityName,
+        ticketId,
+        caseName,
+        leadId,
+        leadName,
+        assignedTo: (task.assigned_to || []).map((/** @type {any} */ a) => a.id),
+        contacts: [],
+        teams: [],
+        tags: []
+      };
+      sheetOpen = true;
+    }
   }
 </script>
 
-<PageHeader
-  title={data.board.name}
-  subtitle={data.board.description || ''}
-  breadcrumb={[{ label: 'Tasks', href: '/tasks' }, { label: data.board.name }]}
-/>
+<svelte:head>
+  <title>{$_('tasks.title')} - {$_('app.name')}</title>
+</svelte:head>
 
-<div class="board-container">
-  <div class="kanban-board">
-    {#each data.columns as column (column.id)}
-      <div
-        class="kanban-column"
-        class:drag-over={dragOverColumn === column.id}
-        role="region"
-        aria-label="{column.name} column"
-        on:dragover={(e) => handleDragOver(e, column.id)}
-        on:dragleave={handleDragLeave}
-        on:drop={(e) => handleDrop(e, column.id)}
-      >
-        <div class="column-header" style="border-top-color: {column.color}">
-          <h3>{column.name}</h3>
-          <span class="task-count">{column.tasks.length}</span>
+<div class="flex flex-col">
+  <PageHeader title={$_('tasks.title')} subtitle="{filteredTasks.length} of {tasks.length} tasks">
+    {#snippet actions()}
+      <div class="flex items-center gap-2">
+        <!-- Status Filter Chips -->
+        <div class="flex gap-1">
+          <button
+            type="button"
+            onclick={() => (statusChipFilter = 'ALL')}
+            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium transition-colors {statusChipFilter ===
+            'ALL'
+              ? 'bg-[var(--color-primary-default)] text-white'
+              : 'bg-[var(--surface-sunken)] text-[var(--text-secondary)] hover:bg-[var(--surface-raised)]'}"
+          >
+            All
+            <span
+              class="rounded-full px-1.5 py-0.5 text-xs {statusChipFilter === 'ALL'
+                ? 'bg-[var(--color-primary-dark)] text-white/90'
+                : 'bg-[var(--border-default)] text-[var(--text-tertiary)]'}"
+            >
+              {tasks.length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onclick={() => (statusChipFilter = 'active')}
+            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium transition-colors {statusChipFilter ===
+            'active'
+              ? 'bg-[var(--task-due-today)] text-white'
+              : 'bg-[var(--surface-sunken)] text-[var(--text-secondary)] hover:bg-[var(--surface-raised)]'}"
+          >
+            Active
+            <span
+              class="rounded-full px-1.5 py-0.5 text-xs {statusChipFilter === 'active'
+                ? 'bg-black/20 text-white/90'
+                : 'bg-[var(--border-default)] text-[var(--text-tertiary)]'}"
+            >
+              {activeTaskCount}
+            </span>
+          </button>
+          <button
+            type="button"
+            onclick={() => (statusChipFilter = 'completed')}
+            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium transition-colors {statusChipFilter ===
+            'completed'
+              ? 'bg-[var(--task-completed)] text-white'
+              : 'bg-[var(--surface-sunken)] text-[var(--text-secondary)] hover:bg-[var(--surface-raised)]'}"
+          >
+            Completed
+            <span
+              class="rounded-full px-1.5 py-0.5 text-xs {statusChipFilter === 'completed'
+                ? 'bg-black/20 text-white/90'
+                : 'bg-[var(--border-default)] text-[var(--text-tertiary)]'}"
+            >
+              {completedCount}
+            </span>
+          </button>
         </div>
 
-        <div class="column-tasks">
-          {#each column.tasks as task (task.id)}
-            <div
-              class="task-card"
-              class:completed={task.isCompleted}
-              class:overdue={task.isOverdue}
-              role="listitem"
-              aria-label="Task: {task.title}"
-              draggable="true"
-              on:dragstart={(e) => handleDragStart(e, task, column.id)}
-              on:dragend={handleDragEnd}
-            >
-              <div class="task-title">{task.title}</div>
-              {#if task.description}
-                <div class="task-description">{task.description}</div>
-              {/if}
-              <div class="task-meta">
-                <span
-                  class="priority-badge"
-                  style="background-color: {priorityColors[task.priority]}"
-                >
-                  {task.priority}
-                </span>
-                {#if task.dueDate}
-                  <span class="due-date" class:overdue={task.isOverdue}>
-                    {formatDate(task.dueDate)}
-                  </span>
-                {/if}
-              </div>
-              {#if task.assignedTo && task.assignedTo.length > 0}
-                <div class="task-assignees">
-                  {#each task.assignedTo.slice(0, 3) as assignee}
-                    <span class="assignee-avatar" title={assignee.user?.email}>
-                      {assignee.user?.email?.charAt(0).toUpperCase() || '?'}
-                    </span>
-                  {/each}
-                  {#if task.assignedTo.length > 3}
-                    <span class="assignee-more">+{task.assignedTo.length - 3}</span>
-                  {/if}
-                </div>
-              {/if}
-            </div>
-          {/each}
+        <div class="bg-border mx-1 h-6 w-px"></div>
 
-          {#if addingTaskToColumn === column.id}
-            <form
-              class="add-task-form"
-              method="POST"
-              action="?/createTask"
-              use:enhance={() => {
-                return async ({ result }) => {
-                  if (result.type === 'success') {
-                    cancelAddingTask();
-                    await invalidateAll();
-                  }
-                };
-              }}
-            >
-              <input type="hidden" name="columnId" value={column.id} />
-              <input
-                type="text"
-                name="title"
-                bind:value={newTaskTitle}
-                placeholder="Task title"
-                required
-              />
-              <textarea
-                name="description"
-                bind:value={newTaskDescription}
-                placeholder="Description (optional)"
-                rows="2"
-              ></textarea>
-              <select name="priority" bind:value={newTaskPriority}>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
-              <div class="form-actions">
-                <button type="submit" class="btn-primary">Add Task</button>
-                <button type="button" class="btn-secondary" on:click={cancelAddingTask}
-                  >Cancel</button
+        <!-- View Toggle -->
+        <div class="border-input bg-background inline-flex rounded-lg border p-1">
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="sm"
+            onclick={() => updateViewMode('list')}
+            class="h-8 px-3"
+          >
+            <List class="me-1.5 h-4 w-4" />
+            List
+          </Button>
+          <Button
+            variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
+            size="sm"
+            onclick={() => updateViewMode('kanban')}
+            class="h-8 px-3"
+          >
+            <Columns class="me-1.5 h-4 w-4" />
+            Board
+          </Button>
+          <Button
+            variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
+            size="sm"
+            onclick={() => updateViewMode('calendar')}
+            class="h-8 px-3"
+          >
+            <Calendar class="me-1.5 h-4 w-4" />
+            Calendar
+          </Button>
+        </div>
+
+        {#if viewMode === 'list'}
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              {#snippet child({ props })}
+                <Button {...props} variant="outline" size="sm" class="gap-2">
+                  <Eye class="h-4 w-4" />
+                  Columns
+                  {#if columnCounts.visible < columnCounts.total}
+                    <span
+                      class="rounded-full bg-[var(--color-primary-light)] px-1.5 py-0.5 text-xs font-medium text-[var(--color-primary-default)]"
+                    >
+                      {columnCounts.visible}/{columnCounts.total}
+                    </span>
+                  {/if}
+                </Button>
+              {/snippet}
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end" class="w-48">
+              <DropdownMenu.Label>Toggle columns</DropdownMenu.Label>
+              <DropdownMenu.Separator />
+              {#each taskColumns as column (column.key)}
+                <DropdownMenu.CheckboxItem
+                  class=""
+                  checked={isColumnVisible(column.key)}
+                  onCheckedChange={() => toggleColumn(column.key)}
+                  disabled={column.canHide === false}
                 >
+                  {column.label}
+                </DropdownMenu.CheckboxItem>
+              {/each}
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+        {/if}
+
+        <Button onclick={() => addNewTask()}>
+          <Plus class="me-2 h-4 w-4" />
+          {$_('tasks.create')}
+        </Button>
+      </div>
+    {/snippet}
+    {#snippet tabs()}
+      <ViewTabs views={[{ id: 'all', label: 'All', count: pagination.total }]} active="all" />
+    {/snippet}
+  </PageHeader>
+
+  <div class="flex-1">
+    <FilterStrip>
+      <SearchInput
+        value={filters.search}
+        onchange={(value) => updateFilters({ ...filters, search: value })}
+        placeholder="Search tasks..."
+      />
+      <SelectFilter
+        label="Priority"
+        options={priorityFilterOptions}
+        value={filters.priority}
+        onchange={(value) => updateFilters({ ...filters, priority: value })}
+      />
+      <DateRangeFilter
+        label="Due Date"
+        startDate={filters.due_date_gte}
+        endDate={filters.due_date_lte}
+        onchange={(start, end) =>
+          updateFilters({ ...filters, due_date_gte: start, due_date_lte: end })}
+      />
+      <TagFilter
+        tags={allTags}
+        value={filters.tags}
+        onchange={(ids) => updateFilters({ ...filters, tags: ids })}
+      />
+      {#if activeFiltersCount > 0}
+        <FilterPill label="Clear all" dashed onclick={clearFilters} />
+      {/if}
+      {#snippet meta()}
+        <span>{filteredTasks.length} of {pagination.total} tasks</span>
+      {/snippet}
+    </FilterStrip>
+    {#if viewMode === 'list'}
+      <CrmTable
+        data={localTasks}
+        columns={taskColumns}
+        bind:visibleColumns
+        bind:activeRowId
+        onRowChange={handleRowChange}
+        onRowClick={handleRowClick}
+      >
+        {#snippet emptyState()}
+          <div class="flex flex-col items-center justify-center py-16 text-center">
+            <div
+              class="mb-4 flex size-16 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--surface-sunken)]"
+            >
+              <CheckSquare class="size-8 text-[var(--text-tertiary)]" />
+            </div>
+            <h3 class="text-lg font-medium text-[var(--text-primary)]">{$_('tasks.no_tasks_found')}</h3>
+            <p class="mt-1 text-sm text-[var(--text-secondary)]">
+              {$_('tasks.no_tasks_found')}
+            </p>
+          </div>
+        {/snippet}
+      </CrmTable>
+    {:else if viewMode === 'kanban'}
+      <TaskKanban
+        data={kanbanData}
+        loading={!kanbanData}
+        onStatusChange={handleKanbanStatusChange}
+        onCardClick={handleKanbanCardClick}
+        onAddItem={handleAddCardFromColumn}
+      />
+    {:else}
+      <!-- Calendar View -->
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <!-- Calendar Section -->
+        <div class="lg:col-span-2">
+          <SectionCard padded={false} class="overflow-hidden">
+            <!-- Calendar Header (domain-specific colored strip) -->
+            <div class="bg-primary flex flex-row items-center justify-between space-y-0 p-4">
+              <div class="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onclick={previousMonth}
+                  class="hover:bg-primary-foreground/10 text-primary-foreground h-9 w-9"
+                >
+                  <ChevronLeft class="h-5 w-5" />
+                </Button>
+                <h2 class="text-primary-foreground text-xl font-semibold">
+                  {monthNames[calendarMonth]}
+                  {calendarYear}
+                </h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onclick={nextMonth}
+                  class="hover:bg-primary-foreground/10 text-primary-foreground h-9 w-9"
+                >
+                  <ChevronRight class="h-5 w-5" />
+                </Button>
               </div>
-            </form>
-          {:else}
-            <button class="add-task-btn" on:click={() => startAddingTask(column.id)}>
-              + Add Task
-            </button>
-          {/if}
+              <Button
+                variant="secondary"
+                size="sm"
+                onclick={goToToday}
+                class="text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/20"
+              >
+                ?????
+              </Button>
+            </div>
+            <!-- Days of Week -->
+            <div class="bg-muted/50 grid grid-cols-7 border-b">
+              {#each ['?', '?', '?', '?', '?', '?', '?'] as day}
+                <div
+                  class="text-muted-foreground border-r p-3 text-center text-sm font-medium last:border-r-0"
+                >
+                  {day}
+                </div>
+              {/each}
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="grid grid-cols-7">
+              {#each calendar as date, i}
+                {#if date}
+                  <button
+                    onclick={() => selectDay(date)}
+                    class={cn(
+                      'hover:bg-muted/50 relative h-16 border-r border-b p-2 transition-colors last:border-r-0 sm:h-20',
+                      formatDateString(date) === selectedDate &&
+                        'bg-primary text-primary-foreground hover:bg-primary/90',
+                      isTodayDate(date) &&
+                        formatDateString(date) !== selectedDate &&
+                        'bg-primary/10 text-primary',
+                      !isTodayDate(date) &&
+                        formatDateString(date) !== selectedDate &&
+                        'text-foreground'
+                    )}
+                  >
+                    <div class="text-sm font-medium">
+                      {date.getDate()}
+                    </div>
+                    {#if hasTasksOnDate(date)}
+                      <div
+                        class={cn(
+                          'absolute right-1 bottom-1 h-2 w-2 rounded-full',
+                          formatDateString(date) === selectedDate
+                            ? 'bg-primary-foreground'
+                            : 'bg-primary'
+                        )}
+                      ></div>
+                      <div
+                        class={cn(
+                          'absolute bottom-1 left-1 text-xs font-medium',
+                          formatDateString(date) === selectedDate
+                            ? 'text-primary-foreground'
+                            : 'text-primary'
+                        )}
+                      >
+                        {tasksByDate[formatDateString(date)].length}
+                      </div>
+                    {/if}
+                  </button>
+                {:else}
+                  <div class="bg-muted/30 h-16 border-r border-b sm:h-20"></div>
+                {/if}
+              {/each}
+            </div>
+          </SectionCard>
+        </div>
+
+        <!-- Tasks for Selected Date -->
+        <div class="lg:col-span-1">
+          <SectionCard class="h-fit">
+            {#snippet title()}
+              <div class="flex min-w-0 flex-col gap-0.5">
+                <h3
+                  class="truncate text-[16px] font-medium leading-[1.3] text-[color:var(--text-primary)]"
+                >
+                  Tasks for {new Date(selectedDate + 'T00:00:00').toLocaleDateString('fa-IR-u-ca-persian', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </h3>
+                <p class="text-[12px] text-[color:var(--text-muted)]">
+                  {selectedTasks.length} task{selectedTasks.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            {/snippet}
+            {#if selectedTasks.length > 0}
+              <div class="space-y-3">
+                {#each selectedTasks as task}
+                  <button
+                    type="button"
+                    onclick={() => openTaskSheet(task.id)}
+                    class="hover:bg-muted bg-muted/50 block w-full rounded-lg border p-3 text-start transition-colors"
+                  >
+                    <div class="mb-2 flex items-start justify-between gap-2">
+                      <h4 class="text-foreground line-clamp-2 flex-1 font-medium">
+                        {task.subject}
+                      </h4>
+                      {#if task.status === 'Completed'}
+                        <CheckCircle2 class="text-muted-foreground h-4 w-4 flex-shrink-0" />
+                      {:else}
+                        <Circle class="text-muted-foreground h-4 w-4 flex-shrink-0" />
+                      {/if}
+                    </div>
+
+                    {#if task.description}
+                      <p class="text-muted-foreground mb-3 line-clamp-2 text-sm">
+                        {task.description}
+                      </p>
+                    {/if}
+
+                    <div class="flex flex-wrap items-center gap-2">
+                      {#if task.priority}
+                        <span
+                          class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium {getOptionStyle(
+                            task.priority,
+                            priorityOptions
+                          )}"
+                        >
+                          <Flag class="h-3 w-3" />
+                          {task.priority}
+                        </span>
+                      {/if}
+                      <span
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {getOptionStyle(
+                          task.status,
+                          statusOptions
+                        )}"
+                      >
+                        {task.status}
+                      </span>
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            {:else}
+              <div class="py-12 text-center">
+                <Calendar class="text-muted-foreground/50 mx-auto mb-4 h-12 w-12" />
+                <p class="text-muted-foreground text-sm">No tasks scheduled for this date</p>
+                <Button onclick={() => addNewTask()} variant="outline" size="sm" class="mt-4">
+                  <Plus class="me-2 h-4 w-4" />
+                  Add Task
+                </Button>
+              </div>
+            {/if}
+          </SectionCard>
+
+          <!-- Monthly Stats -->
+          <SectionCard title="This Month" class="mt-4">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-muted-foreground text-sm">Total Tasks</span>
+                <span class="text-foreground font-medium">{totalMonthlyTasks}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-muted-foreground text-sm">Days with Tasks</span>
+                <span class="text-foreground font-medium">{monthlyTaskDates.length}</span>
+              </div>
+            </div>
+          </SectionCard>
         </div>
       </div>
-    {/each}
+    {/if}
 
-    <!-- Add Column -->
-    <div class="kanban-column add-column-wrapper">
-      {#if showAddColumn}
-        <form
-          class="add-column-form"
-          method="POST"
-          action="?/createColumn"
-          use:enhance={() => {
-            return async ({ result }) => {
-              if (result.type === 'success') {
-                showAddColumn = false;
-                newColumnName = '';
-                await invalidateAll();
-              }
-            };
-          }}
-        >
-          <input
-            type="text"
-            name="name"
-            bind:value={newColumnName}
-            placeholder="Column name"
-            required
-          />
-          <input type="color" name="color" bind:value={newColumnColor} />
-          <div class="form-actions">
-            <button type="submit" class="btn-primary">Add</button>
-            <button type="button" class="btn-secondary" on:click={() => (showAddColumn = false)}
-              >Cancel</button
-            >
-          </div>
-        </form>
-      {:else}
-        <button class="add-column-btn" on:click={() => (showAddColumn = true)}>
-          + Add Column
-        </button>
-      {/if}
-    </div>
+    <!-- Pagination -->
+    <Pagination
+      page={pagination.page}
+      limit={pagination.limit}
+      total={pagination.total}
+      onPageChange={handlePageChange}
+      onLimitChange={handleLimitChange}
+    />
   </div>
 </div>
 
-<style>
-  .board-container {
-    padding: 1.5rem;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: #f4f5f7;
-  }
+<!-- Task Detail Drawer -->
+<CrmDrawer
+  bind:open={sheetOpen}
+  onOpenChange={(open) => !open && closeTaskSheet()}
+  data={drawerFormData}
+  columns={drawerColumns}
+  titleKey="subject"
+  titlePlaceholder={$_('tasks.title')}
+  headerLabel={isCreateMode ? $_('tasks.create') : $_('tasks.title')}
+  mode={isCreateMode ? 'create' : 'view'}
+  onFieldChange={handleDrawerFieldChange}
+  onDelete={deleteSelectedTask}
+  onClose={closeTaskSheet}
+>
+  {#snippet activitySection()}
+    <!-- Task metadata (only for existing tasks) -->
+    {#if selectedTask && !isCreateMode}
+      <div class="space-y-2 text-sm">
+        <div class="mb-3 text-[13px] font-medium text-[var(--text-tertiary)]">Details</div>
+        {#if selectedTask.createdBy}
+          <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+            <User class="size-3.5" />
+            <span>Created by {selectedTask.createdBy.name}</span>
+          </div>
+        {/if}
+        {#if selectedTask.createdAt}
+          <div class="flex items-center gap-2 text-[var(--text-secondary)]">
+            <Clock class="size-3.5" />
+            <span>Created {formatRelativeDate(selectedTask.createdAt)}</span>
+          </div>
+        {/if}
+      </div>
 
-  .kanban-board {
-    display: flex;
-    gap: 1rem;
-    flex: 1;
-    overflow-x: auto;
-    padding-bottom: 1rem;
-  }
+      {#if (data.customFieldDefinitions || []).length > 0}
+        <div class="mt-6 border-t border-[var(--border-default)] pt-4">
+          <CustomFieldsPanel
+            target="Task"
+            definitions={data.customFieldDefinitions || []}
+            values={selectedTask.customFields || {}}
+            title="Custom Fields"
+            formAction="?/updateTaskCustomFields"
+            extraFields={{ taskId: String(selectedTask.id) }}
+          />
+        </div>
+      {/if}
 
-  .kanban-column {
-    flex: 0 0 300px;
-    background: #ebecf0;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    max-height: calc(100vh - 180px);
-  }
+      <!-- Comments Section -->
+      <div class="mt-6 border-t border-[var(--border-default)] pt-4">
+        <CommentSection
+          entityId={selectedTask.id}
+          entityType="tasks"
+          initialComments={selectedTask.comments || []}
+          currentUserEmail={currentUser?.email}
+          isAdmin={currentUser?.organizations?.some((o) => o.role === 'ADMIN')}
+        />
+      </div>
+    {/if}
+  {/snippet}
 
-  .kanban-column.drag-over {
-    background: #deebff;
-  }
+  {#snippet footerActions()}
+    {#if isCreateMode}
+      <Button variant="outline" size="sm" onclick={closeTaskSheet}>Cancel</Button>
+      <Button size="sm" onclick={handleDrawerSave}>Create Task</Button>
+    {:else if selectedTask}
+      <Button variant="outline" size="sm" onclick={closeTaskSheet}>Cancel</Button>
+      {#if isCompleted}
+        <Button variant="outline" size="sm" onclick={reopenSelectedTask}>
+          <RotateCcw class="me-2 h-4 w-4" />
+          Reopen
+        </Button>
+      {:else}
+        <Button variant="outline" size="sm" onclick={completeSelectedTask}>
+          <CheckCircle2 class="me-2 h-4 w-4" />
+          Complete
+        </Button>
+      {/if}
+      <Button size="sm" onclick={handleDrawerUpdate}>Save</Button>
+    {/if}
+  {/snippet}
+</CrmDrawer>
 
-  .column-header {
-    padding: 0.75rem 1rem;
-    border-top: 3px solid #6b7280;
-    border-radius: 8px 8px 0 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+<!-- Hidden forms for server actions -->
+<form
+  method="POST"
+  action="?/create"
+  bind:this={createForm}
+  use:enhance={createEnhanceHandler('Task created successfully', true)}
+  class="hidden"
+>
+  <input type="hidden" name="subject" value={formState.subject} />
+  <input type="hidden" name="description" value={formState.description} />
+  <input type="hidden" name="status" value={formState.status} />
+  <input type="hidden" name="priority" value={formState.priority} />
+  <input type="hidden" name="dueDate" value={formState.dueDate} />
+  <input type="hidden" name="accountId" value={formState.accountId} />
+  <input type="hidden" name="opportunityId" value={formState.opportunityId} />
+  <input type="hidden" name="ticketId" value={formState.ticketId} />
+  <input type="hidden" name="leadId" value={formState.leadId} />
+  <input type="hidden" name="assignedTo" value={JSON.stringify(formState.assignedTo)} />
+  <input type="hidden" name="contacts" value={JSON.stringify(formState.contacts)} />
+  <input type="hidden" name="teams" value={JSON.stringify(formState.teams)} />
+  <input type="hidden" name="tags" value={JSON.stringify(formState.tags)} />
+</form>
 
-  .column-header h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #172b4d;
-  }
+<form
+  method="POST"
+  action="?/update"
+  bind:this={updateForm}
+  use:enhance={createEnhanceHandler('Task updated successfully', true)}
+  class="hidden"
+>
+  <input type="hidden" name="taskId" value={formState.taskId} />
+  <input type="hidden" name="subject" value={formState.subject} />
+  <input type="hidden" name="description" value={formState.description} />
+  <input type="hidden" name="status" value={formState.status} />
+  <input type="hidden" name="priority" value={formState.priority} />
+  <input type="hidden" name="dueDate" value={formState.dueDate} />
+  <input type="hidden" name="accountId" value={formState.accountId} />
+  <input type="hidden" name="opportunityId" value={formState.opportunityId} />
+  <input type="hidden" name="ticketId" value={formState.ticketId} />
+  <input type="hidden" name="leadId" value={formState.leadId} />
+  <input type="hidden" name="assignedTo" value={JSON.stringify(formState.assignedTo)} />
+  <input type="hidden" name="contacts" value={JSON.stringify(formState.contacts)} />
+  <input type="hidden" name="teams" value={JSON.stringify(formState.teams)} />
+  <input type="hidden" name="tags" value={JSON.stringify(formState.tags)} />
+</form>
 
-  .task-count {
-    background: #dfe1e6;
-    color: #5e6c84;
-    padding: 0.15rem 0.5rem;
-    border-radius: 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
+<form
+  method="POST"
+  action="?/delete"
+  bind:this={deleteForm}
+  use:enhance={createEnhanceHandler('Task deleted successfully', true)}
+  class="hidden"
+>
+  <input type="hidden" name="taskId" value={formState.taskId} />
+</form>
 
-  .column-tasks {
-    padding: 0.5rem;
-    overflow-y: auto;
-    flex: 1;
-  }
+<form
+  method="POST"
+  action="?/complete"
+  bind:this={completeForm}
+  use:enhance={createEnhanceHandler('Task completed successfully', true)}
+  class="hidden"
+>
+  <input type="hidden" name="taskId" value={formState.taskId} />
+</form>
 
-  .task-card {
-    background: #fff;
-    border-radius: 6px;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    box-shadow: 0 1px 3px rgba(9, 30, 66, 0.13);
-    cursor: grab;
-    transition:
-      box-shadow 0.15s,
-      transform 0.1s;
-  }
+<form
+  method="POST"
+  action="?/reopen"
+  bind:this={reopenForm}
+  use:enhance={createEnhanceHandler('Task reopened successfully', true)}
+  class="hidden"
+>
+  <input type="hidden" name="taskId" value={formState.taskId} />
+</form>
 
-  .task-card:hover {
-    box-shadow: 0 4px 8px rgba(9, 30, 66, 0.2);
-  }
-
-  .task-card:active {
-    cursor: grabbing;
-    transform: rotate(2deg);
-  }
-
-  .task-card.completed {
-    opacity: 0.7;
-  }
-
-  .task-card.overdue {
-    border-left: 3px solid #ef4444;
-  }
-
-  .task-title {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: #172b4d;
-    margin-bottom: 0.5rem;
-  }
-
-  .task-description {
-    font-size: 0.85rem;
-    color: #5e6c84;
-    margin-bottom: 0.5rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .task-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .priority-badge {
-    font-size: 0.7rem;
-    padding: 0.15rem 0.4rem;
-    border-radius: 3px;
-    color: #fff;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .due-date {
-    font-size: 0.8rem;
-    color: #5e6c84;
-  }
-
-  .due-date.overdue {
-    color: #ef4444;
-    font-weight: 600;
-  }
-
-  .task-assignees {
-    display: flex;
-    gap: 0.25rem;
-  }
-
-  .assignee-avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #0079bf;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 600;
-  }
-
-  .assignee-more {
-    font-size: 0.75rem;
-    color: #5e6c84;
-    display: flex;
-    align-items: center;
-  }
-
-  .add-task-btn,
-  .add-column-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: transparent;
-    border: none;
-    color: #5e6c84;
-    font-size: 0.9rem;
-    cursor: pointer;
-    text-align: left;
-    border-radius: 4px;
-    transition:
-      background 0.15s,
-      color 0.15s;
-  }
-
-  .add-task-btn:hover,
-  .add-column-btn:hover {
-    background: #dfe1e6;
-    color: #172b4d;
-  }
-
-  .add-task-form,
-  .add-column-form {
-    background: #fff;
-    border-radius: 6px;
-    padding: 0.75rem;
-    box-shadow: 0 1px 3px rgba(9, 30, 66, 0.13);
-  }
-
-  .add-task-form input[type='text'],
-  .add-task-form textarea,
-  .add-task-form select,
-  .add-column-form input[type='text'] {
-    width: 100%;
-    padding: 0.5rem;
-    border: 2px solid #dfe1e6;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    box-sizing: border-box;
-  }
-
-  .add-task-form input:focus,
-  .add-task-form textarea:focus,
-  .add-task-form select:focus,
-  .add-column-form input:focus {
-    outline: none;
-    border-color: #0079bf;
-  }
-
-  .add-column-form input[type='color'] {
-    width: 40px;
-    height: 32px;
-    border: none;
-    cursor: pointer;
-    margin-bottom: 0.5rem;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .btn-primary {
-    background: #0079bf;
-    color: #fff;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-primary:hover {
-    background: #026aa7;
-  }
-
-  .btn-secondary {
-    background: transparent;
-    color: #5e6c84;
-    border: none;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .btn-secondary:hover {
-    background: #dfe1e6;
-  }
-
-  .add-column-wrapper {
-    background: transparent;
-    flex: 0 0 280px;
-  }
-</style>
+<form
+  method="POST"
+  action="?/moveTask"
+  bind:this={moveTaskForm}
+  use:enhance={createEnhanceHandler('Task moved successfully', false)}
+  class="hidden"
+>
+  <input type="hidden" name="taskId" value={kanbanFormState.taskId} />
+  <input type="hidden" name="status" value={kanbanFormState.status} />
+  <input type="hidden" name="stageId" value={kanbanFormState.stageId} />
+  <input type="hidden" name="aboveTaskId" value={kanbanFormState.aboveTaskId} />
+  <input type="hidden" name="belowTaskId" value={kanbanFormState.belowTaskId} />
+</form>

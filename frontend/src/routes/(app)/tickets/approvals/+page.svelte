@@ -1,7 +1,7 @@
 ﻿<script>
   import { goto, invalidateAll } from '$app/navigation';
   import { page } from '$app/state';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { ShieldCheck, Loader2, Check, X, Ban } from '@lucide/svelte';
   import PageHeader from '$lib/components/layout/PageHeader.svelte';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -208,7 +208,7 @@
           {#if a.state === 'pending'}
             <div class="mt-2 flex flex-wrap gap-2">
               <Button size="sm" disabled={pending} onclick={() => approve(a.id)}>
-                <Check class="mr-1 h-3.5 w-3.5" /> Approve
+                <Check class="me-1 h-3.5 w-3.5" /> Approve
               </Button>
               <Button
                 size="sm"
@@ -216,7 +216,7 @@
                 disabled={pending}
                 onclick={() => (rejectingId = rejectingId === a.id ? null : a.id)}
               >
-                <X class="mr-1 h-3.5 w-3.5" /> Reject
+                <X class="me-1 h-3.5 w-3.5" /> Reject
               </Button>
               {#if a.requested_by?.id === data.currentProfileId || isAdmin}
                 <Button
@@ -225,7 +225,7 @@
                   disabled={pending}
                   onclick={() => cancel(a.id)}
                 >
-                  <Ban class="mr-1 h-3.5 w-3.5" /> Cancel
+                  <Ban class="me-1 h-3.5 w-3.5" /> Cancel
                 </Button>
               {/if}
             </div>

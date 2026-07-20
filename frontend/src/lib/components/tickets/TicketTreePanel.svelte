@@ -1,6 +1,6 @@
-<script>
+﻿<script>
   import { goto } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Network,
     Loader2,
@@ -40,7 +40,7 @@
 
   const hasGraph = $derived(parentSummary !== null || childCount > 0);
 
-  // Reload the tree on mount AND whenever the graph signal flips — link/
+  // Reload the tree on mount AND whenever the graph signal flips â€” link/
   // unlink calls invalidateAll() upstream, which refreshes parentSummary /
   // childCount; without this effect the tree stays null on a freshly-linked
   // ticket and the section renders empty under the Unlink button.
@@ -146,7 +146,7 @@
     </p>
   {:else if loading}
     <div class="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-      <Loader2 class="h-3.5 w-3.5 animate-spin" /> Loading tree…
+      <Loader2 class="h-3.5 w-3.5 animate-spin" /> Loading treeâ€¦
     </div>
   {:else if tree}
     <ul class="space-y-1 text-sm">
@@ -168,7 +168,7 @@
       >
         {n.name}
         {#if n.is_problem}
-          <span class="ml-1 inline-flex items-center rounded bg-purple-100 px-1 py-0.5 text-[9px] font-semibold text-purple-700">P</span>
+          <span class="ms-1 inline-flex items-center rounded bg-purple-100 px-1 py-0.5 text-[9px] font-semibold text-purple-700">P</span>
         {/if}
       </button>
       <span class="rounded px-1.5 py-0.5 text-[10px] font-medium {statusClass(n.status)}">

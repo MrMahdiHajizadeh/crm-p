@@ -2,7 +2,7 @@
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Plus,
     Copy,
@@ -410,7 +410,7 @@ BCRM_TOKEN = "${token}"`;
               {/if}
             </Button>
             <pre
-              class="overflow-x-auto rounded-md border border-[var(--border-default)] bg-[var(--surface-muted)] p-3 pr-20 font-mono text-xs text-[var(--text-primary)]">{configSnippet}</pre>
+              class="overflow-x-auto rounded-md border border-[var(--border-default)] bg-[var(--surface-muted)] p-3 pe-20 font-mono text-xs text-[var(--text-primary)]">{configSnippet}</pre>
           </div>
 
           <p class="text-xs text-[var(--text-secondary)]">

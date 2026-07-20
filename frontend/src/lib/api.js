@@ -165,11 +165,15 @@ export async function apiRequest(endpoint, options = {}) {
   };
 
   // Add authentication if required
-  // Note: Organization context is now embedded in JWT token, not sent as header
   if (requiresAuth) {
     const accessToken = getAccessToken();
     if (accessToken) {
       requestHeaders['Authorization'] = `Bearer ${accessToken}`;
+    }
+    // Fallback: if JWT doesn't have org context, include org header
+    const orgId = getOrgId();
+    if (orgId) {
+      requestHeaders['org'] = orgId;
     }
   }
 
@@ -408,7 +412,26 @@ export const contacts = createCrudApi('contacts');
 export const opportunities = createCrudApi('opportunities');
 export const tickets = createCrudApi('cases');
 export const tasks = createCrudApi('tasks');
-export const invoices = createCrudApi('invoices');
+export const invoices = {
+  ...createCrudApi('invoices'),
+  async getComments(id) {
+    return await apiRequest(`/invoices/${id}/comments/`);
+  },
+  async addComment(id, comment) {
+    return await apiRequest(`/invoices/${id}/comments/`, {
+      method: 'POST',
+      body: { comment }
+    });
+  },
+  async deleteComment(commentId) {
+    return await apiRequest(`/invoices/comments/${commentId}/`, {
+      method: 'DELETE'
+    });
+  },
+  async getAttachments(id) {
+    return await apiRequest(`/invoices/${id}/attachments/`);
+  }
+};
 
 /**
  * Export all as default

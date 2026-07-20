@@ -62,7 +62,7 @@ class AccountsListView(APIView, LimitOffsetPagination):
     def get_context_data(self, **kwargs):
         params = self.request.query_params
         queryset = self.model.objects.filter(org=self.request.profile.org).order_by(
-            "-id"
+            "-created_at"
         )
         if self.request.profile.role != "ADMIN" and not self.request.profile.is_admin:
             queryset = queryset.filter(
@@ -775,6 +775,32 @@ class AccountCommentView(APIView):
     def get_object(self, pk):
         return self.model.objects.get(pk=pk, org=self.request.profile.org)
 
+    def get_account(self, pk):
+        return Account.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Accounts"],
+        parameters=swagger_params.organization_params,
+        responses={200: CommentSerializer(many=True)},
+        description="List comments for an account, or get a single comment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get comments for an account, or a single comment by its ID."""
+        try:
+            comment = self.get_object(pk)
+            return Response(CommentSerializer(comment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        account = self.get_account(pk)
+        content_type = ContentType.objects.get_for_model(account.__class__)
+        comments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=account.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(CommentSerializer(comments, many=True).data)
+
     @extend_schema(
         tags=["Accounts"],
         parameters=swagger_params.organization_params,
@@ -868,6 +894,35 @@ class AccountAttachmentView(APIView):
     model = Attachments
     permission_classes = (IsAuthenticated, HasOrgContext)
     serializer_class = AccountDetailEditSwaggerSerializer
+
+    def get_object(self, pk):
+        return self.model.objects.get(pk=pk)
+
+    def get_account(self, pk):
+        return Account.objects.get(pk=pk, org=self.request.profile.org)
+
+    @extend_schema(
+        tags=["Accounts"],
+        parameters=swagger_params.organization_params,
+        responses={200: AttachmentsSerializer(many=True)},
+        description="List attachments for an account, or get a single attachment by ID",
+    )
+    def get(self, request, pk, format=None):
+        """Get attachments for an account, or a single attachment by its ID."""
+        try:
+            attachment = self.get_object(pk)
+            return Response(AttachmentsSerializer(attachment).data)
+        except self.model.DoesNotExist:
+            pass
+
+        account = self.get_account(pk)
+        content_type = ContentType.objects.get_for_model(account.__class__)
+        attachments = self.model.objects.filter(
+            content_type=content_type,
+            object_id=account.id,
+            org=request.profile.org,
+        ).order_by("-id")
+        return Response(AttachmentsSerializer(attachments, many=True).data)
 
     @extend_schema(tags=["Accounts"], parameters=swagger_params.organization_params)
     def delete(self, request, pk, format=None):

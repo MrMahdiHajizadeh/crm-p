@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { toast } from '$lib/components/ui/toast/index.js';
   import {
@@ -293,7 +293,7 @@
                   </select>
                 </div>
                 <Button type="submit">
-                  <Plus class="mr-2 h-4 w-4" />
+                  <Plus class="me-2 h-4 w-4" />
                   {$_('users.add_member')}
                 </Button>
               </form>
@@ -366,9 +366,9 @@
                               class="cursor-default"
                             >
                               {#if user.role === 'ADMIN'}
-                                <Shield class="mr-1 h-3 w-3" />
+                                <Shield class="me-1 h-3 w-3" />
                               {:else}
-                                <User class="mr-1 h-3 w-3" />
+                                <User class="me-1 h-3 w-3" />
                               {/if}
                               {user.role}
                             </Badge>
@@ -376,7 +376,7 @@
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                class="ml-2 h-6 px-2 text-xs"
+                                class="ms-2 h-6 px-2 text-xs"
                                 onclick={() => (editingRoleId = user.id)}
                               >
                                 <Edit class="h-3 w-3" />
@@ -489,7 +489,7 @@
               </p>
             </div>
               <Button onclick={openCreateTeamDialog}>
-                <Plus class="mr-2 h-4 w-4" />
+                <Plus class="me-2 h-4 w-4" />
                 {$_('users.create_team')}
               </Button>
           </div>
@@ -514,7 +514,7 @@
                 {$_('users.no_teams_desc')}
               </p>
               <Button onclick={openCreateTeamDialog}>
-                <Plus class="mr-2 h-4 w-4" />
+                <Plus class="me-2 h-4 w-4" />
                 {$_('users.create_first_team')}
               </Button>
             </SectionCard>

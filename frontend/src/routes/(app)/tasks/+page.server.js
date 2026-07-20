@@ -13,6 +13,20 @@
 import { error, fail } from '@sveltejs/kit';
 import { apiRequest, buildQueryParams } from '$lib/api-helpers.js';
 
+// Map frontend task status values to Django Task.STATUS_CHOICES
+const TASK_STATUS_MAP = {
+  'NOT STARTED': 'New',
+  'IN PROGRESS': 'In Progress',
+  'PENDING': 'Pending',
+  'COMPLETED': 'Completed',
+  'DEFERRED': 'Deferred',
+  'New': 'New',
+  'In Progress': 'In Progress',
+  'Pending': 'Pending',
+  'Completed': 'Completed',
+  'Deferred': 'Deferred',
+};
+
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ locals, cookies, url }) {
   const user = locals.user;
@@ -49,9 +63,12 @@ export async function load({ locals, cookies, url }) {
     queryParams.append('limit', limit.toString());
     queryParams.append('offset', ((page - 1) * limit).toString());
 
-    // Add filter params
+    // Add filter params — convert status to Django-compatible value
     if (filters.search) queryParams.append('search', filters.search);
-    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.status) {
+      const djangoStatus = TASK_STATUS_MAP[filters.status] || filters.status;
+      queryParams.append('status', djangoStatus);
+    }
     if (filters.priority) queryParams.append('priority', filters.priority);
     filters.assigned_to.forEach((id) => queryParams.append('assigned_to', id));
     filters.tags.forEach((id) => queryParams.append('tags', id));
@@ -292,7 +309,9 @@ export const actions = {
       const form = await request.formData();
       const subject = form.get('subject')?.toString().trim();
       const description = form.get('description')?.toString().trim();
-      const status = form.get('status')?.toString() || 'New';
+      const rawStatus = form.get('status')?.toString() || 'New';
+      // Convert frontend status to Django-compatible value
+      const status = TASK_STATUS_MAP[rawStatus] || rawStatus;
       const priority = form.get('priority')?.toString() || 'Medium';
       const dueDate = form.get('dueDate')?.toString() || null;
       const accountId = form.get('accountId')?.toString() || null;
@@ -356,7 +375,9 @@ export const actions = {
       const taskId = form.get('taskId')?.toString();
       const subject = form.get('subject')?.toString().trim();
       const description = form.get('description')?.toString().trim();
-      const status = form.get('status')?.toString() || 'New';
+      const rawStatus = form.get('status')?.toString() || 'New';
+      // Convert frontend status to Django-compatible value
+      const status = TASK_STATUS_MAP[rawStatus] || rawStatus;
       const priority = form.get('priority')?.toString() || 'Medium';
       const dueDate = form.get('dueDate')?.toString() || null;
       const accountId = form.get('accountId')?.toString() || null;
@@ -494,7 +515,9 @@ export const actions = {
     try {
       const form = await request.formData();
       const taskId = form.get('taskId')?.toString();
-      const status = form.get('status')?.toString();
+      const rawStatus = form.get('status')?.toString();
+      // Convert frontend status to Django-compatible value
+      const status = rawStatus ? (TASK_STATUS_MAP[rawStatus] || rawStatus) : undefined;
       const stageId = form.get('stageId')?.toString() || null;
       const aboveTaskId = form.get('aboveTaskId')?.toString() || null;
       const belowTaskId = form.get('belowTaskId')?.toString() || null;

@@ -594,13 +594,15 @@ class Command(BaseCommand):
             user = User.objects.get(email=email)
             self.stdout.write(f"Using existing user: {email}")
         except User.DoesNotExist:
-            user = User.objects.create_user(email=email, password=password)
+            user = User.objects.create_user(email=email, password=password, phone=f"+1 555-555-{random.randint(10000, 99999)}")
             self.stdout.write(self.style.SUCCESS(f"Created user: {email}"))
             self.stats["users"] += 1
         return user
 
     def set_rls_context(self, org_id):
-        """Set the RLS context for database operations."""
+        """Set the RLS context for database operations (PostgreSQL only)."""
+        if connection.vendor != "postgresql":
+            return
         with connection.cursor() as cursor:
             cursor.execute(get_set_context_sql(), [str(org_id)])
 
@@ -731,7 +733,10 @@ class Command(BaseCommand):
             email = f"user{i + 1}_{org.id.hex[:8]}@example.com"
             user, user_created = User.objects.get_or_create(
                 email=email,
-                defaults={"is_active": True},
+                defaults={
+                    "is_active": True,
+                    "phone": self._demo_phone(),
+                },
             )
             if user_created:
                 user.set_password(password)
@@ -1304,8 +1309,8 @@ class Command(BaseCommand):
         return f"https://www.{self._company_slug(company_name)}.example"
 
     def _demo_phone(self):
-        """Return a NANP fictional-range phone number (555-555-0100..0199)."""
-        return f"+1 555-555-01{random.randint(0, 99):02d}"
+        """Return a unique fictional phone number."""
+        return f"+1 555-555-{random.randint(1000, 9999)}"
 
     def _demo_street_address(self):
         """Synthesize a street address from a curated street-name pool."""

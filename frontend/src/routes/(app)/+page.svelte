@@ -10,7 +10,8 @@
     TaskList,
     HotLeadsPanel,
     OpportunitiesTable,
-    ActivityFeed
+    ActivityFeed,
+    TeamPerformance
   } from '$lib/components/dashboard';
   import { formatCurrency } from '$lib/utils/formatting.js';
   import { orgSettings } from '$lib/stores/org.js';
@@ -29,6 +30,8 @@
   const revenueMetrics = $derived(data.revenueMetrics || {});
   const hotLeads = $derived(data.hotLeads || []);
   const goalSummary = $derived(data.goalSummary || []);
+  const teamPerformance = $derived(data.teamPerformance || null);
+  const isAdmin = $derived(data.isAdmin || false);
 
   const orgCurrency = $derived($orgSettings.default_currency || 'TOM');
   const otherCurrencyCount = $derived(revenueMetrics.other_currency_count || 0);
@@ -155,6 +158,10 @@
 
       <div>
         <ActivityFeed activities={recentData.activities || []} />
+      </div>
+
+      <div>
+        <TeamPerformance {teamPerformance} {isAdmin} />
       </div>
     {/if}
   </div>

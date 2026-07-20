@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Filter } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
@@ -20,10 +20,10 @@
   <Popover.Trigger asChild class="">
     {#snippet child({ props })}
       <Button variant="outline" {...props}>
-        <Filter class="mr-2 h-4 w-4" />
+        <Filter class="me-2 h-4 w-4" />
         Filters
         {#if activeCount > 0}
-          <Badge variant="secondary" class="ml-2">{activeCount}</Badge>
+          <Badge variant="secondary" class="ms-2">{activeCount}</Badge>
         {/if}
       </Button>
     {/snippet}

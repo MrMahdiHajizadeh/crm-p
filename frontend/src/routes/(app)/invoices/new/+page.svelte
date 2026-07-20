@@ -1,8 +1,8 @@
-<script>
+﻿<script>
   import { goto, invalidateAll } from '$app/navigation';
   import { enhance } from '$app/forms';
   import { tick } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
 
   import { Button } from '$lib/components/ui/button';
   import PageHeader from '$lib/components/layout/PageHeader.svelte';
@@ -290,11 +290,11 @@
 >
   {#snippet actions()}
     <Button variant="outline" onclick={saveDraft} disabled={isSaving}>
-      <Save class="mr-2 size-4" />
+      <Save class="me-2 size-4" />
       Save Draft
     </Button>
     <Button onclick={sendInvoice} disabled={isSaving}>
-      <Send class="mr-2 size-4" />
+      <Send class="me-2 size-4" />
       Create Invoice
     </Button>
   {/snippet}
@@ -526,7 +526,7 @@
           <!-- Add Line Button -->
           <div class="px-4 py-3">
             <Button variant="ghost" size="sm" onclick={addLineItem} class="text-primary">
-              <Plus class="mr-2 size-4" />
+              <Plus class="me-2 size-4" />
               Add Line Item
             </Button>
           </div>

@@ -11,6 +11,15 @@
     if (data.org_settings) {
       initOrgSettings(data.org_settings);
     }
+    // Sync auth data to localStorage for client-side API compatibility
+    if (typeof window !== 'undefined') {
+      if (data.org_id) {
+        localStorage.setItem('org_id', data.org_id);
+      }
+      if (data.jwt_access) {
+        localStorage.setItem('access_token', data.jwt_access);
+      }
+    }
   });
 </script>
 

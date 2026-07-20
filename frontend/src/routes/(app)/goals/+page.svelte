@@ -1,9 +1,9 @@
-<script>
+﻿<script>
   import { goto, invalidateAll } from '$app/navigation';
   import { deserialize } from '$app/forms';
   import { page } from '$app/stores';
   import { untrack } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Plus, Trophy, Target, User, Users, Trash2, X } from '@lucide/svelte';
   import PageHeader from '$lib/components/layout/PageHeader.svelte';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -89,7 +89,7 @@
   let selectedGoal = $state(null);
   let isCreating = $state(false);
 
-  // Filter state — initialized from URL on every navigation so reloads,
+  // Filter state â€” initialized from URL on every navigation so reloads,
   // shared links, and browser back/forward all restore the right chip.
   let activeFilter = $state(untrack(() => data.filters?.status || 'all'));
   let searchValue = $state('');
@@ -826,7 +826,7 @@
             class="text-red-600 hover:bg-red-50 hover:text-red-700"
             onclick={() => confirmDelete(selectedGoal)}
           >
-            <Trash2 class="mr-1.5 size-4" />
+            <Trash2 class="me-1.5 size-4" />
             Delete
           </Button>
         {/if}

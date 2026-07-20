@@ -1,8 +1,8 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import {
     Activity,
     Eye,
@@ -22,13 +22,24 @@
     CheckSquare,
     FileText,
     RefreshCw,
+    UserPlus,
+    AlertTriangle,
+    ArrowUp,
+    GitMerge,
+    Clock,
+    CheckCircle,
+    XCircle,
+    ArrowRightLeft,
+    Gavel,
+    Calendar,
+    File,
   } from '@lucide/svelte';
   import { PageHeader } from '$lib/components/layout';
   import { Button } from '$lib/components/ui/button/index.js';
-  import { Input } from '$lib/components/ui/input/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
   import * as Select from '$lib/components/ui/select/index.js';
-  import { formatRelativeDate } from '$lib/utils/formatting.js';
+  import { DateRangeFilter } from '$lib/components/ui/filter';
+  import { formatRelativeDate, formatDate } from '$lib/utils/formatting.js';
 
   /** @type {{ data: { activities: any[], totalCount: number, offset: number, limit: number } }} */
   let { data } = $props();
@@ -54,6 +65,9 @@
     { value: 'Case', label: 'Case' },
     { value: 'Task', label: 'Task' },
     { value: 'Invoice', label: 'Invoice' },
+    { value: 'Event', label: 'Event' },
+    { value: 'Document', label: 'Document' },
+    { value: 'Team', label: 'Team' },
   ];
 
   const actionTypes = [
@@ -61,6 +75,15 @@
     { value: 'CREATE', label: $_('supervision.action_create') },
     { value: 'UPDATE', label: $_('supervision.action_update') },
     { value: 'DELETE', label: $_('supervision.action_delete') },
+    { value: 'ASSIGN', label: $_('supervision.action_assign') },
+    { value: 'STATUS_CHANGED', label: $_('supervision.action_status_changed') },
+    { value: 'PRIORITY_CHANGED', label: $_('supervision.action_priority_changed') },
+    { value: 'APPROVED', label: $_('supervision.action_approved') },
+    { value: 'REJECTED', label: $_('supervision.action_rejected') },
+    { value: 'ESCALATED', label: $_('supervision.action_escalated') },
+    { value: 'ROUTED', label: $_('supervision.action_routed') },
+    { value: 'MERGED', label: $_('supervision.action_merged') },
+    { value: 'TIME_LOGGED', label: $_('supervision.action_time_logged') },
   ];
 
   const entityIcons = {
@@ -71,6 +94,9 @@
     Case: Briefcase,
     Task: CheckSquare,
     Invoice: FileText,
+    Event: Calendar,
+    Document: File,
+    Team: Users,
   };
 
   const actionIcons = {
@@ -79,6 +105,15 @@
     DELETE: Trash2,
     VIEW: Eye,
     COMMENT: MessageSquare,
+    ASSIGN: UserPlus,
+    STATUS_CHANGED: RefreshCw,
+    PRIORITY_CHANGED: AlertTriangle,
+    APPROVED: CheckCircle,
+    REJECTED: XCircle,
+    ESCALATED: ArrowUp,
+    ROUTED: ArrowRightLeft,
+    MERGED: GitMerge,
+    TIME_LOGGED: Clock,
   };
 
   const actionColors = {
@@ -87,6 +122,15 @@
     DELETE: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
     VIEW: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     COMMENT: 'bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400',
+    ASSIGN: 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400',
+    STATUS_CHANGED: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400',
+    PRIORITY_CHANGED: 'bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
+    APPROVED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400',
+    REJECTED: 'bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400',
+    ESCALATED: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
+    ROUTED: 'bg-sky-100 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400',
+    MERGED: 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400',
+    TIME_LOGGED: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
   };
 
   // Entity type display names
@@ -98,6 +142,9 @@
     Case: $_('supervision.entity_case'),
     Task: $_('supervision.entity_task'),
     Invoice: $_('supervision.entity_invoice'),
+    Event: $_('supervision.entity_event'),
+    Document: $_('supervision.entity_document'),
+    Team: $_('supervision.entity_team'),
   };
 
   // Action display names
@@ -107,6 +154,15 @@
     DELETE: $_('supervision.action_delete'),
     VIEW: $_('supervision.action_view'),
     COMMENT: $_('supervision.action_comment'),
+    ASSIGN: $_('supervision.action_assign'),
+    STATUS_CHANGED: $_('supervision.action_status_changed'),
+    PRIORITY_CHANGED: $_('supervision.action_priority_changed'),
+    APPROVED: $_('supervision.action_approved'),
+    REJECTED: $_('supervision.action_rejected'),
+    ESCALATED: $_('supervision.action_escalated'),
+    ROUTED: $_('supervision.action_routed'),
+    MERGED: $_('supervision.action_merged'),
+    TIME_LOGGED: $_('supervision.action_time_logged'),
   };
 
   function getEntityUrl(entityType, entityId) {
@@ -118,6 +174,9 @@
       Case: 'tickets',
       Task: 'tasks',
       Invoice: 'invoices',
+      Event: 'events',
+      Document: 'documents',
+      Team: 'teams',
     };
     const prefix = map[entityType] || (entityType ? entityType.toLowerCase() : '');
     return prefix ? `/${prefix}/${entityId}` : '#';
@@ -156,6 +215,17 @@
     filterDateTo = params.get('date_to') || '';
   });
 
+  // Auto-refresh every 30s for real-time sync across all org members
+  let refreshInterval;
+  onMount(() => {
+    refreshInterval = setInterval(() => {
+      goto($page.url.pathname + $page.url.search, { invalidateAll: true, keepFocus: true, noScroll: true });
+    }, 30000);
+  });
+  onDestroy(() => {
+    if (refreshInterval) clearInterval(refreshInterval);
+  });
+
   function resetFilters() {
     filterEntityType = '';
     filterAction = '';
@@ -164,26 +234,10 @@
     filterDateTo = '';
     goto('/supervision');
   }
-
-  // Fix for input[type="date"] not responding to clicks in RTL Chromium
-  let dateInputsFixed = $state(false);
-  $effect(() => {
-    if (dateInputsFixed || typeof window === 'undefined') return;
-    const timer = setTimeout(() => {
-      document.querySelectorAll('.date-input-rtl-fix').forEach((el) => {
-        el.addEventListener('click', (e) => {
-          if (!e.isTrusted) return;
-          try { el.showPicker?.(); } catch { el.focus(); }
-        });
-      });
-      dateInputsFixed = true;
-    }, 100);
-    return () => clearTimeout(timer);
-  });
 </script>
 
 <svelte:head>
-  <title>{$_('supervision.title')} · BottleCRM</title>
+  <title>{$_('supervision.title')} Â· BottleCRM</title>
 </svelte:head>
 
 <PageHeader
@@ -222,19 +276,16 @@
       </Select.Root>
     </div>
     <div class="flex flex-col gap-1.5">
-      <label for="filter-date-from" class="text-[11px] font-medium text-[var(--text-subtle)]">{$_('supervision.filter_from')}</label>
-      <div class="relative">
-        <Input id="filter-date-from" type="date" bind:value={filterDateFrom} class="w-36 text-[12px] date-input-rtl-fix" />
-      </div>
-    </div>
-    <div class="flex flex-col gap-1.5">
-      <label for="filter-date-to" class="text-[11px] font-medium text-[var(--text-subtle)]">{$_('supervision.filter_to')}</label>
-      <div class="relative">
-        <Input id="filter-date-to" type="date" bind:value={filterDateTo} class="w-36 text-[12px] date-input-rtl-fix" />
-      </div>
+      <label class="text-[11px] font-medium text-[var(--text-subtle)]">{$_('supervision.filter_from')} — {$_('supervision.filter_to')}</label>
+      <DateRangeFilter
+        bind:startDate={filterDateFrom}
+        bind:endDate={filterDateTo}
+        placeholder={$_('supervision.all_types')}
+        onchange={(from, to) => { filterDateFrom = from; filterDateTo = to; }}
+      />
     </div>
     <Button variant="default" size="sm" onclick={applyFilters} class="text-[12px]">
-      <Filter class="mr-1.5 size-3.5" />
+      <Filter class="me-1.5 size-3.5" />
       {$_('supervision.apply_filters')}
     </Button>
     <Button variant="ghost" size="sm" onclick={resetFilters} class="text-[12px]">
@@ -249,14 +300,21 @@
 
   <!-- Activity list -->
   {#if activities.length === 0}
+    <!-- Loading: data hasn't arrived yet (undefined, not empty array) -->
+    {#if data.activities === undefined && data.totalCount === undefined}
+      <div class="flex items-center justify-center py-16">
+        <RefreshCw class="size-6 animate-spin text-[var(--text-subtle)]" />
+      </div>
+    {:else}
     <div class="flex flex-col items-center justify-center py-20 text-center">
       <Activity class="mb-4 size-12 text-[var(--text-subtle)]" />
       <h3 class="text-[15px] font-medium text-[var(--text)]">{$_('supervision.empty_title')}</h3>
       <p class="mt-1 text-[13px] text-[var(--text-subtle)]">{$_('supervision.empty_desc')}</p>
     </div>
+    {/if}
   {:else}
     <!-- Loading overlay -->
-    {#if data.activities === undefined}
+    {#if data.activities === undefined && data.totalCount === undefined}
       <div class="flex items-center justify-center py-16">
         <RefreshCw class="size-6 animate-spin text-[var(--text-subtle)]" />
       </div>
@@ -279,10 +337,10 @@
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <div class="flex size-7 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-[10px] font-medium text-[var(--color-primary-default)]">
-                    {(act.user?.user_details?.name || act.user?.user_details?.email || '?')[0]?.toUpperCase() || '?'}
+                    {(act.user?.name || act.user?.email || '?')[0]?.toUpperCase() || '?'}
                   </div>
                   <span class="truncate text-[var(--text)]">
-                    {act.user?.user_details?.name || act.user?.user_details?.email || 'System'}
+                    {act.user?.name || act.user?.email || 'System'}
                   </span>
                 </div>
               </td>
@@ -290,9 +348,9 @@
                 <Badge variant="secondary" class={actionColors[act.action] || 'bg-gray-100 text-gray-700'}>
                   {#if actionIcons[act.action]}
                     {@const Icon = actionIcons[act.action]}
-                    <Icon class="mr-1 size-3" />
+                    <Icon class="me-1 size-3" />
                   {:else}
-                    <Activity class="mr-1 size-3" />
+                    <Activity class="me-1 size-3" />
                   {/if}
                   {actionDisplayNames[act.action] || act.action}
                 </Badge>
@@ -324,7 +382,7 @@
                 {act.description || '—'}
               </td>
               <td class="px-4 py-3 text-start text-[var(--text-subtle)] tabular-nums">
-                {act.created_at ? formatRelativeDate(act.created_at) : '—'}
+                {act.timestamp ? formatDate(act.timestamp) : '—'}
               </td>
             </tr>
           {/each}
@@ -346,7 +404,7 @@
             onclick={() => goToPage(currentOffset - limit)}
             class="text-[11px]"
           >
-            <ChevronRight class="mr-1 size-3" />
+            <ChevronRight class="me-1 size-3" />
             {$_('supervision.previous')}
           </Button>
           <Button
@@ -357,7 +415,7 @@
             class="text-[11px]"
           >
             {$_('supervision.next')}
-            <ChevronLeft class="ml-1 size-3" />
+            <ChevronLeft class="ms-1 size-3" />
           </Button>
         </div>
       </div>

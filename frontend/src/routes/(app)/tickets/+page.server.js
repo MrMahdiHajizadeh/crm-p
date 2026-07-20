@@ -139,9 +139,7 @@ export async function load({ url, locals, cookies }) {
       assignedTo: (ticketItem.assigned_to || []).map((profile) => ({
         id: profile.id,
         name:
-          profile.user_details?.first_name && profile.user_details?.last_name
-            ? `${profile.user_details.first_name} ${profile.user_details.last_name}`
-            : profile.user_details?.email || profile.email
+          profile.user_details?.name || profile.user_details?.email || profile.email
       })),
 
       // Owner (first assigned user for backwards compatibility)
@@ -150,10 +148,9 @@ export async function load({ url, locals, cookies }) {
           ? {
               id: ticketItem.assigned_to[0].id,
               name:
-                ticketItem.assigned_to[0].user_details?.first_name &&
-                ticketItem.assigned_to[0].user_details?.last_name
-                  ? `${ticketItem.assigned_to[0].user_details.first_name} ${ticketItem.assigned_to[0].user_details.last_name}`
-                  : ticketItem.assigned_to[0].user_details?.email || ticketItem.assigned_to[0].email
+                ticketItem.assigned_to[0].user_details?.name ||
+                ticketItem.assigned_to[0].user_details?.email ||
+                ticketItem.assigned_to[0].email
             }
           : null,
 

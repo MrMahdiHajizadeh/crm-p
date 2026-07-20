@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { Loader2, Lock, Mail, MessageSquare, Send } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Tabs from '$lib/components/ui/tabs/index.js';
@@ -209,7 +209,7 @@
           class="flex items-center gap-2 text-xs font-medium text-amber-900 dark:text-amber-200"
         >
           <Lock class="h-3 w-3" />
-          Visible to agents only — never shown to customers.
+          Visible to agents only â€” never shown to customers.
         </div>
         <MentionTextarea
           bind:value={internalText}
@@ -315,7 +315,7 @@
                   class="rounded bg-blue-200 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-blue-900 uppercase dark:bg-blue-800/60 dark:text-blue-100"
                   aria-label="Inbound email"
                 >
-                  <Mail class="mr-0.5 inline h-3 w-3" />
+                  <Mail class="me-0.5 inline h-3 w-3" />
                   Email
                 </span>
                 <span class="text-sm font-medium text-[var(--text-primary)]">

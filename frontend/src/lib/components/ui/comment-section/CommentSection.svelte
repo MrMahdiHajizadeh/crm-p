@@ -1,5 +1,5 @@
-<script>
-  import { toast } from 'svelte-sonner';
+﻿<script>
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { MessageSquare, Send, Trash2, Loader2, ChevronDown, ChevronUp } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Textarea } from '$lib/components/ui/textarea/index.js';
@@ -43,11 +43,36 @@
   // State
   let comments = $state([]);
   let showAllComments = $state(false);
+  let commentsLoaded = $state(false);
 
-  // Sync with initialComments prop changes
+  // Load comments: use initialComments if provided, otherwise fetch from API
   $effect(() => {
-    comments = initialComments;
+    if (initialComments.length > 0) {
+      comments = initialComments;
+      commentsLoaded = true;
+    } else if (entityId && !commentsLoaded) {
+      // Fetch comments from API
+      fetchComments();
+    }
   });
+
+  async function fetchComments() {
+    try {
+      const apiModule = getApiModule();
+      const result = await apiModule.getComments(entityId);
+      if (Array.isArray(result)) {
+        comments = result;
+      } else if (result?.comments) {
+        comments = result.comments;
+      } else if (result?.results) {
+        comments = result.results;
+      }
+    } catch (e) {
+      console.warn('Failed to fetch comments:', e);
+    } finally {
+      commentsLoaded = true;
+    }
+  }
   let newComment = $state('');
   let isSubmitting = $state(false);
   let deletingCommentId = $state(null);
@@ -81,11 +106,12 @@
     return commentEmail && currentUserEmail && commentEmail === currentUserEmail;
   }
 
-  // Get commenter display name from email
+  // Get commenter display name
   function getCommenterName(comment) {
-    const email = comment.commented_by?.user_details?.email;
+    const details = comment.commented_by?.user_details;
+    if (details?.name) return details.name;
+    const email = details?.email;
     if (!email) return 'Unknown';
-    // Extract name from email (before @)
     return email.split('@')[0].replace(/[._]/g, ' ');
   }
 
@@ -191,7 +217,7 @@
 
   // --- @mention typeahead ----------------------------------------------------
   // Detects an in-progress `@partial` token at the cursor and surfaces a
-  // dropdown of matching candidates. No network calls — caller passes the
+  // dropdown of matching candidates. No network calls â€” caller passes the
   // resolved candidate list via the `mentionCandidates` prop.
 
   const MENTION_TYPING_RE = /(?:^|[^A-Za-z0-9])@([A-Za-z0-9._-]*)$/;
@@ -317,7 +343,7 @@
             : 'Write a comment...'}
           onkeydown={handleKeyDown}
           oninput={handleInput}
-          class="min-h-[80px] resize-none pr-4 pb-8"
+          class="min-h-[80px] resize-none pe-4 pb-8"
           disabled={isSubmitting}
         />
         {#if mentionOpen && mentionMatches().length > 0}

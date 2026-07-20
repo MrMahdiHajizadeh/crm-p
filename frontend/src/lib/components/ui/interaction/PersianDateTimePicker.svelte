@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { Calendar as CalendarIcon, Clock, ChevronDown } from '@lucide/svelte';
   import { Calendar } from '$lib/components/ui/calendar/index.js';
   import { cn } from '$lib/utils.js';
@@ -21,7 +21,7 @@
   let {
     value = '',
     onValueChange,
-    placeholder = 'انتخاب تاریخ',
+    placeholder = 'Ø§Ù†ØªØ®Ø§Ø¨ ØªØ§Ø±ÛŒØ®',
     id = '',
     class: className,
   } = $props();
@@ -149,14 +149,14 @@
       <div class="mt-3 flex items-center justify-between gap-2 border-t border-[var(--border-faint)] pt-3">
         <div class="flex items-center gap-1.5 text-[var(--text-subtle)]">
           <Clock class="size-3.5" />
-          <span class="text-[11px] font-medium">ساعت</span>
+          <span class="text-[11px] font-medium">Ø³Ø§Ø¹Øª</span>
         </div>
         <div class="flex items-center gap-1">
           <div class="relative">
             <select
               value={hours}
               onchange={handleHourChange}
-              class="appearance-none rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 pl-7 text-[14px] font-medium text-[var(--text)] outline-none transition-colors hover:border-[var(--border-strong)] focus-visible:border-[var(--text)] focus-visible:shadow-[0_0_0_3px_var(--focus-ring)] [&>option]:bg-[var(--bg)]"
+              class="appearance-none rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 ps-7 text-[14px] font-medium text-[var(--text)] outline-none transition-colors hover:border-[var(--border-strong)] focus-visible:border-[var(--text)] focus-visible:shadow-[0_0_0_3px_var(--focus-ring)] [&>option]:bg-[var(--bg)]"
               style="min-width: 64px;"
             >
               {#each hourOptions as opt}
@@ -172,7 +172,7 @@
             <select
               value={minutes}
               onchange={handleMinuteChange}
-              class="appearance-none rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 pl-7 text-[14px] font-medium text-[var(--text)] outline-none transition-colors hover:border-[var(--border-strong)] focus-visible:border-[var(--text)] focus-visible:shadow-[0_0_0_3px_var(--focus-ring)] [&>option]:bg-[var(--bg)]"
+              class="appearance-none rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-2 ps-7 text-[14px] font-medium text-[var(--text)] outline-none transition-colors hover:border-[var(--border-strong)] focus-visible:border-[var(--text)] focus-visible:shadow-[0_0_0_3px_var(--focus-ring)] [&>option]:bg-[var(--bg)]"
               style="min-width: 64px;"
             >
               {#each minuteOptions as opt}

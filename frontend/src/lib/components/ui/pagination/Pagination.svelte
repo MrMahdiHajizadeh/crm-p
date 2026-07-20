@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { ChevronLeft, ChevronRight, ChevronsUpDown } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
@@ -71,7 +71,7 @@
           {startItem}–{endItem}
         </span>
         of
-        <span class="text-foreground ml-1 font-semibold">{total}</span>
+        <span class="text-foreground ms-1 font-semibold">{total}</span>
         results
       </p>
     </div>

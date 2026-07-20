@@ -1,10 +1,10 @@
-<script>
+﻿<script>
   import { Plus, Trash2 } from '@lucide/svelte';
   import { page } from '$app/stores';
   import { goto, invalidateAll } from '$app/navigation';
   import { enhance } from '$app/forms';
   import { tick } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { _ } from '$lib/i18n';
 
   import { PageHeader } from '$lib/components/layout';
@@ -860,7 +860,7 @@
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-            class="mr-2"
+            class="me-2"
           >
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
@@ -1000,7 +1000,7 @@
         <div
           class="mb-4 flex size-16 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--surface-sunken)]"
         >
-          <span class="text-4xl">📋</span>
+          <span class="text-4xl">ðŸ“‹</span>
         </div>
         <h3 class="text-lg font-medium text-[var(--text-primary)]">No estimates yet</h3>
         <p class="text-sm text-[var(--text-secondary)]">
@@ -1079,7 +1079,7 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="mr-2"
+              class="me-2"
             >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
@@ -1101,7 +1101,7 @@
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="mr-2"
+                class="me-2"
               >
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
@@ -1123,7 +1123,7 @@
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="mr-2"
+                class="me-2"
               >
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -1161,7 +1161,7 @@
         <div class="mb-3 flex items-center justify-between">
           <h4 class="text-muted-foreground text-sm font-medium">Line Items</h4>
           <Button variant="ghost" size="sm" class="text-primary" onclick={addLineItem}>
-            <Plus class="mr-2 h-4 w-4" />
+            <Plus class="me-2 h-4 w-4" />
             Add Line Item
           </Button>
         </div>

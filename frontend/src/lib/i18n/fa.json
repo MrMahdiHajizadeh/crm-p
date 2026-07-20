@@ -154,7 +154,24 @@
     "earlier": "قبلی",
     "show_more": "نمایش بیشتر ({{count}} مورد دیگر)",
     "system": "سیستم",
-    "currency_note": "فقط {{currency}} ({{count}} با ارز دیگر)"
+    "currency_note": "فقط {{currency}} ({{count}} با ارز دیگر)",
+    "team_performance": {
+      "my_title": "عملکرد من",
+      "team_title": "عملکرد تیم",
+      "leads": "سرنخ‌ها",
+      "contacts": "مخاطبین",
+      "accounts": "شرکت‌ها",
+      "followups": "پیگیری‌ها",
+      "followups_today": "پیگیری امروز",
+      "followups_week": "پیگیری هفته",
+      "followups_month": "پیگیری ماه",
+      "followups_total": "کل پیگیری‌ها",
+      "today": "امروز",
+      "this_week": "این هفته",
+      "this_month": "این ماه",
+      "total": "کل",
+      "member": "کاربر"
+    }
   },
   "common": {
     "save": "ذخیره",
@@ -808,7 +825,9 @@
     "later": "بعدی",
     "empty_title": "موردی برای پیگیری وجود ندارد",
     "empty_desc": "وقتی برای یک لید یا مخاطب تاریخ پیگیری ثبت کنید، اینجا نمایش داده می‌شود.",
-    "log_interaction": "ثبت تعامل"
+    "log_interaction": "ثبت تعامل",
+    "my_only": "فقط پیگیری‌های من",
+    "all_followups": "همه پیگیری‌ها"
   },
   "supervision": {
     "title": "نظارت",
@@ -827,6 +846,9 @@
     "entity_case": "تیکت",
     "entity_task": "وظیفه",
     "entity_invoice": "فاکتور",
+    "entity_event": "رویداد",
+    "entity_document": "سند",
+    "entity_team": "تیم",
     "reset_filters": "بازنشانی",
     "filter_entity": "نوع",
     "filter_action": "فعالیت",
@@ -844,6 +866,72 @@
     "empty_desc": "هیچ فعالیتی با فیلترهای انتخاب شده یافت نشد.",
     "page_info": "صفحه {{page}} از {{total}}",
     "previous": "قبلی",
-    "next": "بعدی"
+    "next": "بعدی",
+    "action_assign": "واگذاری",
+    "action_status_changed": "تغییر وضعیت",
+    "action_priority_changed": "تغییر اولویت",
+    "action_approved": "تایید شده",
+    "action_rejected": "رد شده",
+    "action_escalated": "ارجاع شده",
+    "action_routed": "مسیریابی",
+    "action_merged": "ادغام",
+    "action_time_logged": "ثبت زمان"
+  },
+  "toasts": {
+    "solution_deleted": "راه‌حل حذف شد",
+    "solution_created": "راه‌حل ایجاد شد",
+    "delete_failed": "حذف ناموفق بود",
+    "create_failed": "ایجاد ناموفق بود",
+    "save_failed": "ذخیره ناموفق بود",
+    "operation_successful": "عملیات با موفقیت انجام شد",
+    "copy_failed": "کپی ناموفق بود",
+    "rule_created": "قانون ایجاد شد",
+    "rule_updated": "قانون به‌روزرسانی شد",
+    "tag_created": "برچسب با موفقیت ایجاد شد",
+    "tag_updated": "برچسب با موفقیت به‌روزرسانی شد",
+    "tag_archived": "برچسب با موفقیت بایگانی شد",
+    "tag_restored": "برچسب با موفقیت احیا شد",
+    "opportunity_updated": "فرصت به‌روزرسانی شد"
+  },
+  "placeholders": {
+    "first_name": "نام",
+    "last_name": "نام خانوادگی",
+    "select_country": "انتخاب کشور",
+    "select_industry": "انتخاب صنعت",
+    "select_account": "انتخاب حساب",
+    "company_name": "نام شرکت",
+    "job_title": "عنوان شغلی",
+    "department": "دپارتمان",
+    "street_address": "آدرس خیابان",
+    "city": "شهر",
+    "state_province": "استان",
+    "postal_code": "کد پستی",
+    "add_notes": "یادداشت خود را وارد کنید...",
+    "add_account_notes": "یادداشت حساب را وارد کنید..."
+  },
+  "labels": {
+    "unnamed": "بی‌نام",
+    "untitled": "بدون عنوان",
+    "unknown_account": "حساب ناشناخته",
+    "closed": "بسته",
+    "edit": "ویرایش"
+  },
+  "errors": {
+    "not_found": "یافت نشد",
+    "error": "خطا"
+  },
+  "csat": {
+    "page_title": "چطور بود؟ — {{org}}",
+    "default_org": "نظرسنجی"
+  },
+  "goals": {
+    "title": "اهداف فروش",
+    "status_on_track": "در مسیر",
+    "status_behind": "عقب‌مانده",
+    "status_at_risk": "در خطر",
+    "status_completed": "تکمیل شده",
+    "target": "هدف",
+    "achieved": "دستیافته",
+    "progress": "پیشرفت"
   }
 }

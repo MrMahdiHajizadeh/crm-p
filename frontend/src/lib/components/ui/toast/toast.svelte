@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { toasts } from './index.js';
   import { CheckCircle, XCircle, X } from '@lucide/svelte';
 
@@ -36,7 +36,7 @@
               toasts.update((arr) => { arr.splice(idx, 1); return arr; });
             }
           }}
-          class="ml-1 shrink-0 rounded p-0.5 opacity-70 hover:opacity-100"
+          class="ms-1 shrink-0 rounded p-0.5 opacity-70 hover:opacity-100"
         >
           <X class="h-3.5 w-3.5" />
         </button>

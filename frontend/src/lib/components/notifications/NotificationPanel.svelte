@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import {
     AlertTriangle,
     AtSign,
@@ -23,7 +23,7 @@
   let { onClose } = $props();
 
   // Map machine verbs to icons. Unknown verbs fall back to the bell.
-  // NOTE: `case.*` keys are backend wire-format strings — do not rename.
+  // NOTE: `case.*` keys are backend wire-format strings â€” do not rename.
   const VERB_ICONS = {
     'case.commented': MessageSquare,
     'case.mentioned': AtSign,
@@ -99,7 +99,7 @@
   <div class="max-h-[60vh] min-h-[120px] overflow-y-auto">
     {#if notifications.loading && notifications.notifications.length === 0}
       <div class="flex items-center justify-center py-8 text-sm text-[var(--text-secondary)]">
-        <Loader2 class="mr-2 h-4 w-4 animate-spin" /> Loading…
+        <Loader2 class="me-2 h-4 w-4 animate-spin" /> Loadingâ€¦
       </div>
     {:else if notifications.notifications.length === 0}
       <div class="flex flex-col items-center justify-center gap-1 py-8 text-sm text-[var(--text-secondary)]">
@@ -129,7 +129,7 @@
               <span class="min-w-0 flex-1">
                 <span class="block text-sm leading-snug">
                   <span class="font-medium">{actorLabel(n)}</span>
-                  {' '}{verbLabel(n)}{n.entity_name ? ` — ${n.entity_name}` : ''}
+                  {' '}{verbLabel(n)}{n.entity_name ? ` â€” ${n.entity_name}` : ''}
                 </span>
                 {#if n.data?.comment_excerpt}
                   <span class="mt-0.5 line-clamp-2 block text-xs text-[var(--text-secondary)]">

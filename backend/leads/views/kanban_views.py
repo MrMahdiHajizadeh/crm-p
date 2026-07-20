@@ -81,12 +81,6 @@ class LeadKanbanView(APIView):
             .prefetch_related("assigned_to", "tags")
         )
 
-        # Apply permission filtering
-        if request.profile.role != "ADMIN" and not request.user.is_superuser:
-            queryset = queryset.filter(
-                Q(assigned_to=request.profile) | Q(created_by=request.profile.user)
-            )
-
         # Apply search/filters
         queryset = self._apply_filters(queryset, request.query_params)
 

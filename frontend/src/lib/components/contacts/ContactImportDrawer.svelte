@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { invalidateAll } from '$app/navigation';
   import { deserialize } from '$app/forms';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     Loader2,
     Upload,
@@ -14,7 +14,7 @@
   import * as Dialog from '$lib/components/ui/dialog/index.js';
 
   /**
-   * Two-step CSV import flow: upload → preview → confirm.
+   * Two-step CSV import flow: upload â†’ preview â†’ confirm.
    * Network calls go to the SvelteKit form actions on contacts/+page.server.js,
    * which forward the multipart upload to Django.
    *
@@ -92,7 +92,7 @@
     step = 'select';
     file = null;
     // Clearing the input's value lets the user re-pick the same filename
-    // after editing the file on disk — without this, the browser dedupes
+    // after editing the file on disk â€” without this, the browser dedupes
     // the change event and the drop zone appears unresponsive.
     if (fileInputEl) fileInputEl.value = '';
     preview = null;
@@ -221,8 +221,8 @@
         Import contacts from CSV
       </Dialog.Title>
       <Dialog.Description>
-        Upload a CSV of contacts. We'll validate every row — including duplicates
-        by email, phone, and name — before writing anything.
+        Upload a CSV of contacts. We'll validate every row â€” including duplicates
+        by email, phone, and name â€” before writing anything.
       </Dialog.Description>
     </Dialog.Header>
 
@@ -245,7 +245,7 @@
               {#if file}
                 <p class="truncate text-sm font-medium">{file.name}</p>
                 <p class="text-xs text-[var(--text-secondary)]">
-                  {(file.size / 1024).toFixed(1)} KB · click to replace or drop another file
+                  {(file.size / 1024).toFixed(1)} KB Â· click to replace or drop another file
                 </p>
               {:else}
                 <p class="text-sm font-medium">Drop a CSV file here, or click to choose</p>
@@ -300,7 +300,7 @@
           Cancel
         </Button>
         <Button type="button" disabled={!file || busy} onclick={submitPreview}>
-          {#if busy}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+          {#if busy}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
           Preview
         </Button>
       </Dialog.Footer>
@@ -341,13 +341,13 @@
                       {row.first_name} {row.last_name}
                     </td>
                     <td class="max-w-[180px] truncate px-2 py-1 text-[var(--text-secondary)]">
-                      {row.email || '—'}
+                      {row.email || 'â€”'}
                     </td>
                     <td class="max-w-[140px] truncate px-2 py-1 text-[var(--text-secondary)]">
-                      {row.phone || '—'}
+                      {row.phone || 'â€”'}
                     </td>
                     <td class="max-w-[140px] truncate px-2 py-1 text-[var(--text-secondary)]">
-                      {row.organization || '—'}
+                      {row.organization || 'â€”'}
                     </td>
                   </tr>
                 {/each}
@@ -365,7 +365,7 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <p class="text-sm font-medium text-red-800">
-                {preview.errors.length} error{preview.errors.length === 1 ? '' : 's'} — fix the CSV before importing
+                {preview.errors.length} error{preview.errors.length === 1 ? '' : 's'} â€” fix the CSV before importing
               </p>
               <button
                 type="button"
@@ -402,7 +402,7 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <p class="text-sm font-medium text-red-800">
-                Server rejected {commitErrors.length} row{commitErrors.length === 1 ? '' : 's'} during import — the file may have changed since preview
+                Server rejected {commitErrors.length} row{commitErrors.length === 1 ? '' : 's'} during import â€” the file may have changed since preview
               </p>
               <button
                 type="button"
@@ -452,7 +452,7 @@
           disabled={hasErrors || preview.summary.valid === 0 || busy}
           onclick={submitCommit}
         >
-          {#if busy}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+          {#if busy}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
           Import {preview.summary.valid} contact{preview.summary.valid === 1 ? '' : 's'}
         </Button>
       </Dialog.Footer>

@@ -49,6 +49,10 @@
               use:enhance={() => {
                 loading = true;
                 selectedOrgId = org.id;
+                // Store org_id immediately for client-side API compatibility
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('org_id', org.id);
+                }
                 return async ({ update }) => {
                   await update();
                   loading = false;

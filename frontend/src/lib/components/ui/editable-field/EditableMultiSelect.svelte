@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { ChevronDown, X, Search, AlertCircle, RotateCw } from '@lucide/svelte';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
@@ -142,7 +142,7 @@
             <span class="text-muted-foreground italic">{emptyText}</span>
           {:else}
             {#each displayOptions as opt (opt.id)}
-              <Badge variant="secondary" class="gap-1 pr-1">
+              <Badge variant="secondary" class="gap-1 pe-1">
                 <span class="max-w-[120px] truncate">{opt.name}</span>
                 {#if !disabled}
                   <button
@@ -183,7 +183,7 @@
               bind:value={query}
               placeholder="Search…"
               aria-label="Search options"
-              class="focus:ring-primary/30 placeholder:text-muted-foreground/50 w-full rounded-md border-0 bg-transparent py-1.5 pr-2 pl-7 text-xs outline-none focus:ring-1"
+              class="focus:ring-primary/30 placeholder:text-muted-foreground/50 w-full rounded-md border-0 bg-transparent py-1.5 pe-2 ps-7 text-xs outline-none focus:ring-1"
             />
           </div>
         </div>

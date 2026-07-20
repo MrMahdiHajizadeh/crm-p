@@ -1,5 +1,5 @@
-<script>
-  import { toast } from 'svelte-sonner';
+﻿<script>
+  import { toast } from '$lib/components/ui/toast/index.js';
   import * as Popover from '$lib/components/ui/popover/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
@@ -112,7 +112,7 @@
           type="text"
           placeholder="Search macros…"
           bind:value={query}
-          class="h-8 pl-7 text-sm"
+          class="h-8 ps-7 text-sm"
         />
       </div>
     </div>
@@ -121,7 +121,7 @@
         <div
           class="flex items-center justify-center gap-2 p-4 text-xs text-[var(--text-secondary)]"
         >
-          <Loader2 class="h-3.5 w-3.5 animate-spin" /> Loading macros…
+          <Loader2 class="h-3.5 w-3.5 animate-spin" /> Loading macrosâ€¦
         </div>
       {:else if filtered.length === 0}
         <div class="p-4 text-center text-xs text-[var(--text-secondary)]">

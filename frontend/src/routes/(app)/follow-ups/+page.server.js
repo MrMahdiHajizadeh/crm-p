@@ -11,14 +11,17 @@ import { error, fail } from '@sveltejs/kit';
 import { apiRequest } from '$lib/api-helpers.js';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ locals, cookies }) {
+export async function load({ locals, cookies, url }) {
   const org = locals.org;
   if (!org) {
     throw error(401, 'Organization context required');
   }
 
+  const myOnly = url.searchParams.get('my_only') === 'true';
+
   try {
-    const response = await apiRequest('/leads/follow-ups/', {}, { cookies, org });
+    const queryPath = '/leads/follow-ups/' + (myOnly ? '?my_only=true' : '');
+    const response = await apiRequest(queryPath, {}, { cookies, org });
 
     if (response?.error) {
       throw error(500, response.errors || 'Failed to load follow-ups');
@@ -31,7 +34,8 @@ export async function load({ locals, cookies }) {
         tomorrow: response.tomorrow || [],
         thisWeek: response.this_week || [],
         later: response.later || [],
-      }
+      },
+      myOnly
     };
   } catch (err) {
     if (/** @type {any} */ (err)?.status) throw err;
@@ -62,8 +66,10 @@ export const actions = {
       const followUpDate = form.get('follow_up_date')?.toString() || null;
 
       if (!subject && !description) {
-        return fail(400, { error: 'Please enter at least a subject or notes' });
+        return fail(400, { error: 'validation_required' });
       }
+
+      const completedId = form.get('completed_interaction_id')?.toString() || null;
 
       const payload = {
         entity_type: entityType,
@@ -82,6 +88,20 @@ export const actions = {
         { method: 'POST', body: payload },
         { cookies, org }
       );
+
+      // Clear follow_up_date on the old interaction so it disappears from the list
+      if (completedId) {
+        try {
+          await apiRequest(
+            `/leads/interactions/${completedId}/`,
+            { method: 'PATCH', body: { follow_up_date: null } },
+            { cookies, org }
+          );
+        } catch (e) {
+          // Non-critical — the new interaction was still created
+          console.warn('Failed to clear old follow-up:', e);
+        }
+      }
 
       return { success: true };
     } catch (err) {

@@ -3,7 +3,7 @@
   import { page } from '$app/state';
   import { enhance } from '$app/forms';
   import { untrack } from 'svelte';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
     BookOpen,
     Plus,
@@ -77,10 +77,10 @@
     return async ({ result, update }) => {
       await update();
       if (result.type === 'success') {
-        toast.success('Solution deleted');
+        toast.success($_('toasts.solution_deleted'));
         await invalidateAll();
       } else if (result.type === 'failure') {
-        toast.error(/** @type {any} */ (result.data)?.error || 'Delete failed');
+        toast.error(/** @type {any} */ (result.data)?.error || $_('toasts.delete_failed'));
       }
     };
   }
@@ -149,7 +149,7 @@
           type="text"
           bind:value={search}
           placeholder="Search title or description..."
-          class="w-full rounded border border-[var(--border-default)] bg-[var(--surface-default)] py-1.5 pl-8 pr-2 text-sm"
+          class="w-full rounded border border-[var(--border-default)] bg-[var(--surface-default)] py-1.5 ps-8 pe-2 text-sm"
         />
       </div>
       <Button type="submit" size="sm" variant="outline">Search</Button>

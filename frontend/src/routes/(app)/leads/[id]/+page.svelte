@@ -1,1162 +1,292 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
-  import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import {
-    Pencil,
-    Mail,
-    Phone,
-    MoreHorizontal,
-    Paperclip,
-    MessageSquare,
-    Calendar,
-    ArrowRightCircle,
-    Globe,
-    Briefcase,
-    Building2,
-    DollarSign,
-    Target,
-    Star,
-    MapPin,
-    Users,
-    UserCheck,
-    FileText,
-    ExternalLink,
-    Clock
+    Phone, Mail, Building2, Globe, MapPin, FileText,
+    ArrowLeft, Pencil, Calendar, Target, DollarSign, Percent,
+    MessageSquare, Phone as PhoneIcon, Clock, History, Eye, User
   } from '@lucide/svelte';
   import { LinkedinIcon as Linkedin } from '$lib/components/icons';
-  import { PageHeader } from '$lib/components/layout';
-  import { StageStepper } from '$lib/components/ui/stage-stepper';
-  import { Timeline, TimelineItem } from '$lib/components/ui/timeline';
-  import { SectionCard } from '$lib/components/ui/section-card/index.js';
-  import * as Tabs from '$lib/components/ui/tabs/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
-  import CustomFieldsPanel from '$lib/components/custom-fields/CustomFieldsPanel.svelte';
-  import {
-    formatRelativeDate,
-    formatDate,
-    formatCurrency,
-    getNameInitials
-  } from '$lib/utils/formatting.js';
-  import {
-    leadStatusOptions,
-    leadRatingOptions,
-    getOptionLabel,
-    getOptionStyle
-  } from '$lib/utils/table-helpers.js';
-  import { INDUSTRIES } from '$lib/constants/lead-choices.js';
-  import { getCountryName } from '$lib/constants/countries.js';
+  import { PageHeader } from '$lib/components/layout';
+  import { CommentSection } from '$lib/components/ui/comment-section';
+  import { formatDate, formatRelativeDate } from '$lib/utils/formatting.js';
+  import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
+  import { apiRequest as clientApi } from '$lib/api.js';
+  import { invalidateAll } from '$app/navigation';
+  import InteractionDialog from '$lib/components/ui/interaction/InteractionDialog.svelte';
 
-  /** @type {{ data: { lead: any, comments: any[], attachments: any[], tags: any[], users: any[], commentPermission: boolean, customFieldDefinitions: any[], customFieldValues: Record<string, unknown> } }} */
+  /** @type {{ data: import('./$types').PageData }} */
   let { data } = $props();
 
   const lead = $derived(data.lead || {});
   const comments = $derived(data.comments || []);
-  const attachments = $derived(data.attachments || []);
   const interactions = $derived(data.interactions || []);
-  const tags = $derived(data.tags || []);
-  const customFieldDefinitions = $derived(data.customFieldDefinitions || []);
-  const customFieldValues = $derived(data.customFieldValues || {});
 
-  let tab = $state('overview');
-
-  // Normalize backend status ("in process", "assigned") to leadStatusOptions value format ("IN_PROCESS")
-  const normalizedStatus = $derived(
-    (lead?.status || '').toString().toUpperCase().replace(/\s+/g, '_')
-  );
-  const normalizedRating = $derived((lead?.rating || '').toString().toUpperCase());
-
-  // Reactive translated options
-  const translatedStatusOptions = $derived(
-    leadStatusOptions.map((opt) => ({
-      ...opt,
-      label: $_(`filters.${opt.value.toLowerCase()}`) || opt.label
-    }))
-  );
-  const translatedRatingOptions = $derived(
-    leadRatingOptions.map((opt) => ({
-      ...opt,
-      label: $_(`filters.${opt.value.toLowerCase()}`) || opt.label
-    }))
-  );
-
-  const stepperStages = $derived(
-    translatedStatusOptions.map((s) => ({ value: s.value, label: s.label }))
-  );
-
-  const fullName = $derived(
-    [lead?.salutation, lead?.first_name, lead?.last_name]
-      .filter(Boolean)
-      .join(' ')
-      .trim() ||
-      lead?.email ||
-      'Lead'
-  );
-
-  const sourceLabel = $derived(
-    lead?.source
-      ? lead.source.replace(/\b\w/g, (/** @type {string} */ c) => c.toUpperCase())
-      : ''
-  );
-
-  const industryLabel = $derived(
-    INDUSTRIES.find((i) => i.value === lead?.industry)?.label || lead?.industry || ''
-  );
-
-  /** @typedef {{ id: string, email: string }} AssignedUser */
-  /** @type {AssignedUser[]} */
-  const assignedUsers = $derived(
-    Array.isArray(lead?.assigned_to)
-      ? lead.assigned_to
-          .map((/** @type {any} */ p) => ({
-            id: p?.id,
-            email: p?.user_details?.email || p?.user?.email || ''
-          }))
-          .filter((/** @type {AssignedUser} */ u) => u.email)
-      : []
-  );
-
-  /** @type {{ id: string, name: string }[]} */
-  const teams = $derived(
-    Array.isArray(lead?.teams)
-      ? lead.teams.map((/** @type {any} */ t) => ({ id: t?.id, name: t?.name || '' }))
-      : []
-  );
-
-  const probability = $derived(
-    typeof lead?.probability === 'number' ? Math.max(0, Math.min(100, lead.probability)) : null
-  );
-
-  const hasDeal = $derived(
-    lead?.opportunity_amount != null || probability !== null || !!lead?.close_date
-  );
-
-  const hasContactLinks = $derived(
-    !!(lead?.email || lead?.phone || lead?.website || lead?.linkedin_url || lead?.job_title)
-  );
-
-  const hasAddress = $derived(
-    !!(lead?.address_line || lead?.city || lead?.state || lead?.postcode || lead?.country)
-  );
-
-  const addressLines = $derived(
-    [
-      lead?.address_line,
-      [lead?.city, lead?.state, lead?.postcode].filter(Boolean).join(', '),
-      getCountryName(lead?.country)
-    ].filter(Boolean)
-  );
-
-  function normalizeUrl(/** @type {string} */ raw) {
-    if (!raw) return '';
-    return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
-  }
-
-  // Timeline items: interactions + comments + attachments + created event, sorted DESC by timestamp.
-  const timelineItems = $derived.by(() => {
-    /** @type {Array<{ id: string, ts: string, kind: 'comment' | 'attachment' | 'created' | 'interaction', payload: any }>} */
-    const items = [];
-    for (const c of comments) {
-      items.push({ id: `comment-${c.id}`, ts: c.commented_on || '', kind: 'comment', payload: c });
+  // Record VIEW activity on mount
+  onMount(() => {
+    if (browser && lead.id) {
+      clientApi(`/leads/${lead.id}/`, { method: 'GET' }).catch(() => {});
     }
-    for (const a of attachments) {
-      items.push({
-        id: `attachment-${a.id}`,
-        ts: a.created_on || a.created_at || '',
-        kind: 'attachment',
-        payload: a
-      });
-    }
-    for (const i of interactions) {
-      items.push({
-        id: `interaction-${i.id}`,
-        ts: i.interaction_date || i.created_at || '',
-        kind: 'interaction',
-        payload: i
-      });
-    }
-    if (lead?.created_at || lead?.created_on) {
-      items.push({
-        id: `created-${lead.id}`,
-        ts: lead.created_at || lead.created_on,
-        kind: 'created',
-        payload: lead
-      });
-    }
-    return items.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
   });
+
+  const statusLabels = {
+    assigned: $_('filters.assigned'),
+    'in process': $_('filters.in_process'),
+    converted: $_('filters.converted'),
+    recycled: $_('filters.recycled'),
+    closed: $_('filters.closed')
+  };
+
+  const ratingLabels = {
+    hot: $_('filters.hot'),
+    warm: $_('filters.warm'),
+    cold: $_('filters.cold')
+  };
+
+  const interactionTypeIcons = {
+    call: PhoneIcon,
+    email: Mail,
+    meeting: MessageSquare,
+    note: FileText,
+  };
+
+  const displayName = $derived(
+    [lead.first_name, lead.last_name].filter(Boolean).join(' ') || lead.title || 'Lead'
+  );
+
+  let interactionDialogOpen = $state(false);
+  let expandedInteraction = $state(null);
 </script>
 
 <svelte:head>
-  <title>{fullName} · BottleCRM</title>
+  <title>{displayName} - BottleCRM</title>
 </svelte:head>
 
 <PageHeader
-  title={fullName}
-  subtitle={lead?.title || ''}
-  breadcrumb={[{ label: 'Leads', href: '/leads' }, { label: fullName }]}
->
-  {#snippet meta()}
-    <div
-      class="flex flex-wrap items-center gap-3 text-[12px] leading-none text-[color:var(--text-subtle)]"
-    >
-      {#if lead?.created_at || lead?.created_on}
-        <span>Created {formatRelativeDate(lead.created_at || lead.created_on)}</span>
+  title={displayName}
+  subtitle={lead.company_name || lead.company?.name || ''}
+  breadcrumb={[
+    { label: $_('leads.title'), href: '/leads' },
+    { label: displayName }
+  ]}
+/>
+
+<div class="px-7 pb-8 md:px-8 space-y-6">
+  <!-- Action buttons -->
+  <div class="flex items-center gap-2">
+    <Button variant="outline" size="sm" href="/leads">
+      <ArrowLeft class="me-1.5 size-4" />
+      {$_('common.back')}
+    </Button>
+    <Button variant="outline" size="sm" href="/leads/{lead.id}/edit">
+      <Pencil class="me-1.5 size-4" />
+      {$_('common.edit')}
+    </Button>
+    <Button variant="default" size="sm" onclick={() => interactionDialogOpen = true}>
+      <MessageSquare class="me-1.5 size-4" />
+      {$_('followups.log_interaction')}
+    </Button>
+  </div>
+
+  <!-- Status badges -->
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-4">
+      <p class="text-[11px] font-medium text-[var(--text-subtle)]">{$_('common.status')}</p>
+      <Badge variant="secondary" class="mt-1 text-xs">
+        {statusLabels[lead.status] || lead.status || '—'}
+      </Badge>
+    </div>
+    <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-4">
+      <p class="text-[11px] font-medium text-[var(--text-subtle)]">{$_('leads.rating')}</p>
+      <p class="mt-1 text-sm font-medium text-[var(--text)]">
+        {ratingLabels[lead.rating] || lead.rating || '—'}
+      </p>
+    </div>
+    <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-4">
+      <p class="text-[11px] font-medium text-[var(--text-subtle)]">{$_('leads.source')}</p>
+      <p class="mt-1 text-sm font-medium text-[var(--text)]">{lead.source || '—'}</p>
+    </div>
+  </div>
+
+  <!-- Contact details -->
+  <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-5">
+    <h3 class="mb-4 text-sm font-semibold text-[var(--text)]">{$_('common.details')}</h3>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {#if lead.email}
+        <div class="flex items-center gap-3 text-sm">
+          <Mail class="size-4 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('common.email')}:</span>
+          <span class="text-[var(--text)]">{lead.email}</span>
+        </div>
       {/if}
-      {#if lead?.company_name}
-        <span>·</span>
-        <span class="flex items-center gap-1">
-          <Building2 class="size-3" />
-          {lead.company_name}
-        </span>
+      {#if lead.phone}
+        <div class="flex items-center gap-3 text-sm">
+          <Phone class="size-4 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('common.phone')}:</span>
+          <span class="text-[var(--text)]">{lead.phone}</span>
+        </div>
       {/if}
-      {#if assignedUsers.length > 0}
-        <span>·</span>
-        <span class="flex items-center gap-1.5">
-          <span
-            class="flex size-4 items-center justify-center rounded-full bg-[color:var(--bg-elevated)] text-[9px] font-medium text-[color:var(--text-muted)]"
+      {#if lead.company_name}
+        <div class="flex items-center gap-3 text-sm">
+          <Building2 class="size-4 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('leads.company')}:</span>
+          <span class="text-[var(--text)]">{lead.company_name}</span>
+        </div>
+      {/if}
+      {#if lead.website}
+        <div class="flex items-center gap-3 text-sm">
+          <Globe class="size-4 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('leads.website')}:</span>
+          <a href={lead.website} target="_blank" class="text-[var(--color-primary-default)] hover:underline">{lead.website}</a>
+        </div>
+      {/if}
+      {#if lead.linkedin_url}
+        <div class="flex items-center gap-3 text-sm">
+          <Linkedin class="size-4 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('leads.linkedin')}:</span>
+          <a href={lead.linkedin_url} target="_blank" class="text-[var(--color-primary-default)] hover:underline">{lead.linkedin_url}</a>
+        </div>
+      {/if}
+      {#if lead.address_line || lead.city}
+        <div class="flex items-center gap-3 text-sm">
+          <MapPin class="size-4 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('common.address')}:</span>
+          <span class="text-[var(--text)]">{[lead.address_line, lead.city, lead.state].filter(Boolean).join(', ') || '—'}</span>
+        </div>
+      {/if}
+      {#if lead.description}
+        <div class="flex items-start gap-3 text-sm md:col-span-2">
+          <FileText class="mt-0.5 size-4 shrink-0 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('common.description')}:</span>
+          <span class="text-[var(--text)]">{lead.description}</span>
+        </div>
+      {/if}
+    </div>
+  </div>
+
+  <!-- Dates & amounts -->
+  <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-5">
+    <h3 class="mb-4 text-sm font-semibold text-[var(--text)]">{$_('common.date')}</h3>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div class="flex items-center gap-3 text-sm">
+        <Calendar class="size-4 text-[var(--text-subtle)]" />
+        <span class="text-[var(--text-muted)]">{$_('common.created_at')}:</span>
+        <span class="text-[var(--text)]">{formatDate(lead.created_at || lead.created_on)}</span>
+      </div>
+      {#if lead.close_date}
+        <div class="flex items-center gap-3 text-sm">
+          <Target class="size-4 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('leads.close_date')}:</span>
+          <span class="text-[var(--text)]">{formatDate(lead.close_date)}</span>
+        </div>
+      {/if}
+      {#if lead.opportunity_amount}
+        <div class="flex items-center gap-3 text-sm">
+          <DollarSign class="size-4 text-[var(--text-subtle)]" />
+          <span class="text-[var(--text-muted)]">{$_('leads.opportunity_amount')}:</span>
+          <span class="text-[var(--text)]">{lead.opportunity_amount}</span>
+        </div>
+      {/if}
+    </div>
+  </div>
+
+  <!-- Comments -->
+  <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-5">
+    <CommentSection
+      comments={comments}
+      entityType="leads"
+      entityId={lead.id}
+      commentPermission={data.commentPermission}
+    />
+  </div>
+
+  <!-- Activity Timeline (Interactions) -->
+  {#if interactions.length > 0}
+    <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-5">
+      <h3 class="mb-4 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+        <History class="size-4" />
+        {$_('followups.log_interaction')} ({interactions.length})
+      </h3>
+      <div class="space-y-1">
+        {#each interactions as interaction (interaction.id)}
+          {@const Icon = interactionTypeIcons[interaction.interaction_type] || Clock}
+          {@const isExpanded = expandedInteraction === interaction.id}
+          <div
+            role="button"
+            tabindex="0"
+            onclick={() => expandedInteraction = isExpanded ? null : interaction.id}
+            onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); expandedInteraction = isExpanded ? null : interaction.id; } }}
+            class="cursor-pointer rounded-lg p-3 transition-colors hover:bg-[var(--bg-hover)]"
           >
-            {getNameInitials(assignedUsers[0].email, '')}
-          </span>
-          {assignedUsers[0].email}{#if assignedUsers.length > 1}
-            <span class="text-[color:var(--text-subtle)]">+{assignedUsers.length - 1}</span>
-          {/if}
-        </span>
-      {/if}
+            <div class="flex gap-3">
+              <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-light)]">
+                <Icon class="size-4 text-[var(--color-primary-default)]" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-2">
+                  <p class="text-sm font-medium text-[var(--text)]">
+                    {interaction.subject || $_('interaction.form.title')}
+                  </p>
+                  <span class="shrink-0 text-[11px] text-[var(--text-subtle)]">
+                    {formatDate(interaction.interaction_date || interaction.created_at)}
+                  </span>
+                </div>
+                {#if !isExpanded}
+                  {#if interaction.created_by?.name}
+                    <p class="mt-0.5 text-[11px] text-[var(--text-subtle)] flex items-center gap-1">
+                      <User class="size-3" />
+                      {interaction.created_by.name}
+                    </p>
+                  {/if}
+                  {#if interaction.result}
+                    <Badge variant="secondary" class="mt-1 text-[10px]">{interaction.result}</Badge>
+                  {/if}
+                {/if}
+                {#if isExpanded}
+                  <div class="mt-3 space-y-2 border-t border-[var(--border-faint)] pt-3">
+                    {#if interaction.description}
+                      <p class="text-[13px] text-[var(--text-muted)]">{interaction.description}</p>
+                    {/if}
+                    <div class="flex flex-wrap gap-3 text-[12px] text-[var(--text-subtle)]">
+                      {#if interaction.interaction_type}
+                        <span>{$_('interaction.form.type')}: {$_('interaction.types.' + interaction.interaction_type) || interaction.interaction_type}</span>
+                      {/if}
+                      {#if interaction.result}
+                        <span>{$_('interaction.form.result')}: {interaction.result}</span>
+                      {/if}
+                      {#if interaction.duration_minutes}
+                        <span>{$_('interaction.form.duration')}: {interaction.duration_minutes}</span>
+                      {/if}
+                      {#if interaction.follow_up_date}
+                        <span>{$_('interaction.form.follow_up')}: {formatDate(interaction.follow_up_date)}</span>
+                      {/if}
+                      {#if interaction.created_by?.name}
+                        <span class="flex items-center gap-1">
+                          <User class="size-3" />
+                          {interaction.created_by.name}
+                        </span>
+                      {/if}
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            </div>
+          </div>
+        {/each}
+      </div>
     </div>
-  {/snippet}
-
-  {#snippet actions()}
-    <div class="flex items-center gap-1.5">
-      {#if lead?.email}
-        <Button variant="ghost" size="icon" aria-label="Email" href="mailto:{lead.email}">
-          <Mail class="size-4" />
-        </Button>
-      {/if}
-      {#if lead?.phone}
-        <Button variant="ghost" size="icon" aria-label="Call" href="tel:{lead.phone}">
-          <Phone class="size-4" />
-        </Button>
-      {/if}
-      <Button variant="ghost" size="icon" aria-label="More"><MoreHorizontal class="size-4" /></Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onclick={() => lead?.id && goto(`/leads/${lead.id}/edit`)}
-      >
-        <Pencil class="mr-1.5 size-3.5" /> Edit
-      </Button>
-      <Button variant="default" size="sm">
-        <ArrowRightCircle class="mr-1.5 size-3.5" /> Convert
-      </Button>
-    </div>
-  {/snippet}
-</PageHeader>
-
-<!-- Stage stepper -->
-<div class="px-7 pb-3 md:px-8">
-  <StageStepper stages={stepperStages} current={normalizedStatus} />
+  {/if}
 </div>
 
-<!-- Tabs -->
-<Tabs.Root bind:value={tab} class="px-7 md:px-8">
-  <Tabs.List class="">
-    <Tabs.Trigger class="" value="overview">Overview</Tabs.Trigger>
-    <Tabs.Trigger class="" value="details">مشخصات</Tabs.Trigger>
-    <Tabs.Trigger class="" value="summary">خلاصه</Tabs.Trigger>
-    <Tabs.Trigger class="" value="activity">
-      Activity
-      <span
-        class="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[color:var(--bg-elevated)] px-1 text-[10px] tabular-nums text-[color:var(--text-subtle)]"
-      >
-        {timelineItems.length}
-      </span>
-    </Tabs.Trigger>
-    <Tabs.Trigger class="" value="files">
-      Files
-      <span
-        class="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[color:var(--bg-elevated)] px-1 text-[10px] tabular-nums text-[color:var(--text-subtle)]"
-      >
-        {attachments.length}
-      </span>
-    </Tabs.Trigger>
-  </Tabs.List>
-
-  <Tabs.Content class="" value="overview">
-    <div class="grid grid-cols-1 gap-6 pt-4 pb-8 lg:grid-cols-[1fr_320px]">
-      <!-- Main column -->
-      <div class="flex flex-col gap-6">
-        <!-- About card -->
-        <SectionCard title="About">
-            {#if lead?.description}
-              <p class="text-[13px] leading-[1.6] whitespace-pre-wrap text-[color:var(--text-muted)]">
-                {lead.description}
-              </p>
-            {:else}
-              <p class="text-[12px] italic text-[color:var(--text-subtle)]">No description.</p>
-            {/if}
-          </SectionCard>
-
-        <!-- Custom fields -->
-        {#if customFieldDefinitions.length > 0}
-          <CustomFieldsPanel
-            target="Lead"
-            definitions={customFieldDefinitions}
-            values={customFieldValues}
-            title="Custom Fields"
-          />
-        {/if}
-
-        <!-- Deal card -->
-        {#if hasDeal}
-          <SectionCard title="Deal">
-              <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-[12px] sm:grid-cols-3">
-                <div class="flex flex-col gap-1">
-                  <dt class="flex items-center gap-1 text-[11px] text-[color:var(--text-subtle)]">
-                    <DollarSign class="size-3" /> Deal Value
-                  </dt>
-                  <dd class="text-[15px] font-medium tabular-nums text-[color:var(--text)]">
-                    {lead?.opportunity_amount != null
-                      ? formatCurrency(lead.opportunity_amount, lead?.currency || 'TOM')
-                      : '—'}
-                  </dd>
-                </div>
-                <div class="flex flex-col gap-1">
-                  <dt class="flex items-center gap-1 text-[11px] text-[color:var(--text-subtle)]">
-                    <Target class="size-3" /> Probability
-                  </dt>
-                  <dd class="text-[color:var(--text)]">
-                    {#if probability !== null}
-                      <div class="flex items-center gap-2">
-                        <span class="text-[13px] tabular-nums">{probability}%</span>
-                        <div
-                          class="h-1.5 flex-1 overflow-hidden rounded-full bg-[color:var(--bg-elevated)]"
-                        >
-                          <div
-                            class="h-full rounded-full bg-[color:var(--color-primary-default)]"
-                            style="width: {probability}%"
-                          ></div>
-                        </div>
-                      </div>
-                    {:else}
-                      <span class="text-[color:var(--text-muted)]">—</span>
-                    {/if}
-                  </dd>
-                </div>
-                <div class="flex flex-col gap-1">
-                  <dt class="flex items-center gap-1 text-[11px] text-[color:var(--text-subtle)]">
-                    <Calendar class="size-3" /> Close Date
-                  </dt>
-                  <dd class="text-[13px] text-[color:var(--text)]">
-                    {lead?.close_date ? formatDate(lead.close_date) : '—'}
-                  </dd>
-                </div>
-              </dl>
-            </SectionCard>
-        {/if}
-
-        <!-- Contact info card -->
-        {#if hasContactLinks}
-          <SectionCard title="Contact">
-              <dl class="grid grid-cols-1 gap-y-3 text-[12px] sm:grid-cols-2">
-                {#if lead?.email}
-                  <div class="flex items-start gap-2">
-                    <Mail
-                      class="mt-0.5 size-3.5 shrink-0 text-[color:var(--text-subtle)]"
-                      aria-hidden="true"
-                    />
-                    <div class="flex min-w-0 flex-col">
-                      <dt class="text-[11px] text-[color:var(--text-subtle)]">Email</dt>
-                      <dd>
-                        <a
-                          href="mailto:{lead.email}"
-                          class="truncate text-[color:var(--color-primary-default)] hover:underline"
-                        >
-                          {lead.email}
-                        </a>
-                      </dd>
-                    </div>
-                  </div>
-                {/if}
-                {#if lead?.phone}
-                  <div class="flex items-start gap-2">
-                    <Phone
-                      class="mt-0.5 size-3.5 shrink-0 text-[color:var(--text-subtle)]"
-                      aria-hidden="true"
-                    />
-                    <div class="flex min-w-0 flex-col">
-                      <dt class="text-[11px] text-[color:var(--text-subtle)]">Phone</dt>
-                      <dd>
-                        <a
-                          href="tel:{lead.phone}"
-                          class="truncate text-[color:var(--color-primary-default)] hover:underline"
-                        >
-                          {lead.phone}
-                        </a>
-                      </dd>
-                    </div>
-                  </div>
-                {/if}
-                {#if lead?.job_title}
-                  <div class="flex items-start gap-2">
-                    <Briefcase
-                      class="mt-0.5 size-3.5 shrink-0 text-[color:var(--text-subtle)]"
-                      aria-hidden="true"
-                    />
-                    <div class="flex min-w-0 flex-col">
-                      <dt class="text-[11px] text-[color:var(--text-subtle)]">Job Title</dt>
-                      <dd class="truncate text-[color:var(--text)]">{lead.job_title}</dd>
-                    </div>
-                  </div>
-                {/if}
-                {#if lead?.website}
-                  <div class="flex items-start gap-2">
-                    <Globe
-                      class="mt-0.5 size-3.5 shrink-0 text-[color:var(--text-subtle)]"
-                      aria-hidden="true"
-                    />
-                    <div class="flex min-w-0 flex-col">
-                      <dt class="text-[11px] text-[color:var(--text-subtle)]">Website</dt>
-                      <dd>
-                        <a
-                          href={normalizeUrl(lead.website)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="inline-flex items-center gap-1 truncate text-[color:var(--color-primary-default)] hover:underline"
-                        >
-                          {lead.website}
-                          <ExternalLink class="size-3 shrink-0" aria-hidden="true" />
-                        </a>
-                      </dd>
-                    </div>
-                  </div>
-                {/if}
-                {#if lead?.linkedin_url}
-                  <div class="flex items-start gap-2">
-                    <Linkedin
-                      class="mt-0.5 size-3.5 shrink-0 text-[color:var(--text-subtle)]"
-                      aria-hidden="true"
-                    />
-                    <div class="flex min-w-0 flex-col">
-                      <dt class="text-[11px] text-[color:var(--text-subtle)]">LinkedIn</dt>
-                      <dd>
-                        <a
-                          href={normalizeUrl(lead.linkedin_url)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="inline-flex items-center gap-1 truncate text-[color:var(--color-primary-default)] hover:underline"
-                        >
-                          {lead.linkedin_url}
-                          <ExternalLink class="size-3 shrink-0" aria-hidden="true" />
-                        </a>
-                      </dd>
-                    </div>
-                  </div>
-                {/if}
-              </dl>
-            </SectionCard>
-        {/if}
-
-        <!-- Address card -->
-        {#if hasAddress}
-          <SectionCard title="Address">
-              <div class="flex items-start gap-2 text-[12px]">
-                <MapPin
-                  class="mt-0.5 size-3.5 shrink-0 text-[color:var(--text-subtle)]"
-                  aria-hidden="true"
-                />
-                <address class="flex flex-col gap-0.5 not-italic text-[color:var(--text-muted)]">
-                  {#each addressLines as line}
-                    <span>{line}</span>
-                  {/each}
-                </address>
-              </div>
-            </SectionCard>
-        {/if}
-
-        <!-- Activity timeline card -->
-        <SectionCard title="Activity" class="px-4 py-2">
-            <Timeline isEmpty={timelineItems.length === 0}>
-              {#each timelineItems as item (item.id)}
-                {#if item.kind === 'comment'}
-                  <TimelineItem
-                    variant="violet"
-                    time={item.ts ? formatRelativeDate(item.ts) : ''}
-                    quote={item.payload.comment || ''}
-                  >
-                    {#snippet icon()}<MessageSquare class="size-3.5" />{/snippet}
-                    {#snippet text()}
-                      <strong>{item.payload.commented_by_user || 'Someone'}</strong> commented
-                    {/snippet}
-                  </TimelineItem>
-                {:else if item.kind === 'attachment'}
-                  <TimelineItem time={item.ts ? formatRelativeDate(item.ts) : ''}>
-                    {#snippet icon()}<Paperclip class="size-3.5" />{/snippet}
-                    {#snippet text()}
-                      <strong>{item.payload.created_by_user || 'Someone'}</strong> uploaded
-                      <strong>{item.payload.file_name || 'a file'}</strong>
-                    {/snippet}
-                  </TimelineItem>
-                {:else if item.kind === 'interaction'}
-                  <TimelineItem
-                    variant={item.payload.interaction_type === 'call' ? 'success' : item.payload.interaction_type === 'email' ? 'violet' : 'default'}
-                    time={item.ts ? formatRelativeDate(item.ts) : ''}
-                    quote={item.payload.description || ''}
-                  >
-                    {#snippet icon()}
-                      {#if item.payload.interaction_type === 'call'}
-                        <Phone class="size-3.5" />
-                      {:else if item.payload.interaction_type === 'email'}
-                        <Mail class="size-3.5" />
-                      {:else if item.payload.interaction_type === 'meeting'}
-                        <Users class="size-3.5" />
-                      {:else}
-                        <FileText class="size-3.5" />
-                      {/if}
-                    {/snippet}
-                    {#snippet text()}
-                      <strong>{item.payload.created_by?.name || item.payload.created_by?.email || 'Someone'}</strong>
-                      {item.payload.subject ? `— ${item.payload.subject}` : ''}
-                      {#if item.payload.duration_minutes}
-                        <span class="text-[color:var(--text-subtle)]">({item.payload.duration_minutes} min)</span>
-                      {/if}
-                      {#if item.payload.result}
-                        <span class="ml-1.5 inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
-                          {item.payload.result_display || item.payload.result}
-                        </span>
-                      {/if}
-                      {#if item.payload.follow_up_date}
-                        <span class="ml-1.5 text-[11px] text-[var(--text-subtle)]">
-                          → {formatDate(item.payload.follow_up_date)}
-                        </span>
-                      {/if}
-                    {/snippet}
-                  </TimelineItem>
-                {:else}
-                  <TimelineItem
-                    variant="success"
-                    time={item.ts ? formatRelativeDate(item.ts) : ''}
-                  >
-                    {#snippet icon()}<Calendar class="size-3.5" />{/snippet}
-                    {#snippet text()}Lead created{/snippet}
-                  </TimelineItem>
-                {/if}
-              {/each}
-            </Timeline>
-          </SectionCard>
-      </div>
-
-      <!-- Right rail -->
-      <div class="flex flex-col gap-6">
-        <SectionCard title="Details">
-            <dl class="grid grid-cols-1 gap-y-3 text-[12px]">
-              <div class="flex items-baseline justify-between gap-3">
-                <dt class="text-[color:var(--text-subtle)]">Status</dt>
-                <dd>
-                  {#if normalizedStatus}
-                    <Badge
-                      variant="secondary"
-                      class={getOptionStyle(normalizedStatus, leadStatusOptions)}
-                    >
-                      {getOptionLabel(normalizedStatus, leadStatusOptions)}
-                    </Badge>
-                  {:else}
-                    <span class="text-[color:var(--text-muted)]">—</span>
-                  {/if}
-                </dd>
-              </div>
-              <div class="flex items-baseline justify-between gap-3">
-                <dt class="text-[color:var(--text-subtle)]">Rating</dt>
-                <dd>
-                  {#if normalizedRating}
-                    <Badge
-                      variant="secondary"
-                      class={getOptionStyle(normalizedRating, leadRatingOptions)}
-                    >
-                      <Star class="mr-1 size-3" />
-                      {getOptionLabel(normalizedRating, leadRatingOptions)}
-                    </Badge>
-                  {:else}
-                    <span class="text-[color:var(--text-muted)]">—</span>
-                  {/if}
-                </dd>
-              </div>
-              <div class="flex items-baseline justify-between gap-3">
-                <dt class="text-[color:var(--text-subtle)]">Source</dt>
-                <dd class="truncate text-end text-[color:var(--text-muted)]">
-                  {sourceLabel || '—'}
-                </dd>
-              </div>
-              <div class="flex items-baseline justify-between gap-3">
-                <dt class="text-[color:var(--text-subtle)]">Industry</dt>
-                <dd class="truncate text-end text-[color:var(--text-muted)]">
-                  {industryLabel || '—'}
-                </dd>
-              </div>
-              <div class="flex items-baseline justify-between gap-3">
-                <dt class="text-[color:var(--text-subtle)]">Company</dt>
-                <dd class="truncate text-end text-[color:var(--text-muted)]">
-                  {lead?.company_name || '—'}
-                </dd>
-              </div>
-              <div class="flex items-baseline justify-between gap-3">
-                <dt class="text-[color:var(--text-subtle)]">Created by</dt>
-                <dd class="truncate text-end text-[color:var(--text-muted)]">
-                  {lead?.created_by?.email || '—'}
-                </dd>
-              </div>
-              <div class="flex items-baseline justify-between gap-3">
-                <dt class="text-[color:var(--text-subtle)]">Updated</dt>
-                <dd class="truncate text-end text-[color:var(--text-muted)]">
-                  {lead?.updated_at ? formatRelativeDate(lead.updated_at) : '—'}
-                </dd>
-              </div>
-            </dl>
-          </SectionCard>
-
-        <!-- People -->
-        <SectionCard title="People">
-            <div class="flex flex-col gap-3 text-[12px]">
-              <div>
-                <div class="mb-1.5 flex items-center gap-1 text-[11px] text-[color:var(--text-subtle)]">
-                  <UserCheck class="size-3" /> Assigned to
-                </div>
-                {#if assignedUsers.length === 0}
-                  <p class="italic text-[color:var(--text-subtle)]">Unassigned</p>
-                {:else}
-                  <ul class="flex flex-col gap-1.5">
-                    {#each assignedUsers as user (user.id)}
-                      <li class="flex items-center gap-2">
-                        <span
-                          class="flex size-5 items-center justify-center rounded-full bg-[color:var(--color-primary-light)] text-[9px] font-semibold text-[color:var(--color-primary-default)]"
-                        >
-                          {getNameInitials(user.email, '')}
-                        </span>
-                        <span class="truncate text-[color:var(--text-muted)]">{user.email}</span>
-                      </li>
-                    {/each}
-                  </ul>
-                {/if}
-              </div>
-              {#if teams.length > 0}
-                <div>
-                  <div
-                    class="mb-1.5 flex items-center gap-1 text-[11px] text-[color:var(--text-subtle)]"
-                  >
-                    <Users class="size-3" /> Teams
-                  </div>
-                  <div class="flex flex-wrap gap-1.5">
-                    {#each teams as team (team.id)}
-                      <Badge
-                        variant="secondary"
-                        class="bg-[color:var(--bg-elevated)] text-[color:var(--text-muted)]"
-                      >
-                        {team.name}
-                      </Badge>
-                    {/each}
-                  </div>
-                </div>
-              {/if}
-            </div>
-          </SectionCard>
-
-        <!-- Dates -->
-        {#if lead?.last_contacted || lead?.next_follow_up}
-          <SectionCard title="Dates">
-              <dl class="grid grid-cols-1 gap-y-3 text-[12px]">
-                {#if lead?.last_contacted}
-                  <div class="flex items-baseline justify-between gap-3">
-                    <dt class="text-[color:var(--text-subtle)]">Last contact</dt>
-                    <dd
-                      class="truncate text-end text-[color:var(--text-muted)]"
-                      title={formatDate(lead.last_contacted)}
-                    >
-                      {formatRelativeDate(lead.last_contacted)}
-                    </dd>
-                  </div>
-                {/if}
-                {#if lead?.next_follow_up}
-                  <div class="flex items-baseline justify-between gap-3">
-                    <dt class="text-[color:var(--text-subtle)]">Next follow-up</dt>
-                    <dd
-                      class="truncate text-end text-[color:var(--text-muted)]"
-                      title={formatDate(lead.next_follow_up)}
-                    >
-                      {formatDate(lead.next_follow_up)}
-                    </dd>
-                  </div>
-                {/if}
-              </dl>
-            </SectionCard>
-        {/if}
-
-        <SectionCard title="Tags">
-            {#if tags.length === 0}
-              <p class="text-[12px] italic text-[color:var(--text-subtle)]">No tags.</p>
-            {:else}
-              <div class="flex flex-wrap gap-1.5">
-                {#each tags as tag, i (tag.id ?? tag.slug ?? tag.name ?? i)}
-                  <Badge
-                    variant="secondary"
-                    class="bg-[color:var(--bg-elevated)] text-[color:var(--text-muted)]"
-                  >
-                    {tag.name}
-                  </Badge>
-                {/each}
-              </div>
-            {/if}
-          </SectionCard>
-      </div>
-    </div>
-  </Tabs.Content>
-
-  <Tabs.Content class="" value="details">
-    <div class="pt-4 pb-8">
-      <div class="mx-auto max-w-3xl">
-        <SectionCard title="مشخصات اصلی">
-          <div class="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">عنوان</p>
-              <p class="mt-1 text-[14px] font-semibold text-[var(--text)]">{lead?.title || '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">نام</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.first_name || '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">نام خانوادگی</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.last_name || '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">ایمیل</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">
-                {#if lead?.email}
-                  <a href="mailto:{lead.email}" class="text-[var(--color-primary-default)] hover:underline">{lead.email}</a>
-                {:else}—{/if}
-              </p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">تلفن</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.phone || '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">عنوان شغلی</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.job_title || '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">شرکت</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.company_name || '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">وب‌سایت</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">
-                {#if lead?.website}
-                  <a href={normalizeUrl(lead.website)} target="_blank" rel="noopener noreferrer" class="text-[var(--color-primary-default)] hover:underline">{lead.website}</a>
-                {:else}—{/if}
-              </p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">لینکدین</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.linkedin_url || '—'}</p>
-            </div>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="وضعیت فروش" class="mt-6">
-          <div class="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">وضعیت</p>
-              <p class="mt-1">
-                {#if normalizedStatus}
-                  <span class="inline-flex items-center rounded-full px-3 py-1 text-[13px] font-medium {getOptionStyle(normalizedStatus, leadStatusOptions)}">
-                    {getOptionLabel(normalizedStatus, leadStatusOptions)}
-                  </span>
-                {:else}—{/if}
-              </p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">امتیاز</p>
-              <p class="mt-1">
-                {#if normalizedRating}
-                  <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[13px] font-medium {getOptionStyle(normalizedRating, leadRatingOptions)}">
-                    <Star class="size-3.5" />
-                    {getOptionLabel(normalizedRating, leadRatingOptions)}
-                  </span>
-                {:else}—{/if}
-              </p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">منبع</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{sourceLabel || '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">صنعت</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{industryLabel || '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">مبلغ فرصت</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">
-                {lead?.opportunity_amount != null ? formatCurrency(lead.opportunity_amount, lead?.currency || 'TOM') : '—'}
-              </p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">احتمال</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{probability != null ? `${probability}%` : '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">تاریخ بسته شدن</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.close_date ? formatDate(lead.close_date) : '—'}</p>
-            </div>
-            <div>
-              <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">ارز</p>
-              <p class="mt-1 text-[14px] text-[var(--text-muted)]">{lead?.currency || '—'}</p>
-            </div>
-          </div>
-        </SectionCard>
-
-        <SectionCard title="آدرس" class="mt-6">
-          {#if hasAddress}
-            <div class="flex flex-col gap-2">
-              {#if lead?.address_line}<p class="text-[14px] text-[var(--text-muted)]">{lead.address_line}</p>{/if}
-              <p class="text-[14px] text-[var(--text-muted)]">
-                {[lead?.city, lead?.state, lead?.postcode].filter(Boolean).join(' - ') || '—'}
-              </p>
-              {#if lead?.country}<p class="text-[14px] text-[var(--text-muted)]">{getCountryName(lead.country)}</p>{/if}
-            </div>
-          {:else}
-            <p class="text-[13px] italic text-[var(--text-subtle)]">آدرسی ثبت نشده است.</p>
-          {/if}
-        </SectionCard>
-
-        {#if lead?.description}
-          <SectionCard title="یادداشت‌ها" class="mt-6">
-            <p class="text-[13px] leading-relaxed text-[var(--text-muted)] whitespace-pre-wrap">{lead.description}</p>
-          </SectionCard>
-        {/if}
-      </div>
-    </div>
-  </Tabs.Content>
-
-  <Tabs.Content class="" value="summary">
-    <div class="grid grid-cols-1 gap-6 pt-4 pb-8 lg:grid-cols-[1fr_320px]">
-      <!-- Main column -->
-      <div class="flex flex-col gap-6">
-        <!-- Key Info Cards -->
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-4">
-            <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">وضعیت</p>
-            <p class="mt-1.5 text-[15px] font-semibold text-[var(--text)]">
-              {#if normalizedStatus}
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[13px] {getOptionStyle(normalizedStatus, leadStatusOptions)}">
-                  {getOptionLabel(normalizedStatus, leadStatusOptions)}
-                </span>
-              {:else}—{/if}
-            </p>
-          </div>
-          <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-4">
-            <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">امتیاز</p>
-            <p class="mt-1.5 text-[15px] font-semibold text-[var(--text)]">
-              {#if normalizedRating}
-                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[13px] {getOptionStyle(normalizedRating, leadRatingOptions)}">
-                  <Star class="size-3.5" />
-                  {getOptionLabel(normalizedRating, leadRatingOptions)}
-                </span>
-              {:else}—{/if}
-            </p>
-          </div>
-          <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-4">
-            <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">تعاملات</p>
-            <p class="mt-1.5 text-[20px] font-bold tabular-nums text-[var(--text)]">
-              {interactions.length}
-            </p>
-          </div>
-          <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg)] p-4">
-            <p class="text-[11px] font-medium uppercase tracking-wider text-[var(--text-subtle)]">پیگیری بعدی</p>
-            <p class="mt-1.5 text-[15px] font-semibold text-[var(--text)]">
-              {#if lead?.next_follow_up}
-                {formatDate(lead.next_follow_up)}
-              {:else}—{/if}
-            </p>
-          </div>
-        </div>
-
-        <!-- Recent Interactions -->
-        {#if interactions.length > 0}
-          <SectionCard title="آخرین تعاملات">
-            <div class="flex flex-col gap-3">
-              {#each interactions.slice(0, 5) as i (i.id)}
-                <div class="flex items-start gap-3 rounded-lg border border-[var(--border-faint)] p-3 transition-colors hover:bg-[var(--bg-elevated)]">
-                  <div class="flex size-8 shrink-0 items-center justify-center rounded-full border border-[var(--border-faint)] bg-[var(--bg-elevated)] text-[var(--text-muted)]">
-                    {#if i.interaction_type === 'call'}
-                      <Phone class="size-3.5" />
-                    {:else if i.interaction_type === 'email'}
-                      <Mail class="size-3.5" />
-                    {:else if i.interaction_type === 'meeting'}
-                      <Users class="size-3.5" />
-                    {:else}
-                      <FileText class="size-3.5" />
-                    {/if}
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex items-center justify-between gap-2">
-                      <p class="truncate text-[13px] font-medium text-[var(--text)]">
-                        {i.subject || i.interaction_type_display || i.interaction_type}
-                      </p>
-                      <span class="shrink-0 text-[11px] text-[var(--text-subtle)]">
-                        {formatRelativeDate(i.interaction_date || i.created_at)}
-                      </span>
-                    </div>
-                    {#if i.description}
-                      <p class="mt-0.5 line-clamp-1 text-[12px] text-[var(--text-muted)]">{i.description}</p>
-                    {/if}
-                    <div class="mt-1 flex flex-wrap items-center gap-2">
-                      {#if i.result}
-                        <span class="inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
-                          {i.result_display || i.result}
-                        </span>
-                      {/if}
-                      {#if i.duration_minutes}
-                        <span class="text-[11px] text-[var(--text-subtle)]">{i.duration_minutes} دقیقه</span>
-                      {/if}
-                      {#if i.created_by?.name || i.created_by?.email}
-                        <span class="text-[11px] text-[var(--text-subtle)]">
-                          {i.created_by.name || i.created_by.email}
-                        </span>
-                      {/if}
-                    </div>
-                  </div>
-                </div>
-              {/each}
-              {#if interactions.length > 5}
-                <button
-                  type="button"
-                  onclick={() => tab = 'activity'}
-                  class="text-center text-[12px] font-medium text-[var(--color-primary-default)] hover:underline"
-                >
-                  مشاهده همه {interactions.length} تعامل
-                </button>
-              {/if}
-            </div>
-          </SectionCard>
-        {/if}
-
-        <!-- Upcoming Follow-ups -->
-        {#if lead?.next_follow_up}
-          <SectionCard title="پیگیری بعدی">
-            <div class="flex items-center gap-3">
-              <div class="flex size-10 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
-                <Calendar class="size-5" />
-              </div>
-              <div>
-                <p class="text-[14px] font-semibold text-[var(--text)]">
-                  {formatDate(lead.next_follow_up)}
-                </p>
-                <p class="text-[12px] text-[var(--text-subtle)]">
-                  {formatRelativeDate(lead.next_follow_up)}
-                </p>
-              </div>
-            </div>
-          </SectionCard>
-        {/if}
-
-        <!-- Description -->
-        {#if lead?.description}
-          <SectionCard title="یادداشت‌ها">
-            <p class="text-[13px] leading-relaxed text-[var(--text-muted)]">{lead.description}</p>
-          </SectionCard>
-        {/if}
-      </div>
-
-      <!-- Right rail -->
-      <div class="flex flex-col gap-6">
-        <!-- Contact Info -->
-        <SectionCard title="اطلاعات تماس">
-          <div class="flex flex-col gap-3 text-[12px]">
-            {#if lead?.email}
-              <div class="flex items-center gap-2">
-                <Mail class="size-3.5 shrink-0 text-[var(--text-subtle)]" />
-                <a href="mailto:{lead.email}" class="truncate text-[var(--color-primary-default)] hover:underline">
-                  {lead.email}
-                </a>
-              </div>
-            {/if}
-            {#if lead?.phone}
-              <div class="flex items-center gap-2">
-                <Phone class="size-3.5 shrink-0 text-[var(--text-subtle)]" />
-                <a href="tel:{lead.phone}" class="truncate text-[var(--text-muted)] hover:text-[var(--text)]">
-                  {lead.phone}
-                </a>
-              </div>
-            {/if}
-            {#if lead?.company_name}
-              <div class="flex items-center gap-2">
-                <Building2 class="size-3.5 shrink-0 text-[var(--text-subtle)]" />
-                <span class="truncate text-[var(--text-muted)]">{lead.company_name}</span>
-              </div>
-            {/if}
-            {#if lead?.website}
-              <div class="flex items-center gap-2">
-                <Globe class="size-3.5 shrink-0 text-[var(--text-subtle)]" />
-                <a href={normalizeUrl(lead.website)} target="_blank" rel="noopener noreferrer" class="truncate text-[var(--color-primary-default)] hover:underline">
-                  {lead.website}
-                </a>
-              </div>
-            {/if}
-          </div>
-        </SectionCard>
-
-        <!-- Team & Tags -->
-        <SectionCard title="تیم و برچسب‌ها">
-          <div class="flex flex-col gap-3 text-[12px]">
-            {#if assignedUsers.length > 0}
-              <div>
-                <p class="mb-1.5 text-[11px] font-medium text-[var(--text-subtle)]">محول شده به</p>
-                <div class="flex flex-wrap gap-1.5">
-                  {#each assignedUsers as user (user.id)}
-                    <span class="inline-flex items-center gap-1.5 rounded-full bg-[var(--bg-elevated)] px-2.5 py-1 text-[11px] text-[var(--text-muted)]">
-                      <span class="flex size-4 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-[8px] font-semibold text-[var(--color-primary-default)]">
-                        {getNameInitials(user.email, '')}
-                      </span>
-                      {user.email}
-                    </span>
-                  {/each}
-                </div>
-              </div>
-            {/if}
-            {#if tags.length > 0}
-              <div>
-                <p class="mb-1.5 text-[11px] font-medium text-[var(--text-subtle)]">برچسب‌ها</p>
-                <div class="flex flex-wrap gap-1.5">
-                  {#each tags as tag, i (tag.id ?? tag.slug ?? tag.name ?? i)}
-                    <span class="inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2.5 py-1 text-[11px] text-[var(--text-muted)]">
-                      {tag.name}
-                    </span>
-                  {/each}
-                </div>
-              </div>
-            {/if}
-          </div>
-        </SectionCard>
-
-        <!-- Quick Stats -->
-        <SectionCard title="آمار سریع">
-          <div class="flex flex-col gap-3 text-[12px]">
-            <div class="flex items-center justify-between">
-              <span class="text-[var(--text-subtle)]">منبع</span>
-              <span class="text-[var(--text-muted)]">{sourceLabel || '—'}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-[var(--text-subtle)]">صنعت</span>
-              <span class="text-[var(--text-muted)]">{industryLabel || '—'}</span>
-            </div>
-            {#if lead?.opportunity_amount != null}
-              <div class="flex items-center justify-between">
-                <span class="text-[var(--text-subtle)]">مبلغ فرصت</span>
-                <span class="font-medium text-[var(--text)]">{formatCurrency(lead.opportunity_amount, lead?.currency || 'TOM')}</span>
-              </div>
-            {/if}
-            <div class="flex items-center justify-between">
-              <span class="text-[var(--text-subtle)]">ایجاد شده</span>
-              <span class="text-[var(--text-muted)]">{lead?.created_at ? formatRelativeDate(lead.created_at) : '—'}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-[var(--text-subtle)]">ایجاد کننده</span>
-              <span class="text-[var(--text-muted)]">{lead?.created_by?.email || '—'}</span>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
-    </div>
-  </Tabs.Content>
-
-  <Tabs.Content class="" value="activity">
-    <div class="pt-4 pb-8">
-      <SectionCard title="All activity" class="px-4 py-2">
-          <Timeline isEmpty={timelineItems.length === 0}>
-            {#each timelineItems as item (item.id)}
-              {#if item.kind === 'comment'}
-                <TimelineItem
-                  variant="violet"
-                  time={item.ts ? formatRelativeDate(item.ts) : ''}
-                  quote={item.payload.comment || ''}
-                >
-                  {#snippet icon()}<MessageSquare class="size-3.5" />{/snippet}
-                  {#snippet text()}<strong
-                      >{item.payload.commented_by_user || 'Someone'}</strong
-                    > commented{/snippet}
-                </TimelineItem>
-              {:else if item.kind === 'attachment'}
-                <TimelineItem time={item.ts ? formatRelativeDate(item.ts) : ''}>
-                  {#snippet icon()}<Paperclip class="size-3.5" />{/snippet}
-                  {#snippet text()}<strong>{item.payload.created_by_user || 'Someone'}</strong>
-                    uploaded <strong>{item.payload.file_name || 'a file'}</strong>{/snippet}
-                </TimelineItem>
-              {:else if item.kind === 'interaction'}
-                <TimelineItem
-                  variant={item.payload.interaction_type === 'call' ? 'success' : item.payload.interaction_type === 'email' ? 'violet' : 'default'}
-                  time={item.ts ? formatRelativeDate(item.ts) : ''}
-                  quote={item.payload.description || ''}
-                >
-                  {#snippet icon()}
-                    {#if item.payload.interaction_type === 'call'}
-                      <Phone class="size-3.5" />
-                    {:else if item.payload.interaction_type === 'email'}
-                      <Mail class="size-3.5" />
-                    {:else if item.payload.interaction_type === 'meeting'}
-                      <Users class="size-3.5" />
-                    {:else}
-                      <FileText class="size-3.5" />
-                    {/if}
-                  {/snippet}
-                  {#snippet text()}
-                    <strong>{item.payload.created_by?.name || item.payload.created_by?.email || 'Someone'}</strong>
-                    {item.payload.subject ? `— ${item.payload.subject}` : ''}
-                    {#if item.payload.duration_minutes}
-                      <span class="text-[color:var(--text-subtle)]">({item.payload.duration_minutes} min)</span>
-                    {/if}
-                    {#if item.payload.result}
-                      <span class="ml-1.5 inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">
-                        {item.payload.result_display || item.payload.result}
-                      </span>
-                    {/if}
-                    {#if item.payload.follow_up_date}
-                      <span class="ml-1.5 text-[11px] text-[var(--text-subtle)]">→ {formatDate(item.payload.follow_up_date)}</span>
-                    {/if}
-                  {/snippet}
-                </TimelineItem>
-              {:else}
-                <TimelineItem variant="success" time={item.ts ? formatRelativeDate(item.ts) : ''}>
-                  {#snippet icon()}<Calendar class="size-3.5" />{/snippet}
-                  {#snippet text()}Lead created{/snippet}
-                </TimelineItem>
-              {/if}
-            {/each}
-          </Timeline>
-        </SectionCard>
-    </div>
-  </Tabs.Content>
-
-  <Tabs.Content class="" value="files">
-    <div class="pt-4 pb-8">
-      <SectionCard title="Files">
-          {#if attachments.length === 0}
-            <p class="text-[12px] italic text-[color:var(--text-subtle)]">No files uploaded.</p>
-          {:else}
-            <ul class="flex flex-col divide-y divide-[color:var(--border-faint)]">
-              {#each attachments as a (a.id)}
-                <li class="flex items-center gap-3 py-2.5 text-[12px]">
-                  <Paperclip class="size-3.5 shrink-0 text-[color:var(--text-subtle)]" />
-                  <span class="flex-1 truncate text-[color:var(--text)]">
-                    {a.file_name || 'File'}
-                  </span>
-                  <span class="text-[11px] text-[color:var(--text-subtle)]">
-                    {a.created_on ? formatRelativeDate(a.created_on) : ''}
-                  </span>
-                </li>
-              {/each}
-            </ul>
-          {/if}
-        </SectionCard>
-    </div>
-  </Tabs.Content>
-</Tabs.Root>
+<InteractionDialog
+  bind:open={interactionDialogOpen}
+  entityType="Lead"
+  entityId={lead.id}
+  entityName={displayName}
+  onClose={() => interactionDialogOpen = false}
+  onSuccess={() => { interactionDialogOpen = false; invalidateAll(); }}
+/>

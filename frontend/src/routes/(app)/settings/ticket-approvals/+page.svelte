@@ -1,7 +1,7 @@
-<script>
+﻿<script>
   import { _ } from '$lib/i18n';
   import { invalidateAll } from '$app/navigation';
-  import { toast } from 'svelte-sonner';
+  import { toast } from '$lib/components/ui/toast/index.js';
   import { ShieldCheck, Loader2, Plus, Trash2, Edit3 } from '@lucide/svelte';
   import PageHeader from '$lib/components/layout/PageHeader.svelte';
   import { Button } from '$lib/components/ui/button/index.js';
@@ -98,10 +98,10 @@
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        toast.error(body?.error || JSON.stringify(body?.errors) || 'Save failed');
+        toast.error(body?.error || JSON.stringify(body?.errors) || $_('toasts.save_failed'));
         return;
       }
-      toast.success(editingId ? 'Rule updated' : 'Rule created');
+      toast.success(editingId ? $_('toasts.rule_updated') : $_('toasts.rule_created'));
       cancelEdit();
       await invalidateAll();
     } finally {
@@ -151,7 +151,7 @@
   {#snippet actions()}
     {#if !creating && editingId === null}
       <Button onclick={startCreate} disabled={pending}>
-        <Plus class="mr-1 h-4 w-4" /> {$_('settings.new_rule')}
+        <Plus class="me-1 h-4 w-4" /> {$_('settings.new_rule')}
       </Button>
     {/if}
   {/snippet}
@@ -160,7 +160,7 @@
 <div class="flex flex-col gap-4 p-4">
   <p class="text-sm text-[var(--text-secondary)]">
     Active rules block the close transition until an approval is recorded.
-    Filters combine — a rule with priority=Urgent + case_type=Incident matches
+    Filters combine â€” a rule with priority=Urgent + case_type=Incident matches
     only urgent incidents. The most-specific active rule wins.
   </p>
 
@@ -258,7 +258,7 @@
 
       <div class="mt-3 flex gap-2">
         <Button onclick={save} disabled={pending}>
-          {#if pending}<Loader2 class="mr-1 h-3.5 w-3.5 animate-spin" />{/if}
+          {#if pending}<Loader2 class="me-1 h-3.5 w-3.5 animate-spin" />{/if}
           {editingId ? $_('common.save_changes') : $_('settings.create_rule')}
         </Button>
         <Button variant="ghost" onclick={cancelEdit} disabled={pending}>
@@ -280,7 +280,7 @@
             <span class="font-medium">
               {r.name}
               {#if !r.is_active}
-                <span class="ml-2 rounded bg-[var(--surface-muted)] px-1.5 text-[10px] text-[var(--text-secondary)]">
+                <span class="ms-2 rounded bg-[var(--surface-muted)] px-1.5 text-[10px] text-[var(--text-secondary)]">
                   {$_('common.inactive')}
                 </span>
               {/if}
@@ -293,7 +293,7 @@
                 `role=${r.approver_role}`
               ]
                 .filter(Boolean)
-                .join(' · ')}
+                .join(' Â· ')}
             </span>
             {#if (r.approvers || []).length > 0}
               <span class="text-xs text-[var(--text-secondary)]">
@@ -308,7 +308,7 @@
               onclick={() => startEdit(r)}
               disabled={pending}
             >
-              <Edit3 class="mr-1 h-3.5 w-3.5" /> {$_('common.edit')}
+              <Edit3 class="me-1 h-3.5 w-3.5" /> {$_('common.edit')}
             </Button>
             <Button
               size="sm"
@@ -316,7 +316,7 @@
               onclick={() => destroy(r.id)}
               disabled={pending}
             >
-              <Trash2 class="mr-1 h-3.5 w-3.5" /> {$_('common.delete')}
+              <Trash2 class="me-1 h-3.5 w-3.5" /> {$_('common.delete')}
             </Button>
           </div>
         </li>

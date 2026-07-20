@@ -296,7 +296,9 @@ class Task(AssignableMixin, BaseModel):
     STATUS_CHOICES = (
         ("New", "New"),
         ("In Progress", "In Progress"),
+        ("Pending", "Pending"),
         ("Completed", "Completed"),
+        ("Deferred", "Deferred"),
     )
 
     PRIORITY_CHOICES = (("Low", "Low"), ("Medium", "Medium"), ("High", "High"))

@@ -203,34 +203,34 @@ export const priorityOptions = [
   }
 ];
 
-// Task status options - using design system tokens
+// Task status options - must match Django Task.STATUS_CHOICES
 export const taskStatusOptions = [
   {
-    value: 'NOT STARTED',
+    value: 'New',
     label: 'Not Started',
     color:
       'bg-[var(--task-upcoming-bg)] text-[var(--task-upcoming)] dark:bg-[var(--task-upcoming)]/15'
   },
   {
-    value: 'IN PROGRESS',
+    value: 'In Progress',
     label: 'In Progress',
     color:
       'bg-[var(--task-due-today-bg)] text-[var(--task-due-today)] dark:bg-[var(--task-due-today)]/15'
   },
   {
-    value: 'PENDING',
+    value: 'Pending',
     label: 'Pending',
     color:
       'bg-[var(--color-primary-light)] text-[var(--color-primary-default)] dark:bg-[var(--color-primary-default)]/15'
   },
   {
-    value: 'COMPLETED',
+    value: 'Completed',
     label: 'Completed',
     color:
       'bg-[var(--task-completed-bg)] text-[var(--task-completed)] dark:bg-[var(--task-completed)]/15'
   },
   {
-    value: 'DEFERRED',
+    value: 'Deferred',
     label: 'Deferred',
     color: 'bg-[var(--surface-sunken)] text-[var(--text-secondary)]'
   }

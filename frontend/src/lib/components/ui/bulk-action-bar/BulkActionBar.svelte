@@ -1,4 +1,4 @@
-<script>
+﻿<script>
   import { X } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
 
@@ -22,7 +22,7 @@
     <button
       type="button"
       onclick={onClear}
-      class="ml-1 rounded-full p-1 hover:bg-[var(--surface-sunken)]"
+      class="ms-1 rounded-full p-1 hover:bg-[var(--surface-sunken)]"
       aria-label="Clear selection"
     >
       <X class="h-4 w-4" />
