@@ -1,4 +1,6 @@
 <script>
+  import { _ } from '$lib/i18n';
+
   /** @type {{
    *   value: 'ALL' | 'open' | 'closed',
    *   total: number,
@@ -18,7 +20,7 @@
       ? 'bg-[var(--color-primary-default)] text-white'
       : 'bg-[var(--surface-sunken)] text-[var(--text-secondary)] hover:bg-[var(--surface-raised)]'}"
   >
-    All
+    {$_('common.all')}
     <span
       class="rounded-full px-1.5 py-0.5 text-xs {value === 'ALL'
         ? 'bg-[var(--color-primary-dark)] text-white/90'
@@ -35,7 +37,7 @@
       ? 'bg-[var(--stage-qualified)] text-white'
       : 'bg-[var(--surface-sunken)] text-[var(--text-secondary)] hover:bg-[var(--surface-raised)]'}"
   >
-    Open
+    {$_('tickets.status_open')}
     <span
       class="rounded-full px-1.5 py-0.5 text-xs {value === 'open'
         ? 'bg-black/20 text-white/90'
@@ -52,7 +54,7 @@
       ? 'bg-[var(--text-secondary)] text-white'
       : 'bg-[var(--surface-sunken)] text-[var(--text-secondary)] hover:bg-[var(--surface-raised)]'}"
   >
-    Closed
+    {$_('common.closed')}
     <span
       class="rounded-full px-1.5 py-0.5 text-xs {value === 'closed'
         ? 'bg-[var(--text-tertiary)] text-white/90'

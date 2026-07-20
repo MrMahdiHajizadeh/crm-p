@@ -119,6 +119,7 @@ class RequireOrgContext:
         "/api/auth/verify-phone-code/",
         "/api/org/",
         "/admin/",
+        "/schema/",
         "/swagger-ui/",
         "/api/schema/",
         # Public CSAT survey link (Tier 2 csat) — anonymous, sets RLS

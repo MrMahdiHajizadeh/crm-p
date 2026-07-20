@@ -39,8 +39,11 @@
   import {
     ticketStatusOptions,
     ticketTypeOptions,
-    ticketPriorityOptions
+    ticketPriorityOptions,
+    getOptionStyle,
+    getOptionLabel
   } from '$lib/utils/table-helpers.js';
+  import { formatRelativeDate } from '$lib/utils/formatting.js';
   import { useDrawerState } from '$lib/hooks';
 
   // Account from URL param (for quick action from account page)
@@ -66,7 +69,7 @@
   const columns = [
     {
       key: 'subject',
-      label: 'tickets.subject',
+      label: $_('tickets.subject'),
       type: 'text',
       width: 'w-[250px]',
       canHide: false,
@@ -74,7 +77,7 @@
     },
     {
       key: 'account',
-      label: 'common.account',
+      label: $_('common.account'),
       type: 'relation',
       relationIcon: 'building',
       width: 'w-40',
@@ -83,23 +86,23 @@
     },
     {
       key: 'priority',
-      label: 'tickets.priority',
+      label: $_('tickets.priority'),
       type: 'select',
       options: ticketPriorityOptions,
       width: 'w-28'
     },
-    { key: 'status', label: 'common.status', type: 'select', options: ticketStatusOptions, width: 'w-28' },
-    { key: 'ticketType', label: 'tickets.type', type: 'select', options: ticketTypeOptions, width: 'w-28' },
+    { key: 'status', label: $_('common.status'), type: 'select', options: ticketStatusOptions, width: 'w-28' },
+    { key: 'ticketType', label: $_('tickets.type'), type: 'select', options: ticketTypeOptions, width: 'w-28' },
     {
       key: 'owner',
-      label: 'common.assigned_to',
+      label: $_('common.assigned_to'),
       type: 'relation',
       relationIcon: 'user',
       width: 'w-36',
       editable: false,
       getValue: (/** @type {any} */ row) => row.owner
     },
-    { key: 'createdAt', label: 'common.created_at', type: 'date', width: 'w-32', editable: false }
+    { key: 'createdAt', label: $_('common.created_at'), type: 'date', width: 'w-32', editable: false }
   ];
 
   // Column visibility state
@@ -216,7 +219,7 @@
     if (account) {
       accountName = account.name;
     } else {
-      accountName = 'Unknown Account';
+      accountName = $_('common.not_provided');
     }
   }
 
@@ -276,103 +279,103 @@
   // The drawer is create-only; account is editable except when pre-filled from URL.
   // For non-admin users, the assignedTo field is hidden — tickets auto-assign to admins.
   const drawerColumns = $derived([
-    { key: 'subject', label: 'tickets.subject', type: 'text' },
+    { key: 'subject', label: $_('tickets.subject'), type: 'text' },
     !accountFromUrl
       ? {
           key: 'accountId',
-          label: 'common.account',
+          label: $_('common.account'),
           type: 'select',
           icon: Building2,
           options: accountOptions,
-          emptyText: 'No account'
+          emptyText: $_('common.none')
         }
       : accountFromUrl
         ? {
             key: 'accountDisplay',
-            label: 'common.account',
+            label: $_('common.account'),
             type: 'readonly',
             icon: Building2,
             getValue: () => accountName || 'Loading...'
           }
         : {
             key: 'accountName',
-            label: 'common.account',
+            label: $_('common.account'),
             type: 'readonly',
             icon: Building2,
-            emptyText: 'No account'
+            emptyText: $_('common.none')
           },
     {
       key: 'ticketType',
-      label: 'tickets.type',
+      label: $_('tickets.type'),
       type: 'select',
       icon: Tag,
       options: ticketTypeOptions,
-      emptyText: 'Select type'
+      emptyText: $_('filters.select_type')
     },
     {
       key: 'status',
-      label: 'common.status',
+      label: $_('common.status'),
       type: 'select',
       icon: Circle,
       options: ticketStatusOptions
     },
     {
       key: 'priority',
-      label: 'tickets.priority',
+      label: $_('tickets.priority'),
       type: 'select',
       icon: Flag,
       options: ticketPriorityOptions
     },
     {
       key: 'description',
-      label: 'common.description',
+      label: $_('common.description'),
       type: 'textarea',
       icon: FileText,
-      placeholder: 'Describe the ticket...',
-      emptyText: 'No description'
+      placeholder: $_('tickets.description_placeholder'),
+      emptyText: $_('tickets.no_description')
     },
     ...(isAdmin
       ? [
           {
             key: 'assignedTo',
-            label: 'common.assigned_to',
+            label: $_('common.assigned_to'),
             type: 'multiselect',
             icon: User,
             options: users.map((/** @type {any} */ u) => ({ id: u.id, name: u.name })),
-            emptyText: 'Unassigned'
+            emptyText: $_('tickets.unassigned')
           }
         ]
       : []),
     {
       key: 'teams',
-      label: 'common.teams',
+      label: $_('common.teams'),
       type: 'multiselect',
       icon: Users,
       options: teams.map((/** @type {any} */ t) => ({ id: t.id, name: t.name })),
-      emptyText: 'No teams'
+      emptyText: $_('tickets.no_teams')
     },
     {
       key: 'contacts',
-      label: 'common.contact',
+      label: $_('common.contact'),
       type: 'multiselect',
       icon: User,
       options: contacts.map((/** @type {any} */ c) => ({ id: c.id, name: c.name, email: c.email })),
-      emptyText: 'No contacts'
+      emptyText: $_('tickets.no_contacts')
     },
     {
       key: 'tags',
-      label: 'common.tags',
+      label: $_('common.tags'),
       type: 'multiselect',
       icon: Tag,
       options: tags.map((/** @type {any} */ t) => ({ id: t.id, name: t.name })),
-      emptyText: 'No tags'
+      emptyText: $_('tickets.no_tags')
     },
     {
       key: 'closedOn',
-      label: 'Close Date',
+      label: $_('common.close_date'),
       type: 'date',
       icon: Calendar,
-      emptyText: 'Not set'
+      emptyText: $_('tickets.not_set')
     }
   ]);
 
@@ -413,18 +416,18 @@
 
   // Status options for filter dropdown
   const statusFilterOptions = $derived([
-    { value: '', label: 'All Statuses' },
+    { value: '', label: $_('tickets.all_statuses') },
     ...ticketStatusOptions
   ]);
 
   // Priority options for filter dropdown
   const priorityFilterOptions = $derived([
-    { value: '', label: 'All Priorities' },
+    { value: '', label: $_('tickets.all_priorities') },
     ...ticketPriorityOptions
   ]);
 
   // Type options for filter dropdown
-  const typeFilterOptions = $derived([{ value: '', label: 'All Types' }, ...ticketTypeOptions]);
+  const typeFilterOptions = $derived([{ value: '', label: $_('tickets.all_types') }, ...ticketTypeOptions]);
 
   // Count active filters (excluding status since it's handled via chips in header)
   const activeFiltersCount = $derived.by(() => {
@@ -563,7 +566,7 @@
    */
   async function handleSave() {
     if (!drawerFormData.subject?.trim()) {
-      toast.error('Ticket title is required');
+      toast.error($_('tickets.title_required'));
       return;
     }
 
@@ -737,7 +740,7 @@
 </svelte:head>
 
 <div class="flex flex-col">
-  <PageHeader title={$_('tickets.title')} subtitle="{filteredTickets.length} of {ticketsData.length} tickets">
+  <PageHeader title={$_('tickets.title')} subtitle="{filteredTickets.length} {$_('tickets.of')} {ticketsData.length} {$_('sidebar.tickets')}">
     {#snippet actions()}
       <div class="flex items-center gap-2">
         <TicketStatusChips
@@ -758,20 +761,20 @@
             url.searchParams.delete('page');
             goto(url.pathname + (url.search ? url.search : ''));
           }}
-          title={data.watchingOnly ? 'Show all tickets' : 'Show only tickets you are watching'}
+          title={data.watchingOnly ? $_('tickets.watching_show_all') : $_('tickets.watching_show_only')}
         >
           <Eye class="h-3.5 w-3.5" />
-          Watching
+          {$_('tickets.watching')}
         </Button>
         <Button
           variant="outline"
           size="sm"
           class="gap-1.5"
           onclick={() => goto('/tickets/analytics')}
-          title="Open the analytics dashboard"
+          title={$_('tickets.analytics_title')}
         >
           <BarChart3 class="h-3.5 w-3.5" />
-          Analytics
+          {$_('tickets.analytics')}
         </Button>
         <div class="bg-border mx-1 h-6 w-px"></div>
         <TicketListActions
@@ -791,7 +794,7 @@
       </div>
     {/snippet}
     {#snippet tabs()}
-      <ViewTabs views={[{ id: 'all', label: 'All', count: pagination.total }]} active="all" />
+      <ViewTabs views={[{ id: 'all', label: $_('common.all'), count: pagination.total }]} active="all" />
     {/snippet}
   </PageHeader>
 
@@ -800,22 +803,25 @@
       <SearchInput
         value={filters.search}
         onchange={(value) => updateFilters({ ...filters, search: value })}
-        placeholder="Search tickets..."
+        placeholder={$_('tickets.search_placeholder')}
       />
       <SelectFilter
-        label="Priority"
+        label={$_('tickets.priority')}
+        allLabel={$_('common.all')}
         options={priorityFilterOptions}
         value={filters.priority}
         onchange={(value) => updateFilters({ ...filters, priority: value })}
       />
       <SelectFilter
-        label="Type"
+        label={$_('tickets.type')}
+        allLabel={$_('common.all')}
         options={typeFilterOptions}
         value={filters.case_type}
         onchange={(value) => updateFilters({ ...filters, case_type: value })}
       />
       <DateRangeFilter
-        label="Created"
+        label={$_('common.created_at')}
+        placeholder={$_('tickets.select_dates')}
         startDate={filters.created_at_gte}
         endDate={filters.created_at_lte}
         onchange={(start, end) =>
@@ -823,14 +829,15 @@
       />
       <TagFilter
         tags={allTags}
+        placeholder={$_('tickets.filter_by_tags')}
         value={filters.tags}
         onchange={(ids) => updateFilters({ ...filters, tags: ids })}
       />
       {#if activeFiltersCount > 0}
-        <FilterPill label="Clear all" dashed onclick={clearFilters} />
+        <FilterPill label={$_('common.clear')} dashed onclick={clearFilters} />
       {/if}
       {#snippet meta()}
-        <span>{filteredTickets.length} of {pagination.total} tickets</span>
+        <span>{filteredTickets.length} {$_('tickets.of')} {pagination.total} {$_('sidebar.tickets')}</span>
       {/snippet}
     </FilterStrip>
 
@@ -845,6 +852,50 @@
         onRowChange={handleRowChange}
         onRowClick={(row) => goto(`/tickets/${row.id}`)}
       >
+        {#snippet mobileCard(ticket)}
+          <button
+            type="button"
+            class="flex w-full items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--surface-sunken)] dark:hover:bg-white/5"
+            onclick={() => goto(`/tickets/${ticket.id}`)}
+          >
+            <div class="min-w-0 flex-1">
+              <div class="flex items-start justify-between gap-2">
+                <p class="text-sm font-medium text-[var(--text-primary)] line-clamp-2">
+                  {ticket.subject || $_('common.untitled')}
+                </p>
+                {#if ticket.priority}
+                  <span class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {getOptionStyle(ticket.priority, ticketPriorityOptions)}">
+                    {getOptionLabel(ticket.priority, ticketPriorityOptions)}
+                  </span>
+                {/if}
+              </div>
+              {#if ticket.account}
+                <p class="text-sm text-[var(--text-secondary)]">
+                  {typeof ticket.account === 'object' ? ticket.account.name : ticket.account}
+                </p>
+              {/if}
+              <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--text-secondary)]">
+                {#if ticket.status}
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 font-medium {getOptionStyle(ticket.status, ticketStatusOptions)}">
+                    {getOptionLabel(ticket.status, ticketStatusOptions)}
+                  </span>
+                {/if}
+                {#if ticket.ticketType}
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 {getOptionStyle(ticket.ticketType, ticketTypeOptions)}">
+                    {getOptionLabel(ticket.ticketType, ticketTypeOptions)}
+                  </span>
+                {/if}
+                <span>{formatRelativeDate(ticket.createdAt)}</span>
+                {#if ticket.escalationCount > 0}
+                  <span class="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300">
+                    <AlertTriangle class="size-3" />
+                    {ticket.escalationCount}×
+                  </span>
+                {/if}
+              </div>
+            </div>
+          </button>
+        {/snippet}
         {#snippet cellSuffix(row, column)}
           {#if column.key === 'subject' && row.escalationCount > 0}
             <span
@@ -876,9 +927,9 @@
             >
               <Briefcase class="size-8 text-[var(--text-tertiary)]" />
             </div>
-            <h3 class="text-lg font-medium text-[var(--text-primary)]">No tickets found</h3>
+            <h3 class="text-lg font-medium text-[var(--text-primary)]">{$_('tickets.no_tickets_found')}</h3>
             <p class="mt-1 text-sm text-[var(--text-secondary)]">
-              Try adjusting your filters or create a new ticket
+              {$_('tickets.empty_state_hint')}
             </p>
           </div>
         {/snippet}
@@ -956,8 +1007,8 @@
   data={drawerFormData}
   columns={drawerColumns}
   titleKey="subject"
-  titlePlaceholder="Ticket title"
-  headerLabel="New Ticket"
+  titlePlaceholder={$_('tickets.title_placeholder')}
+  headerLabel={$_('tickets.create')}
   onFieldChange={handleDrawerFieldChange}
   onClose={() => drawer.closeAll()}
   loading={drawer.loading}
@@ -966,18 +1017,18 @@
   {#snippet footerActions()}
     {#if !isAdmin}
       <p class="px-4 text-sm text-[var(--text-secondary)]">
-        This ticket will be automatically sent to all admins.
+        {$_('tickets.auto_assign_note')}
       </p>
     {/if}
     <Button variant="outline" onclick={() => drawer.closeAll()} disabled={isSubmitting}>
-      Cancel
+      {$_('common.cancel')}
     </Button>
     <Button onclick={handleSave} disabled={isSubmitting}>
       {#if isSubmitting}
         <Loader2 class="me-2 h-4 w-4 animate-spin" />
-        Creating...
+        {$_('common.creating')}
       {:else}
-        Create Ticket
+        {$_('tickets.create')}
       {/if}
     </Button>
   {/snippet}

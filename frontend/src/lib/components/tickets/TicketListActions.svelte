@@ -1,4 +1,5 @@
 ﻿<script>
+  import { _ } from '$lib/i18n';
   import { Plus, Eye, Filter, List, Columns, Upload } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
@@ -41,7 +42,7 @@
       onclick={() => onViewMode('list')}
       class="h-8 px-3"
     >
-      <List class="me-1.5 h-4 w-4" />List
+      <List class="me-1.5 h-4 w-4" />{$_('tickets.view_list')}
     </Button>
     <Button
       variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
@@ -49,7 +50,7 @@
       onclick={() => onViewMode('kanban')}
       class="h-8 px-3"
     >
-      <Columns class="me-1.5 h-4 w-4" />Board
+      <Columns class="me-1.5 h-4 w-4" />{$_('tickets.view_board')}
     </Button>
   </div>
 
@@ -59,7 +60,7 @@
     class="gap-2"
     onclick={onToggleFilters}
   >
-    <Filter class="h-4 w-4" />Filters
+    <Filter class="h-4 w-4" />{$_('common.filter')}
     {#if activeFiltersCount > 0}
       <span
         class="rounded-full bg-[var(--color-primary-light)] px-1.5 py-0.5 text-xs font-medium text-[var(--color-primary-default)]"
@@ -73,7 +74,7 @@
     <DropdownMenu.Trigger>
       {#snippet child({ props })}
         <Button {...props} variant="outline" size="sm" class="gap-2">
-          <Eye class="h-4 w-4" />Columns
+          <Eye class="h-4 w-4" />{$_('tickets.columns')}
           {#if visibleCount < totalCount}
             <span
               class="rounded-full bg-[var(--color-primary-light)] px-1.5 py-0.5 text-xs font-medium text-[var(--color-primary-default)]"
@@ -85,7 +86,7 @@
       {/snippet}
     </DropdownMenu.Trigger>
     <DropdownMenu.Content align="end" class="w-48">
-      <DropdownMenu.Label>Toggle columns</DropdownMenu.Label>
+      <DropdownMenu.Label>{$_('tickets.toggle_columns')}</DropdownMenu.Label>
       <DropdownMenu.Separator />
       {#each columns as column (column.key)}
         <DropdownMenu.CheckboxItem
@@ -102,11 +103,11 @@
 
   {#if onImport}
     <Button variant="outline" size="sm" class="gap-2" onclick={onImport}>
-      <Upload class="h-4 w-4" />Import CSV
+      <Upload class="h-4 w-4" />{$_('tickets.import_csv')}
     </Button>
   {/if}
 
   <Button onclick={onCreate}>
-    <Plus class="me-2 h-4 w-4" />New Ticket
+    <Plus class="me-2 h-4 w-4" />{$_('tickets.create')}
   </Button>
 </div>
