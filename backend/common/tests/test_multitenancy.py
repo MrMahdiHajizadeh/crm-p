@@ -39,11 +39,11 @@ class MultiTenancyBaseTestCase(TestCase):
         )
 
         # Create profiles (user membership in orgs)
-        self.profile_a = Profile.objects.create(
-            user=self.user_a, org=self.org_a, role="ADMIN", is_active=True
+        self.profile_a, _ = Profile.objects.get_or_create(
+            user=self.user_a, org=self.org_a, defaults={"role": "ADMIN", "is_active": True}
         )
-        self.profile_b = Profile.objects.create(
-            user=self.user_b, org=self.org_b, role="ADMIN", is_active=True
+        self.profile_b, _ = Profile.objects.get_or_create(
+            user=self.user_b, org=self.org_b, defaults={"role": "ADMIN", "is_active": True}
         )
 
         # API client
@@ -138,16 +138,21 @@ class TestCrossOrgDataAccess(MultiTenancyBaseTestCase):
     def setUp(self):
         super().setUp()
 
-        # Create data in each org
-        self.account_a = Account.objects.create(name="Account in Org A", org=self.org_a)
-        self.account_b = Account.objects.create(name="Account in Org B", org=self.org_b)
+        from common.tasks import set_rls_context
 
+        # Create data in org A
+        set_rls_context(str(self.org_a.id))
+        self.account_a = Account.objects.create(name="Account in Org A", org=self.org_a)
         self.lead_a = Lead.objects.create(
             first_name="Lead",
             last_name="In Org A",
             email="lead_a@test.com",
             org=self.org_a,
         )
+
+        # Create data in org B
+        set_rls_context(str(self.org_b.id))
+        self.account_b = Account.objects.create(name="Account in Org B", org=self.org_b)
         self.lead_b = Lead.objects.create(
             first_name="Lead",
             last_name="In Org B",
@@ -157,12 +162,16 @@ class TestCrossOrgDataAccess(MultiTenancyBaseTestCase):
 
     def test_queryset_filters_by_org(self):
         """QuerySet should only return data for the specified org"""
+        from common.tasks import set_rls_context
+
         # Filter for org_a
+        set_rls_context(str(self.org_a.id))
         accounts_a = Account.objects.filter(org=self.org_a)
         self.assertEqual(accounts_a.count(), 1)
         self.assertEqual(accounts_a.first().name, "Account in Org A")
 
         # Filter for org_b
+        set_rls_context(str(self.org_b.id))
         accounts_b = Account.objects.filter(org=self.org_b)
         self.assertEqual(accounts_b.count(), 1)
         self.assertEqual(accounts_b.first().name, "Account in Org B")
@@ -189,7 +198,9 @@ class TestGenericFKOrgValidation(MultiTenancyBaseTestCase):
 
     def setUp(self):
         super().setUp()
+        from common.tasks import set_rls_context
 
+        set_rls_context(str(self.org_a.id))
         self.lead_a = Lead.objects.create(
             first_name="Lead",
             last_name="In Org A",
@@ -307,9 +318,11 @@ class TestBaseOrgModel(TestCase):
     def test_org_required_on_save(self):
         """BaseOrgModel descendants should require org on save"""
         from common.base import BaseOrgModel
+        from common.tasks import set_rls_context
 
         # This is tested indirectly through models like Teams
         org = Org.objects.create(name="Test Org")
+        set_rls_context(str(org.id))
 
         team = Teams(name="Test Team", description="Test Description", org=org)
         team.save()  # Should succeed
@@ -322,17 +335,22 @@ class TestOrgScopedQuerySet(MultiTenancyBaseTestCase):
 
     def setUp(self):
         super().setUp()
+        from common.tasks import set_rls_context
 
         # Create teams in each org
+        set_rls_context(str(self.org_a.id))
         self.team_a = Teams.objects.create(
             name="Team A", description="In Org A", org=self.org_a
         )
+        set_rls_context(str(self.org_b.id))
         self.team_b = Teams.objects.create(
             name="Team B", description="In Org B", org=self.org_b
         )
 
     def test_for_org_filters_correctly(self):
         """for_org() should filter by organization"""
+        from common.tasks import set_rls_context
+        set_rls_context(str(self.org_a.id))
         teams = Teams.objects.filter(org=self.org_a)
         self.assertEqual(teams.count(), 1)
         self.assertEqual(teams.first().name, "Team A")
@@ -353,7 +371,9 @@ class TestNullOrgPrevention(MultiTenancyBaseTestCase):
     def test_comment_requires_org(self):
         """Comment should require org field"""
         from django.contrib.contenttypes.models import ContentType
+        from common.tasks import set_rls_context
 
+        set_rls_context(str(self.org_a.id))
         lead = Lead.objects.create(
             first_name="Test", last_name="Lead", email="test@test.com", org=self.org_a
         )
@@ -403,17 +423,21 @@ class TestRLSIntegration(MultiTenancyBaseTestCase):
 
     def setUp(self):
         super().setUp()
+        from common.tasks import set_rls_context
 
-        # Create test data in each org
+        # Create test data in org A
+        set_rls_context(str(self.org_a.id))
         self.lead_a = Lead.objects.create(
             first_name="Lead", last_name="OrgA", email="lead_a@test.com", org=self.org_a
         )
-        self.lead_b = Lead.objects.create(
-            first_name="Lead", last_name="OrgB", email="lead_b@test.com", org=self.org_b
-        )
-
         self.account_a = Account.objects.create(
             name="Account A", email="account_a@test.com", org=self.org_a
+        )
+
+        # Create test data in org B
+        set_rls_context(str(self.org_b.id))
+        self.lead_b = Lead.objects.create(
+            first_name="Lead", last_name="OrgB", email="lead_b@test.com", org=self.org_b
         )
         self.account_b = Account.objects.create(
             name="Account B", email="account_b@test.com", org=self.org_b

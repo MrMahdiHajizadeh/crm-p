@@ -34,16 +34,32 @@ class OrgProfileCreateView(APIView):
         request=OrgProfileCreateSerializer,
     )
     def post(self, request, format=None):
-        # Single-org system: prevent creating more than one organization.
-        if Org.objects.exists():
+        """
+        Single-org system: if an organization already exists, add the user to it
+        instead of rejecting the request. This prevents new users from being
+        permanently locked out after the first org is created.
+        """
+        existing_org = Org.objects.filter(is_active=True).first()
+
+        if existing_org:
+            # Org already exists — add the current user as a member
+            profile, created = Profile.objects.get_or_create(
+                user=request.user,
+                org=existing_org,
+                defaults={"role": "USER", "is_active": True},
+            )
+            if not profile.is_active:
+                profile.is_active = True
+                profile.save(update_fields=["is_active"])
+
             return Response(
                 {
-                    "error": True,
-                    "errors": {
-                        "name": "Only one organization is allowed in this system."
-                    },
-                },
-                status=status.HTTP_403_FORBIDDEN,
+                    "error": False,
+                    "message": "Joined existing organization.",
+                    "org": OrgProfileCreateSerializer(existing_org).data,
+                    "profile_created": created,
+                    "status": status.HTTP_200_OK,
+                }
             )
 
         data = request.data

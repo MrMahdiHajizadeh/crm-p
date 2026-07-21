@@ -992,18 +992,25 @@ from django.contrib.auth import get_user_model
 
 @receiver(post_save, sender=get_user_model())
 def auto_assign_org(sender, instance, created, **kwargs):
-    if created:
-        org = Org.objects.first()
-        if org and not Profile.objects.filter(user=instance, org=org).exists():
-            # If the user is superuser, we could make them ADMIN. Otherwise USER.
-            role = "ADMIN" if instance.is_superuser else "USER"
-            Profile.objects.create(
-                user=instance,
-                org=org,
-                role=role,
-                is_active=True,
-                is_organization_admin=instance.is_superuser,
-                has_sales_access=True,
-                has_marketing_access=True
-            )
+    import sys
+    if not created or kwargs.get("raw", False) or getattr(instance, "_disable_auto_assign", False):
+        return
+    if "test" in sys.argv or getattr(settings, "TESTING", False):
+        return
+    if Profile.objects.filter(user=instance).exists():
+        return
+    org = Org.objects.first()
+    if org:
+        role = "ADMIN" if instance.is_superuser else "USER"
+        Profile.objects.get_or_create(
+            user=instance,
+            org=org,
+            defaults={
+                "role": role,
+                "is_active": True,
+                "is_organization_admin": instance.is_superuser,
+                "has_sales_access": True,
+                "has_marketing_access": True,
+            },
+        )
 

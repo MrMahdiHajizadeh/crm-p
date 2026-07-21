@@ -10,18 +10,15 @@
  */
 
 import { env as publicEnv } from '$env/dynamic/public';
-import { redirect, fail } from '@sveltejs/kit';
+import { redirect, fail, isRedirect } from '@sveltejs/kit';
 import axios from 'axios';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ cookies, locals }) {
-  const user = locals.user;
+export async function load({ cookies }) {
+  // Removed reliance on locals.user; authentication is based on JWT cookie
 
-  if (!user) {
-    return { orgs: [] };
-  }
 
   try {
     const jwtAccess = cookies.get('jwt_access');
@@ -92,7 +89,7 @@ export async function load({ cookies, locals }) {
 
         throw redirect(303, '/');
       } catch (err) {
-        if (err.status === 303) throw err;
+        if (isRedirect(err) || err?.status === 303 || err?.status === 307) throw err;
         console.error('Auto org switch failed:', err);
       }
     } else if (orgs.length > 1) {
@@ -101,9 +98,32 @@ export async function load({ cookies, locals }) {
 
     return { orgs };
   } catch (error) {
-    console.error('Error fetching organizations:', error);
-    // Return empty array so user can create a new organization
-    return { orgs: [] };
+    if (isRedirect(error) || error?.status === 303 || error?.status === 307) {
+      throw error;
+    }
+    console.error('Error fetching organizations:', error?.response?.status, error?.message || error);
+
+    // Return i18n keys so the component can translate them client-side.
+    // This prevents the silent "no orgs" misleading empty state.
+    if (error?.response?.status === 401 || error?.response?.status === 403) {
+      return {
+        orgs: [],
+        error: 'org.error_session_expired',
+        errorType: 'auth',
+      };
+    }
+    if (error?.code === 'ECONNREFUSED' || error?.code === 'ENOTFOUND' || error?.code === 'ECONNABORTED') {
+      return {
+        orgs: [],
+        error: 'org.error_network',
+        errorType: 'network',
+      };
+    }
+    return {
+      orgs: [],
+      error: 'org.error_loading',
+      errorType: 'server',
+    };
   }
 }
 

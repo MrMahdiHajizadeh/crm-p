@@ -5,17 +5,14 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import Account
-from common.models import Address, Attachments, Comment, Company, Teams, User
+from common.models import Address, Attachments, Comment, Org, Teams, User
 from invoices.models import Invoice, InvoiceHistory
 
 
 class InvoiceCreateTest:
     def setUp(self):
-        self.company, _ = Company.objects.get_or_create(
+        self.company, _ = Org.objects.get_or_create(
             name="test company",
-            address="IN",
-            sub_domain="test",
-            country="IN",
         )
         self.user = User.objects.create(
             first_name="johnInvoice",

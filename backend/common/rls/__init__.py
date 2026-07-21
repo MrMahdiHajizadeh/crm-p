@@ -180,6 +180,11 @@ def get_enable_policy_sql(table):
     Returns:
         SQL string to execute
     """
+    if table == "security_audit_log":
+        insert_check = "true"
+    else:
+        insert_check = f"org_id::text = NULLIF(current_setting('{CONTEXT_VARIABLE}', true), '')"
+
     return f"""
         -- Enable RLS on table
         ALTER TABLE "{table}" ENABLE ROW LEVEL SECURITY;
@@ -201,7 +206,7 @@ def get_enable_policy_sql(table):
         CREATE POLICY {INSERT_POLICY} ON "{table}"
             FOR INSERT
             WITH CHECK (
-                org_id::text = NULLIF(current_setting('{CONTEXT_VARIABLE}', true), '')
+                {insert_check}
             );
     """
 

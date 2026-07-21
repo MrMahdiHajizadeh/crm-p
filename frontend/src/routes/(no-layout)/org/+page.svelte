@@ -2,11 +2,13 @@
   import '../../../app.css';
   import { _ } from '$lib/i18n';
   import imgLogo from '$lib/assets/images/logo.png';
-  import { Building2, LogOut, Plus, ChevronRight, Users, Shield } from '@lucide/svelte';
+  import { Building2, LogOut, Plus, ChevronRight, Users, Shield, AlertCircle } from '@lucide/svelte';
   import { enhance } from '$app/forms';
 
   let { data = { orgs: [] } } = $props();
   let orgs = $derived(data?.orgs ?? []);
+  let loadError = $derived(data?.error ?? null);
+  let errorType = $derived(data?.errorType ?? null);
 
   let loading = $state(false);
   let selectedOrgId = $state(null);
@@ -49,7 +51,6 @@
               use:enhance={() => {
                 loading = true;
                 selectedOrgId = org.id;
-                // Store org_id immediately for client-side API compatibility
                 if (typeof window !== 'undefined') {
                   localStorage.setItem('org_id', org.id);
                 }
@@ -73,7 +74,6 @@
                   >
                     <Building2 class="h-6 w-6" />
                   </div>
-
                   <div class="min-w-0 flex-1">
                     <h3 class="truncate font-semibold text-[var(--text-primary)]">{org.name}</h3>
                     <div class="mt-1 flex items-center gap-3 text-sm text-[var(--text-secondary)]">
@@ -83,7 +83,6 @@
                       </span>
                     </div>
                   </div>
-
                   <div class="shrink-0">
                     {#if loading && selectedOrgId === org.id}
                       <div
@@ -99,6 +98,34 @@
               </button>
             </form>
           {/each}
+        </div>
+
+        <!-- Error banner: show actual error instead of misleading empty state -->
+      {:else if loadError}
+        <div
+          class="rounded-xl border border-[var(--color-negative-default)]/20 bg-[var(--color-negative-light)] p-6 text-center shadow-sm"
+        >
+          <div
+            class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-negative-default)]/10"
+          >
+            <AlertCircle class="h-8 w-8 text-[var(--color-negative-default)]" />
+          </div>
+          <h3 class="text-lg font-semibold text-[var(--text-primary)]">{$_(loadError)}</h3>
+          {#if errorType === 'auth'}
+            <a
+              href="/login"
+              class="mt-4 inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary-default)] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-primary-dark)]"
+            >
+              {$_('org.sign_in_again')}
+            </a>
+          {:else}
+            <button
+              onclick={() => window.location.reload()}
+              class="mt-4 inline-flex items-center gap-2 rounded-lg border border-[var(--border-default)] bg-[var(--surface-default)] px-5 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-raised)]"
+            >
+              {$_('org.retry')}
+            </button>
+          {/if}
         </div>
 
         <!-- Single-org system: only one organization is allowed -->

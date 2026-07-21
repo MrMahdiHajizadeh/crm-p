@@ -1,9 +1,23 @@
 from django.contrib import admin
+from tasks.models import Board, BoardColumn, BoardMember, BoardTask, Task, TaskPipeline, TaskStage
 
-from tasks.models import Board, BoardColumn, BoardMember, BoardTask, Task
-
-# Register Task model
 admin.site.register(Task)
+
+
+@admin.register(TaskPipeline)
+class TaskPipelineAdmin(admin.ModelAdmin):
+    list_display = ("name", "is_default", "org", "created_at")
+    list_filter = ("is_default", "org", "created_at")
+    search_fields = ("name",)
+    raw_id_fields = ("org",)
+
+
+@admin.register(TaskStage)
+class TaskStageAdmin(admin.ModelAdmin):
+    list_display = ("name", "pipeline", "order", "created_at")
+    list_filter = ("pipeline__org", "created_at")
+    search_fields = ("name", "pipeline__name")
+    raw_id_fields = ("pipeline",)
 
 
 @admin.register(Board)

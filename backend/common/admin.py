@@ -1,13 +1,50 @@
 from django.contrib import admin
-
-from common.models import Address, Comment, CommentFiles, SessionToken, User
-
-# Register your models here.
+from common.models import (
+    User,
+    Address,
+    Org,
+    Tags,
+    Profile,
+    Comment,
+    CommentFiles,
+    Attachments,
+    Document,
+    APISettings,
+    SessionToken,
+    MagicLinkToken,
+    Activity,
+    Notification,
+    Teams,
+    ContactFormSubmission,
+    CustomFieldDefinition,
+    PersonalAccessToken,
+    SecurityAuditLog,
+)
 
 admin.site.register(User)
 admin.site.register(Address)
 admin.site.register(Comment)
 admin.site.register(CommentFiles)
+admin.site.register(Org)
+admin.site.register(Profile)
+admin.site.register(Teams)
+admin.site.register(Tags)
+admin.site.register(Activity)
+admin.site.register(Attachments)
+admin.site.register(Document)
+admin.site.register(Notification)
+admin.site.register(ContactFormSubmission)
+admin.site.register(CustomFieldDefinition)
+admin.site.register(MagicLinkToken)
+admin.site.register(PersonalAccessToken)
+admin.site.register(APISettings)
+admin.site.register(SecurityAuditLog)
+
+try:
+    from django_ses.models import BlacklistedEmail
+    admin.site.register(BlacklistedEmail)
+except Exception:
+    pass
 
 
 @admin.register(SessionToken)

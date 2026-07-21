@@ -83,3 +83,16 @@ def send_email_to_assigned_user(recipients, account_id, org_id):
             msg = EmailMessage(subject, html_content, to=recipients_list)
             msg.content_subtype = "html"
             msg.send()
+
+
+@shared_task
+def send_scheduled_emails():
+    """Send scheduled emails that are due."""
+    from django.utils import timezone
+
+    emails = AccountEmail.objects.filter(
+        scheduled_date_time__lte=timezone.now(), scheduled_later=True
+    )
+    for email in emails:
+        send_email.delay(str(email.id), str(email.org_id) if email.org_id else None)
+

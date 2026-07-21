@@ -1,16 +1,33 @@
 from django.test import TestCase
 from django.test.utils import override_settings
 
+from common.models import Org, Profile, User
+from common.tasks import set_rls_context
+from leads.models import Lead
 from leads.tasks import (
     create_lead_from_file,
     send_email,
     send_email_to_assigned_user,
     send_lead_assigned_emails,
 )
-from leads.tests import TestLeadModel
 
 
-class TestCeleryTasks(TestLeadModel, TestCase):
+class TestCeleryTasks(TestCase):
+    def setUp(self):
+        self.org = Org.objects.create(name="Test Org A")
+        set_rls_context(str(self.org.id))
+
+        self.user = User.objects.create_user(email="user1@test.com", password="testpass123")
+        self.user1 = User.objects.create_user(email="user2@test.com", password="testpass123")
+        self.user2 = User.objects.create_user(email="user3@test.com", password="testpass123")
+
+        self.profile = Profile.objects.create(user=self.user, org=self.org, role="ADMIN", is_active=True)
+        self.profile1 = Profile.objects.create(user=self.user1, org=self.org, role="ADMIN", is_active=True)
+        self.profile2 = Profile.objects.create(user=self.user2, org=self.org, role="ADMIN", is_active=True)
+
+        self.lead = Lead.objects.create(title="Lead 1", first_name="John", last_name="Doe", email="l1@test.com", org=self.org)
+        self.lead1 = Lead.objects.create(title="Lead 2", first_name="Jane", last_name="Doe", email="l2@test.com", org=self.org)
+
     @override_settings(
         CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
         CELERY_ALWAYS_EAGER=True,
@@ -133,6 +150,6 @@ class TestCeleryTasks(TestLeadModel, TestCase):
             },
         ]
         task = create_lead_from_file.apply(
-            (valid_rows, invalid_rows, self.user.id, "example.com", org_id),
+            (valid_rows, invalid_rows, self.profile.id, "example.com", org_id),
         )
         self.assertEqual("SUCCESS", task.state)

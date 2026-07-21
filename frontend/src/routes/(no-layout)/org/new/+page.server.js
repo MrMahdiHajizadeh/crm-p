@@ -11,10 +11,11 @@
 
 import { env } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
+import { redirect, fail } from '@sveltejs/kit';
 import axios from 'axios';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ cookies, locals }) {
+export async function load({ cookies }) {
   // Single-org system: if an organization already exists, redirect to org list
   try {
     const jwtAccess = cookies.get('jwt_access');
@@ -24,29 +25,28 @@ export async function load({ cookies, locals }) {
         headers: { Authorization: `Bearer ${jwtAccess}` }
       });
       const orgs = response.data?.profile_org_list || [];
-      // If the user is already a member of any org, or if any org exists
+      // If the user is already a member of any org, redirect back to org list
       if (orgs.length > 0) {
         throw redirect(302, '/org');
       }
     }
   } catch (err) {
-    if (err?.status === 302) throw err;
-    // Ignore network errors — backend will block creation if needed
+    // Re-throw redirects so SvelteKit handles them properly
+    if (err?.status === 302 || err?.status === 303) throw err;
+    // Log but don't block — backend will handle duplicate/pre-existing cases
+    console.error('Org pre-check failed:', err?.message);
   }
 }
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-  default: async ({ request, cookies, locals }) => {
-    // Get the user from locals
-    const user = locals.user;
-
-    if (!user) {
-      return {
-        error: {
-          name: 'You must be logged in to create an organization'
-        }
-      };
+  default: async ({ request, cookies }) => {
+    // Auth: check JWT access cookie (primary auth method for this app)
+    const jwtAccess = cookies.get('jwt_access');
+    if (!jwtAccess) {
+      return fail(401, {
+        error: { name: 'You must be logged in to create an organization' },
+      });
     }
 
     // Get the submitted form data
@@ -54,51 +54,50 @@ export const actions = {
     const orgName = formData.get('org_name')?.toString();
 
     if (!orgName || orgName.trim().length === 0) {
-      return {
-        error: {
-          name: 'Organization name is required'
-        }
-      };
+      return fail(400, {
+        error: { name: 'Organization name is required' },
+      });
     }
 
     try {
-      const jwtAccess = cookies.get('jwt_access');
-      if (!jwtAccess) {
-        return {
-          error: {
-            name: 'Authentication required'
-          }
-        };
-      }
-
       const apiUrl = publicEnv.PUBLIC_DJANGO_API_URL;
 
       // Create organization and profile via Django API
       // Django's OrgProfileCreateView creates both org and profile
       const response = await axios.post(
         `${apiUrl}/api/org/`,
-        {
-          name: orgName.trim()
-        },
+        { name: orgName.trim() },
         {
           headers: {
             Authorization: `Bearer ${jwtAccess}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       ).catch((err) => {
         // Handle 403 from backend (single-org restriction)
         if (err.response?.status === 403) {
           return {
             data: null,
-            __error: err.response.data?.errors?.name || 'Only one organization is allowed in this system.'
+            __error:
+              err.response.data?.errors?.name ||
+              'Only one organization is allowed in this system.',
+          };
+        }
+        // Handle 400 validation errors
+        if (err.response?.status === 400) {
+          return {
+            data: null,
+            __error:
+              err.response.data?.name?.[0] ||
+              err.response.data?.error ||
+              'Organization with this name may already exist.',
           };
         }
         throw err;
       });
 
       if (response.__error) {
-        return { error: { name: response.__error } };
+        return fail(403, { error: { name: response.__error } });
       }
 
       // Response should contain the created org

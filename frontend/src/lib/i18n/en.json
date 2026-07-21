@@ -68,7 +68,12 @@
     "success_title": "Organization created!",
     "success_redirect": "Redirecting to your organizations...",
     "invite_hint": "You can invite team members after creating your organization",
-    "back": "Back"
+    "back": "Back",
+    "retry": "Try again",
+    "sign_in_again": "Sign in again",
+    "error_loading": "Could not load your organizations. Please try again.",
+    "error_session_expired": "Session expired. Please log in again.",
+    "error_network": "Could not connect to the server. Please check your connection."
   },
   "sidebar": {
     "workspace": "Workspace",
