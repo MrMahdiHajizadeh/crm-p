@@ -609,7 +609,7 @@
 
 <!-- Create/Edit Drawer -->
 <Sheet.Root bind:open={drawerOpen}>
-  <Sheet.Content side="right" class="w-[480px] overflow-hidden border-l p-0 sm:max-w-[480px]">
+  <Sheet.Content side="right" class="w-full overflow-hidden border-l p-0 sm:max-w-[480px]">
     <form onsubmit={handleSubmit} class="flex h-full flex-col">
       <!-- Header -->
       <div class="flex items-center justify-between border-b border-[var(--border-default)] px-6 py-4">
@@ -700,7 +700,7 @@
       </div>
 
       <!-- Period Dates -->
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label
             for="period-start"

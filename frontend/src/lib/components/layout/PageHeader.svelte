@@ -37,7 +37,7 @@
 </script>
 
 <header
-  class="sticky top-0 z-10 flex flex-col gap-3 bg-[color:var(--bg)] px-7 pt-6 md:px-8 {tabs ? 'pb-0' : 'pb-4'}"
+  class="sticky top-0 z-10 flex flex-col gap-3 bg-[color:var(--bg)] px-4 pt-4 sm:px-7 sm:pt-6 md:px-8 {tabs ? 'pb-0' : 'pb-4'}"
 >
   {#if breadcrumb.length > 0}
     <nav
@@ -60,7 +60,7 @@
     </nav>
   {/if}
 
-  <div class="flex min-h-[44px] items-start justify-between gap-6">
+  <div class="flex min-h-[44px] flex-wrap items-start justify-between gap-3">
     <div class="flex min-w-0 flex-1 items-start gap-3">
       {#if titleIcon}
         <div class="flex size-7 shrink-0 items-center justify-center rounded-[var(--r-md)] bg-[color:var(--bg-elevated)] text-[color:var(--text-muted)]">
@@ -78,14 +78,14 @@
       </div>
     </div>
     {#if amount || actions}
-      <div class="flex shrink-0 items-center gap-3">
+      <div class="flex shrink-0 flex-wrap items-center gap-2">
         {#if amount}
           <div class="flex flex-col items-end gap-0.5">
             {@render amount()}
           </div>
         {/if}
         {#if actions}
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             {@render actions()}
           </div>
         {/if}
@@ -100,7 +100,7 @@
   {/if}
 
   {#if tabs}
-    <div class="-mx-7 mt-1 border-t border-[color:var(--border-faint)] px-7 md:-mx-8 md:px-8">
+    <div class="-mx-4 mt-1 border-t border-[color:var(--border-faint)] px-4 sm:-mx-7 sm:px-7 md:-mx-8 md:px-8">
       {@render tabs()}
     </div>
   {/if}

@@ -1,5 +1,7 @@
 FROM node:22-slim
 
+ENV CI=true
+
 # Enable pnpm via corepack
 RUN corepack enable && corepack prepare pnpm@latest --activate
 

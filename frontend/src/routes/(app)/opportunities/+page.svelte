@@ -1435,6 +1435,37 @@
       onRowChange={handleRowChange}
       onRowClick={(row) => openDrawer(row.id)}
     >
+      {#snippet mobileCard(opp)}
+        <button
+          type="button"
+          class="flex w-full items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--surface-sunken)] dark:hover:bg-white/5"
+          onclick={() => openDrawer(opp.id)}
+        >
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium text-[var(--text-primary)]">{opp.name || 'Untitled'}</p>
+            {#if opp.account}
+              <p class="text-sm text-[var(--text-secondary)]">
+                {typeof opp.account === 'object' ? opp.account.name : opp.account}
+              </p>
+            {/if}
+            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--text-secondary)]">
+              {#if opp.amount != null}
+                <span class="font-semibold text-[var(--text-primary)]">
+                  {formatAmount(opp.amount, opp.currency)}
+                </span>
+              {/if}
+              {#if opp.stage}
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 font-medium {getOptionStyle(opp.stage, stageOptions)}">
+                  {stageOptions.find((s) => s.value === opp.stage)?.label || opp.stage}
+                </span>
+              {/if}
+              {#if opp.closedOn}
+                <span>{formatRelativeDate(opp.closedOn)}</span>
+              {/if}
+            </div>
+          </div>
+        </button>
+      {/snippet}
       {#snippet emptyState()}
         <div class="flex flex-col items-center justify-center py-16 text-center">
           <div

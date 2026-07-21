@@ -394,7 +394,7 @@
       </div>
 
       <!-- From / To Section -->
-      <div class="grid grid-cols-2 gap-8 border-b p-6">
+      <div class="grid grid-cols-1 gap-6 border-b p-6 sm:grid-cols-2 sm:gap-8">
         <!-- Bill From (Account) -->
         <div class="space-y-4">
           <div class="flex items-center gap-2 font-medium">
@@ -564,7 +564,7 @@
       </div>
 
       <!-- Notes & Terms -->
-      <div class="grid grid-cols-2 gap-8 border-t p-6">
+      <div class="grid grid-cols-1 gap-6 border-t p-6 sm:grid-cols-2 sm:gap-8">
         <div class="space-y-2">
           <Label class="text-sm font-medium">Notes</Label>
           <Textarea

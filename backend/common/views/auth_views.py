@@ -7,6 +7,7 @@ from datetime import timedelta
 import requests
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
+from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema, inline_serializer
 
@@ -667,26 +668,28 @@ class PhonePasswordLoginView(APIView):
     def post(self, request):
         from common.audit_log import audit_log
 
-        phone = request.data.get("phone", "").strip()
+        identifier = (request.data.get("phone") or request.data.get("email") or "").strip()
         password = request.data.get("password", "")
 
-        if not phone or not password:
+        if not identifier or not password:
             return Response(
-                {"error": "Phone number and password are required"},
+                {"error": "Phone number/email and password are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
-            user = User.objects.get(phone=phone)
+            user = User.objects.filter(Q(phone=identifier) | Q(email=identifier)).first()
+            if not user:
+                raise User.DoesNotExist
         except User.DoesNotExist:
             return Response(
-                {"error": "Invalid phone or password"},
+                {"error": "Invalid phone/email or password"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
         if not user.check_password(password):
             return Response(
-                {"error": "Invalid phone or password"},
+                {"error": "Invalid phone/email or password"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -706,6 +709,14 @@ class PhonePasswordLoginView(APIView):
         if profiles.exists():
             profile = profiles.first()
             default_org = profile.org
+        else:
+            # Auto-assign to default org
+            from common.models import Org
+            default_org = Org.objects.filter(is_active=True).first()
+            if default_org:
+                profile = Profile.objects.create(
+                    user=user, org=default_org, is_active=True, role="USER"
+                )
 
         if default_org:
             token = OrgAwareRefreshToken.for_user_and_org(user, default_org, profile)

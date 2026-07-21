@@ -32,6 +32,8 @@
    *   emptyState?: import('svelte').Snippet,
    *   cellContent?: import('svelte').Snippet<[any, ColumnDef]>,
    *   cellSuffix?: import('svelte').Snippet<[any, ColumnDef]>,
+   *   mobileCard?: import('svelte').Snippet<[any]>,
+   *   mobileCardKey?: string,
    *   selectable?: boolean,
    *   selectedIds?: string[],
    *   rowIdKey?: string,
@@ -47,6 +49,8 @@
     emptyState,
     cellContent,
     cellSuffix,
+    mobileCard,
+    mobileCardKey = 'id',
     selectable = false,
     selectedIds = $bindable(/** @type {string[]} */ ([])),
     rowIdKey = 'id',
@@ -456,4 +460,17 @@
   {/if}
 {/snippet}
 
-{@render tableBody()}
+{#if mobileCard && data.length > 0}
+  <!-- Desktop: table only on md+ viewports -->
+  <div class="hidden md:block">
+    {@render tableBody()}
+  </div>
+  <!-- Mobile: stacked card list -->
+  <div class="divide-y divide-[color:var(--border-faint)] md:hidden">
+    {#each data as row (row[mobileCardKey])}
+      {@render mobileCard(row)}
+    {/each}
+  </div>
+{:else}
+  {@render tableBody()}
+{/if}

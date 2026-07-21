@@ -1058,7 +1058,7 @@
         <p class="mb-2 text-xs font-medium tracking-wider text-[var(--text-tertiary)] uppercase">
           Related
         </p>
-        <div class="grid grid-cols-4 gap-2">
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <div class="rounded-[var(--radius-lg)] bg-[var(--surface-sunken)] p-2 text-center">
             <div class="flex items-center justify-center gap-1 text-[var(--text-tertiary)]">
               <Users class="size-3.5" />

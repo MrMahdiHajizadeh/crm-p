@@ -1,24 +1,34 @@
 #!/bin/bash
 set -e
 
-echo "Waiting for PostgreSQL..."
-retries=0
-max_retries=30
-while ! python -c "
-import socket, os
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((os.environ['DBHOST'], int(os.environ['DBPORT'])))
-s.close()
-" 2>/dev/null; do
-    retries=$((retries + 1))
-    if [ "$retries" -ge "$max_retries" ]; then
-        echo "ERROR: Could not connect to PostgreSQL after $max_retries attempts."
-        exit 1
-    fi
-    echo "  PostgreSQL not ready yet (attempt $retries/$max_retries)..."
-    sleep 1
-done
-echo "PostgreSQL is ready."
+DBHOST="${DBHOST:-db}"
+DBPORT="${DBPORT:-5432}"
+
+if [ -n "${DBHOST:-}" ] || [ -n "${DBNAME:-}" ]; then
+  echo "Waiting for PostgreSQL at ${DBHOST}:${DBPORT}..."
+  retries=0
+  max_retries=60
+  while ! python - <<'PY' 2>/dev/null
+import os
+import socket
+host = os.environ.get("DBHOST", "db")
+port = int(os.environ.get("DBPORT", "5432"))
+with socket.create_connection((host, port), timeout=2):
+    pass
+PY
+  do
+      retries=$((retries + 1))
+      if [ "$retries" -ge "$max_retries" ]; then
+          echo "ERROR: Could not connect to PostgreSQL after $max_retries attempts."
+          exit 1
+      fi
+      echo "  PostgreSQL not ready yet (attempt $retries/$max_retries)..."
+      sleep 2
+  done
+  echo "PostgreSQL is ready."
+else
+  echo "No database host configured; skipping PostgreSQL wait."
+fi
 
 echo "Running migrations..."
 python manage.py migrate --noinput

@@ -26,14 +26,15 @@ RUN rm -f /etc/apt/sources.list.d/debian.sources && \
     mv /root/.local/bin/uv /usr/local/bin/uv && \
     rm -rf /root/.local /var/lib/apt/lists/*
 
-# Install Python dependencies into /app/.venv (layer cached on lockfile changes)
+# Install Python dependencies into /opt/venv (kept outside the bind-mounted app tree)
 COPY backend/pyproject.toml backend/uv.lock backend/.python-version ./
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 RUN uv sync --frozen --no-install-project
 
 # Copy backend source
 COPY backend/ .
 
 # Put the venv's binaries on PATH so `python`, `gunicorn`, `celery` etc. resolve.
-ENV PATH="/app/.venv/bin:$PATH"
+ENV PATH="/opt/venv/bin:$PATH"
 
 EXPOSE 8000

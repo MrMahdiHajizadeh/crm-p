@@ -88,14 +88,33 @@ TEMPLATES = [
 WSGI_APPLICATION = "crm.wsgi.application"
 
 # Database
-# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
+# Use PostgreSQL when the Docker/compose environment provides database settings.
+# Fall back to SQLite for local development.
 
-DATABASES = {
-    "default": {
+def _build_database_config():
+    db_engine = os.environ.get("DBENGINE", "").strip()
+    db_host = os.environ.get("DBHOST", "").strip()
+
+    if db_engine == "django.db.backends.postgresql" or db_host:
+        return {
+            "ENGINE": db_engine or "django.db.backends.postgresql",
+            "NAME": os.environ.get("DBNAME", "crm_db"),
+            "USER": os.environ.get("DBUSER", "crm_user"),
+            "PASSWORD": os.environ.get("DBPASSWORD", "crm_password"),
+            "HOST": db_host or "db",
+            "PORT": os.environ.get("DBPORT", "5432"),
+            "OPTIONS": {
+                "sslmode": os.environ.get("DBSSLMODE", "prefer"),
+            },
+        }
+
+    return {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.path.join(os.path.dirname(BASE_DIR), "db.sqlite3"),
     }
-}
+
+
+DATABASES = {"default": _build_database_config()}
 
 
 # Password validation
@@ -307,7 +326,7 @@ CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
         "CORS_ALLOWED_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5175,http://127.0.0.1:5175",
+        "http://localhost,capacitor://localhost,http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5175,http://127.0.0.1:5175",
     ).split(",")
     if origin.strip()
 ]

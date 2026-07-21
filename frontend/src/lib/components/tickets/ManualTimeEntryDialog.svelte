@@ -96,7 +96,7 @@
     </Dialog.Header>
 
     <div class="space-y-3">
-      <div class="grid grid-cols-2 gap-2">
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <label class="space-y-1 text-sm">
           <span class="font-medium">Start</span>
           <input

@@ -99,7 +99,7 @@
         <MiniPipeline pipelineData={pipelineByStage} currency={orgCurrency} />
       </div>
 
-      <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
         <KPICard
           label={$_('dashboard.pipeline_value')}
           value={formatCurrency(revenueMetrics.pipeline_value || 0, orgCurrency, true)}

@@ -52,6 +52,11 @@ export async function load({ cookies, locals }) {
       }));
     }
 
+    // Auto-redirect to dashboard if user already has orgs (auto-assigned)
+    if (orgs.length > 0) {
+      throw redirect(307, '/');
+    }
+
     return { orgs };
   } catch (error) {
     console.error('Error fetching organizations:', error);

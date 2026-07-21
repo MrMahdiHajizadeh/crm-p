@@ -913,6 +913,40 @@
       onRowChange={handleRowChange}
       onRowClick={(row) => openContact(row)}
     >
+      {#snippet mobileCard(contact)}
+        <button
+          type="button"
+          class="flex w-full items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--surface-sunken)] dark:hover:bg-white/5"
+          onclick={() => openContact(contact)}
+        >
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium text-[var(--text-primary)]">
+              {`${contact.firstName || ''} ${contact.lastName || ''}`.trim() || 'Unnamed'}
+            </p>
+            {#if contact.organization}
+              <p class="text-sm text-[var(--text-secondary)]">{contact.organization}</p>
+            {/if}
+            {#if contact.title}
+              <p class="text-xs text-[var(--text-tertiary)]">{contact.title}</p>
+            {/if}
+            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--text-secondary)]">
+              {#if contact.email}
+                <span class="inline-flex items-center gap-1 truncate">
+                  <Mail class="size-3 shrink-0" />
+                  <span class="truncate">{contact.email}</span>
+                </span>
+              {/if}
+              {#if contact.phone}
+                <span class="inline-flex items-center gap-1">
+                  <Phone class="size-3 shrink-0" />
+                  {formatPhone(contact.phone)}
+                </span>
+              {/if}
+              <span>{formatRelativeDate(contact.createdAt)}</span>
+            </div>
+          </div>
+        </button>
+      {/snippet}
       {#snippet emptyState()}
         <div class="flex flex-col items-center justify-center py-16 text-center">
           <div

@@ -122,7 +122,7 @@
         </div>
 
         <!-- Date & Duration -->
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div class="flex flex-col gap-1.5">
             <Label for="interaction-date" class="text-[12px] font-medium text-[var(--text)]">
               {$_('interaction.form.date')}
@@ -177,7 +177,7 @@
         </div>
 
         <!-- Result & Follow-up -->
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div class="flex flex-col gap-1.5">
             <Label for="result" class="text-[12px] font-medium text-[var(--text)]">
               {$_('interaction.form.result')}
