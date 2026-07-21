@@ -985,3 +985,25 @@ class PersonalAccessToken(BaseOrgModel):
 
 # Import SecurityAuditLog so Django discovers it for migrations
 from common.audit_log import SecurityAuditLog  # noqa: F401,E402  # pylint: disable=unused-import
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth import get_user_model
+
+@receiver(post_save, sender=get_user_model())
+def auto_assign_org(sender, instance, created, **kwargs):
+    if created:
+        org = Org.objects.first()
+        if org and not Profile.objects.filter(user=instance, org=org).exists():
+            # If the user is superuser, we could make them ADMIN. Otherwise USER.
+            role = "ADMIN" if instance.is_superuser else "USER"
+            Profile.objects.create(
+                user=instance,
+                org=org,
+                role=role,
+                is_active=True,
+                is_organization_admin=instance.is_superuser,
+                has_sales_access=True,
+                has_marketing_access=True
+            )
+

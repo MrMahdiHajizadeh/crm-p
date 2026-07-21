@@ -11,6 +11,12 @@ import '../screens/auth/magic_link_email_screen.dart';
 import '../screens/auth/magic_link_code_screen.dart';
 import '../screens/auth/org_selection_screen.dart';
 
+// New Feature Screens for Parity
+import '../screens/follow_ups/follow_ups_screen.dart';
+import '../screens/goals/goals_screen.dart';
+import '../screens/timesheet/timesheet_screen.dart';
+import '../screens/supervision/supervision_screen.dart';
+
 // Main Screens
 import '../screens/dashboard/dashboard_screen.dart';
 import '../screens/leads/leads_list_screen.dart';
@@ -106,6 +112,12 @@ class AppRoutes {
   // Invoices
   static const String invoices = '/invoices';
   static const String invoiceDetail = '/invoices/:id';
+
+  // Parity Routes
+  static const String followUps = '/follow-ups';
+  static const String goals = '/goals';
+  static const String timesheet = '/timesheet';
+  static const String supervision = '/supervision';
 }
 
 /// Navigation shell key for bottom navigation
@@ -339,6 +351,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             return FadeTransition(opacity: animation, child: child);
           },
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.followUps,
+        name: 'followUps',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const FollowUpsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.goals,
+        name: 'goals',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const GoalsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.timesheet,
+        name: 'timesheet',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TimesheetScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.supervision,
+        name: 'supervision',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SupervisionScreen(),
       ),
 
       // ============================================

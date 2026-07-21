@@ -62,6 +62,30 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
               description: 'Your to-dos across leads, deals and tickets',
               onTap: () => context.go(AppRoutes.tasks),
             ),
+            _MenuItem(
+              icon: LucideIcons.phone_call,
+              label: 'Follow-ups',
+              description: 'Stay on top of calls, emails and meetings',
+              onTap: () => context.push(AppRoutes.followUps),
+            ),
+            _MenuItem(
+              icon: LucideIcons.target,
+              label: 'Goals & Leaderboard',
+              description: 'Track sales targets and performance',
+              onTap: () => context.push(AppRoutes.goals),
+            ),
+            _MenuItem(
+              icon: LucideIcons.clock,
+              label: 'Timesheet',
+              description: 'Track hours spent on tickets',
+              onTap: () => context.push(AppRoutes.timesheet),
+            ),
+            _MenuItem(
+              icon: LucideIcons.eye,
+              label: 'Supervision (Activities)',
+              description: 'Audit change logs and user activities',
+              onTap: () => context.push(AppRoutes.supervision),
+            ),
 
             // Account Section
             _buildSectionHeader('Account'),

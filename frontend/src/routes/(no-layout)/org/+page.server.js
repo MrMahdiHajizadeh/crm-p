@@ -52,9 +52,51 @@ export async function load({ cookies, locals }) {
       }));
     }
 
-    // Auto-redirect to dashboard if user already has orgs (auto-assigned)
-    if (orgs.length > 0) {
-      throw redirect(307, '/');
+    // Auto-select to dashboard if user already has exactly 1 org
+    if (orgs.length === 1) {
+      try {
+        const switchResponse = await axios.post(
+          `${apiUrl}/api/auth/switch-org/`,
+          { org_id: orgs[0].id },
+          {
+            headers: {
+              Authorization: `Bearer ${jwtAccess}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        const { access_token, refresh_token, current_org } = switchResponse.data;
+
+        cookies.set('jwt_access', access_token, {
+          path: '/',
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 60 * 60 * 24 // 1 day
+        });
+
+        cookies.set('jwt_refresh', refresh_token, {
+          path: '/',
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 60 * 60 * 24 * 365 // 1 year
+        });
+
+        cookies.set('org', orgs[0].id, {
+          path: '/',
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 24 * 365
+        });
+
+        throw redirect(303, '/');
+      } catch (err) {
+        if (err.status === 303) throw err;
+        console.error('Auto org switch failed:', err);
+      }
+    } else if (orgs.length > 1) {
+      // Just render the list so the user can select
     }
 
     return { orgs };

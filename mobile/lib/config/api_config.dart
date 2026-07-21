@@ -10,10 +10,10 @@ class ApiConfig {
   // ==========================================================================
 
   /// Development API URL
-  static const String _developmentUrl = 'http://crm.valerion.ir';
+  static const String _developmentUrl = 'http://fcrm.valerion.ir';
 
   /// Production API URL
-  static const String _productionUrl = 'http://crm.valerion.ir';
+  static const String _productionUrl = 'http://fcrm.valerion.ir';
 
   /// Get the current base URL based on build mode
   static String get baseUrl => kDebugMode ? _developmentUrl : _productionUrl;
@@ -198,9 +198,30 @@ class ApiConfig {
   /// Invoices management
   static String get invoices => '$apiBaseUrl/invoices/';
 
+  /// Sales Goals management
+  static String get goals => '$apiBaseUrl/opportunities/goals/';
+
+  /// Sales Goals Leaderboard
+  static String get goalsLeaderboard => '$apiBaseUrl/opportunities/goals/leaderboard/';
+
+  /// Follow-ups list
+  static String get followUps => '$apiBaseUrl/leads/follow-ups/';
+
+  /// Interactions management
+  static String get interactions => '$apiBaseUrl/leads/interactions/';
+
+  /// Supervision / Activity log
+  static String get activities => '$apiBaseUrl/activities/';
+
+  /// Timesheet endpoints
+  static String get timesheet => '$apiBaseUrl/time-entries/timesheet/';
+
   // ==========================================================================
   // USERS & TAGS ENDPOINTS
   // ==========================================================================
+
+  /// Get active users list
+  static String get users => '$apiBaseUrl/users/';
 
   /// Get teams and users (for assignment dropdowns)
   static String get teamsAndUsers => '$apiBaseUrl/users/get-teams-and-users/';

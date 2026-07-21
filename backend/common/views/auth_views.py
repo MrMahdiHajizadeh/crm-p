@@ -1014,6 +1014,12 @@ class PhoneCodeVerifyView(APIView):
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
 
+        # Auto-assign to default organization
+        from common.models import Org
+        org = Org.objects.first()
+        if org and not Profile.objects.filter(user=user, org=org).exists():
+            Profile.objects.create(user=user, org=org, role="USER", is_active=True)
+
         profiles = Profile.objects.filter(user=user, is_active=True)
         default_org = None
         profile = None
