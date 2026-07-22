@@ -989,6 +989,7 @@ from common.audit_log import SecurityAuditLog  # noqa: F401,E402  # pylint: disa
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 @receiver(post_save, sender=get_user_model())
 def auto_assign_org(sender, instance, created, **kwargs):
