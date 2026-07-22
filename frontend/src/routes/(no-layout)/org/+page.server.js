@@ -23,7 +23,7 @@ export async function load({ cookies }) {
   try {
     const jwtAccess = cookies.get('jwt_access');
     if (!jwtAccess) {
-      return { orgs: [] };
+      throw redirect(307, '/login');
     }
 
     const apiUrl = publicEnv.PUBLIC_DJANGO_API_URL;
@@ -129,6 +129,9 @@ export async function load({ cookies }) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
+  default: async (event) => {
+    return actions.selectOrg(event);
+  },
   selectOrg: async ({ request, cookies }) => {
     const formData = await request.formData();
     const orgId = formData.get('org_id')?.toString();
