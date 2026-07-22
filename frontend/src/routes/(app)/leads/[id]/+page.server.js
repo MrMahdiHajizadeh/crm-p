@@ -10,8 +10,14 @@
 import { error, fail } from '@sveltejs/kit';
 import { apiRequest } from '$lib/api-helpers.js';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, locals, cookies }) {
+  if (!UUID_RE.test(params.id)) {
+    throw error(404, 'Lead not found');
+  }
+
   const org = locals.org;
   if (!org) {
     throw error(401, 'Organization context required');

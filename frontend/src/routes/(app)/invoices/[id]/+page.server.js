@@ -6,8 +6,14 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { apiRequest } from '$lib/api-helpers.js';
 import { env } from '$env/dynamic/public';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, locals, cookies }) {
+  if (!UUID_RE.test(params.id)) {
+    throw error(404, 'Invoice not found');
+  }
+
   const org = locals.org;
 
   if (!org) {
