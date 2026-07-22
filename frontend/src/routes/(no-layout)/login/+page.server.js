@@ -7,7 +7,7 @@ import { env as publicEnv } from '$env/dynamic/public';
 export async function load({ url, cookies }) {
   const jwtAccess = cookies.get('jwt_access');
   if (jwtAccess) {
-    throw redirect(307, '/org');
+    throw redirect(307, '/');
   }
   return {};
 }

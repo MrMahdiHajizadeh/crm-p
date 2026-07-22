@@ -7,7 +7,21 @@
 
 import { env } from '$env/dynamic/public';
 
-const API_BASE_URL = `${env.PUBLIC_DJANGO_API_URL}/api`;
+/**
+ * Get dynamic API Base URL, resolving internal Docker hostnames to browser host when on client side.
+ * @returns {string}
+ */
+export function getApiBaseUrl() {
+  let base = env.PUBLIC_DJANGO_API_URL || 'http://localhost:8000';
+  if (typeof window !== 'undefined') {
+    if (base.includes('://backend:')) {
+      base = base.replace('://backend:', `://${window.location.hostname}:`);
+    } else if (base.includes('://backend')) {
+      base = base.replace('://backend', `://${window.location.hostname}`);
+    }
+  }
+  return base.endsWith('/api') ? base : `${base}/api`;
+}
 
 /**
  * @typedef {import('@sveltejs/kit').Cookies} Cookies
@@ -61,7 +75,7 @@ export async function apiRequest(endpoint, options = {}, locals) {
     requestOptions.body = JSON.stringify(body);
   }
 
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiBaseUrl()}${endpoint}`;
 
   try {
     const response = await fetch(url, requestOptions);
@@ -241,13 +255,10 @@ export function extractPagination(response, limit = 10) {
  * @returns {Promise<{ status: number, body: Record<string, unknown> }>}
  */
 export async function forwardMultipart(endpoint, file, cookies) {
-  const API_BASE_URL =
-    /** @type {string} */ (import.meta.env?.PUBLIC_DJANGO_API_URL || 'http://localhost:8000') +
-    '/api';
   const accessToken = cookies?.get?.('jwt_access');
   const fd = new FormData();
   fd.append('file', file, file.name || 'upload.csv');
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
     method: 'POST',
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
     body: fd

@@ -129,9 +129,6 @@ export async function load({ cookies }) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-  default: async (event) => {
-    return actions.selectOrg(event);
-  },
   selectOrg: async ({ request, cookies }) => {
     const formData = await request.formData();
     const orgId = formData.get('org_id')?.toString();

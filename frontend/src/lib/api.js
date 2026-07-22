@@ -11,11 +11,21 @@ import { env } from '$env/dynamic/public';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// API Base URL from environment variables
-// Note: VITE_ prefix is required for client-side env vars
-const API_BASE_URL = env.PUBLIC_DJANGO_API_URL
-  ? `${env.PUBLIC_DJANGO_API_URL}/api`
-  : 'http://localhost:8000/api';
+/**
+ * Get dynamic API Base URL, resolving internal Docker hostnames to browser host when on client side.
+ * @returns {string}
+ */
+export function getApiBaseUrl() {
+  let base = env.PUBLIC_DJANGO_API_URL || 'http://localhost:8000';
+  if (typeof window !== 'undefined') {
+    if (base.includes('://backend:')) {
+      base = base.replace('://backend:', `://${window.location.hostname}:`);
+    } else if (base.includes('://backend')) {
+      base = base.replace('://backend', `://${window.location.hostname}`);
+    }
+  }
+  return base.endsWith('/api') ? base : `${base}/api`;
+}
 
 /**
  * Storage keys for tokens and org
@@ -120,7 +130,7 @@ async function refreshAccessToken() {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh-token/`, {
+    const response = await fetch(`${getApiBaseUrl()}/auth/refresh-token/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -155,7 +165,7 @@ async function refreshAccessToken() {
 export async function apiRequest(endpoint, options = {}) {
   const { method = 'GET', body = null, headers = {}, requiresAuth = true } = options;
 
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiBaseUrl()}${endpoint}`;
 
   // Build headers
   /** @type {Record<string, string>} */

@@ -22,7 +22,7 @@
           localStorage.setItem('refresh_token', form.tokens.refresh);
         }
       }
-      goto('/org');
+      goto('/');
     }
   });
 

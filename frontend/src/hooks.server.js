@@ -272,9 +272,126 @@ export const handle = sequence(Sentry.sentryHandle(), async function _handle({ e
       throw redirect(307, '/login');
     }
     if (!event.locals.org) {
-      throw redirect(307, '/org');
+      // Single-org auto-select: try to resolve the user's default org
+      // without sending them through the /org selection page.
+      await ensureDefaultOrg(event, accessToken, jwtPayload);
+
+      // If we still have no org, bail to the org selection/creation page.
+      if (!event.locals.org) {
+        throw redirect(307, '/org');
+      }
     }
   }
 
   return resolve(event);
 });
+
+/**
+ * Auto-select the user's default organization and bake it into the JWT.
+ *
+ * Strategy (single-org first, multi-org fallback):
+ *  - Fetch /api/auth/me/ to list the user's organizations.
+ *  - Exactly one org → switch to it, set cookies (jwt_access, jwt_refresh, org),
+ *    and populate event.locals.org / org_settings.
+ *  - Zero orgs          → leave event.locals.org unset (caller redirects to /org/new or /org).
+ *  - Multiple orgs      → leave event.locals.org unset (caller redirects to /org selection page).
+ *
+ * On any network/decode failure, leave the caller to fall back to /org.
+ *
+ * @param {import('@sveltejs/kit').RequestEvent} event
+ * @param {string|undefined} accessToken
+ * @param {JWTPayload|null} jwtPayload
+ * @returns {Promise<void>}
+ */
+async function ensureDefaultOrg(event, accessToken, jwtPayload) {
+  if (!accessToken) return;
+
+  // If the JWT already has org_id, trust it and populate locals without any API call.
+  if (jwtPayload?.org_id) {
+    /** @type {OrgInfo} */ (event.locals).org = {
+      id: jwtPayload.org_id,
+      name: jwtPayload.org_name || 'Organization'
+    };
+    /** @type {any} */ (event.locals).profile = {
+      org: /** @type {any} */ (event.locals).org,
+      role: jwtPayload.role || 'USER'
+    };
+    event.locals.org_name = jwtPayload.org_name || 'Organization';
+    event.locals.org_settings = jwtPayload.org_settings || {
+      default_currency: 'TOM',
+      currency_symbol: 'تومان',
+      default_country: 'IR',
+      opportunities_enabled: false,
+      invoices_enabled: false
+    };
+
+    // Persist the org cookie so subsequent requests skip this path.
+    if (!event.cookies.get('org')) {
+      event.cookies.set('org', jwtPayload.org_id, {
+        path: '/',
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 * 365
+      });
+    }
+    return;
+  }
+
+  // JWT has no org context — ask the API which org(s) the user belongs to.
+  let orgs = [];
+  try {
+    const meResponse = await axios.get(`${API_BASE_URL}/auth/me/`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    const rawOrgs = meResponse.data?.organizations;
+    if (Array.isArray(rawOrgs)) {
+      orgs = rawOrgs.map((org) => ({ id: String(org.id), name: org.name, role: org.role || 'USER' }));
+    }
+  } catch (error) {
+    console.error('ensureDefaultOrg: /auth/me/ failed:', error?.response?.status || error?.code || error?.message);
+    return;
+  }
+
+  // Multi-org or zero-org: leave locals empty so the caller can redirect appropriately.
+  if (orgs.length !== 1) return;
+
+  // Single org: switch to it and persist the new tokens.
+  const switchResult = await switchOrg(accessToken, orgs[0].id);
+  if (!switchResult || !switchResult.access_token) return;
+
+  event.cookies.set('jwt_access', switchResult.access_token, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 // 1 day
+  });
+  event.cookies.set('jwt_refresh', switchResult.refresh_token, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 365 // 1 year
+  });
+  event.cookies.set('org', orgs[0].id, {
+    path: '/',
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 24 * 365 // 1 year
+  });
+
+  const currentOrg = switchResult.current_org || { id: orgs[0].id, name: orgs[0].name };
+  /** @type {OrgInfo} */ (event.locals).org = {
+    id: String(currentOrg.id),
+    name: currentOrg.name || orgs[0].name
+  };
+  /** @type {any} */ (event.locals).profile = { org: /** @type {any} */ (event.locals).org, role: orgs[0].role };
+  event.locals.org_name = currentOrg.name || orgs[0].name;
+
+  const newPayload = decodeJwtPayload(switchResult.access_token);
+  event.locals.org_settings = newPayload?.org_settings || {
+    default_currency: 'TOM',
+    currency_symbol: 'تومان',
+    default_country: 'IR',
+    opportunities_enabled: false,
+    invoices_enabled: false
+  };
+}
