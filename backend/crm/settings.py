@@ -198,7 +198,17 @@ LOGGING = {
     "formatters": {
         "django.server": {
             "()": "django.utils.log.ServerFormatter",
-            "format": "[%(server_time)s] %(message)s",
+            # NOTE: use %(asctime)s instead of %(server_time)s. ServerFormatter
+            # only injects `server_time` for normal HTTP request records. When
+            # a long-lived connection (e.g. the notifications SSE stream) is
+            # reset by the client, Django's WSGI server logs a "Broken pipe"
+            # record via `handle_error` that has NO `server_time` field. Formatting
+            # that record then raises `ValueError: Formatting field not found in
+            # record: 'server_time'`, which cascades into HTTP 500s on the very
+            # endpoints that disconnected. `%(asctime)s` is always present on
+            # every LogRecord, so it's safe for both code paths.
+            "format": "[%(asctime)s] %(message)s",
+            "datefmt": "%d/%b/%Y %H:%M:%S",
         },
         "security": {
             "format": "%(asctime)s | %(levelname)s | %(message)s",
