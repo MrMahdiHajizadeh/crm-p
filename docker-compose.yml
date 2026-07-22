@@ -71,11 +71,10 @@ services:
     env_file: .env.docker
     environment:
       - CI=true
-      # Browser-reachable URL for the Docker backend (host port 8000 maps to backend:8000).
-      # The browser can't resolve the internal Docker hostname "backend", so we use
-      # localhost from the user's perspective. Override with PUBLIC_DJANGO_API_URL in
-      # .env.docker if the stack runs on a real hostname (e.g. https://back.crm.example.com).
-      - PUBLIC_DJANGO_API_URL=http://localhost:8000
+      # Internal Docker hostname for SSR (server-side fetches from inside the container).
+      # The client-side getApiBaseUrl() in api.js/api-helpers.js rewrites "backend" to
+      # window.location.hostname at runtime so browser-originated fetches use localhost:8000.
+      - PUBLIC_DJANGO_API_URL=http://backend:8000
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
