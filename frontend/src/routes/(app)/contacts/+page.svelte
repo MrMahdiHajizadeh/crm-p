@@ -475,12 +475,13 @@
    */
   async function closeDrawer() {
     drawerOpen = false;
-    // Clear account URL params if they were set
-    if (accountFromUrl) {
-      clearUrlParams();
-    } else {
-      await updateUrl(null, null);
-    }
+    selectedContact = null;
+    accountFromUrl = false;
+    accountName = '';
+    accountId = '';
+    drawerFormData = { ...emptyContact };
+    await updateUrl(null, null);
+    await invalidateAll();
   }
 
   /**
@@ -712,11 +713,7 @@
       await contactsApi.update(selectedContact.id, payload);
 
       toast.success($_('notifications.contact_updated') || 'Contact updated successfully');
-      drawerOpen = false;
-      const url = new URL($page.url);
-      url.searchParams.delete('view');
-      url.searchParams.delete('action');
-      await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+      await closeDrawer();
     } catch (err) {
       toast.error(err.message || 'Failed to update contact');
       console.error('Update contact error:', err);
@@ -759,11 +756,7 @@
       await contactsApi.create(payload);
 
       toast.success($_('notifications.contact_created') || 'Contact created successfully');
-      drawerOpen = false;
-      const url = new URL($page.url);
-      url.searchParams.delete('view');
-      url.searchParams.delete('action');
-      await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+      await closeDrawer();
     } catch (err) {
       toast.error(err.message || 'Failed to create contact');
       console.error('Create contact error:', err);
