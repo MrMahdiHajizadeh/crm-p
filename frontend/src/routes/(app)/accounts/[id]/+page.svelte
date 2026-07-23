@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { enhance } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
   import { page } from '$app/stores';
@@ -754,9 +754,7 @@
    * Navigate to add ticket
    */
   function handleAddTicket() {
-    if (selectedAccount) {
-      goto(`/tickets?action=create&accountId=${selectedAccount.id}`);
-    }
+    // Tickets module removed
   }
 
   /**

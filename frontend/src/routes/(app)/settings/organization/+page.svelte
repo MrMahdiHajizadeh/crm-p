@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { _ } from '$lib/i18n';
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
@@ -411,95 +411,7 @@
       </div>
     </section>
 
-    <!-- Feature Toggles Section -->
-    <section class="section-reveal delay-2">
-      <div class="gradient-border overflow-hidden">
-        <div class="relative p-8 md:p-10">
-          <!-- Background decoration -->
-          <div class="pointer-events-none absolute inset-0 overflow-hidden">
-            <div
-              class="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-gradient-to-br from-[var(--accent-primary)] to-transparent opacity-10 blur-3xl"
-            ></div>
-          </div>
 
-          <div class="relative space-y-6">
-            <!-- Section Header -->
-            <div class="space-y-1">
-              <div
-                class="text-muted-foreground mb-2 flex items-center gap-2 text-xs font-medium tracking-wider uppercase"
-              >
-                <Eye class="h-3.5 w-3.5" />
-                {$_('settings.feature_toggles')}
-              </div>
-              <h3 class="text-lg font-semibold">{$_('settings.feature_toggles')}</h3>
-              <p class="text-muted-foreground text-sm">
-                {$_('settings.feature_toggles_subtitle')}
-              </p>
-            </div>
-
-            <div class="grid gap-4 md:grid-cols-2">
-              <!-- Opportunities Toggle -->
-              <div
-                class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4 transition-colors hover:border-[var(--border-default)]"
-              >
-                <div class="flex items-start gap-3">
-                  <div
-                    class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent-primary)] to-[var(--stage-qualified)]/50"
-                  >
-                    <Sparkles class="size-5 text-white" />
-                  </div>
-                  <div class="space-y-0.5">
-                    <span class="text-sm font-medium">{$_('settings.opportunities_toggle')}</span>
-                    <p class="text-muted-foreground text-xs">
-                      {$_('settings.opportunities_toggle_hint')}
-                    </p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span
-                    class="text-xs font-medium {formOpportunitiesEnabled ? 'text-[var(--status-success)]' : 'text-[var(--text-tertiary)]'}"
-                  >
-                    {formOpportunitiesEnabled ? $_('common.active') : $_('common.disabled')}
-                  </span>
-                  <Switch bind:checked={formOpportunitiesEnabled} name="opportunities_enabled" />
-                </div>
-              </div>
-
-              <!-- Invoices Toggle -->
-              <div
-                class="flex items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-4 transition-colors hover:border-[var(--border-default)]"
-              >
-                <div class="flex items-start gap-3">
-                  <div
-                    class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--stage-closed-won)] to-[var(--accent-secondary)]/50"
-                  >
-                    <FileText class="size-5 text-white" />
-                  </div>
-                  <div class="space-y-0.5">
-                    <span class="text-sm font-medium">{$_('settings.invoices_toggle')}</span>
-                    <p class="text-muted-foreground text-xs">
-                      {$_('settings.invoices_toggle_hint')}
-                    </p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span
-                    class="text-xs font-medium {formInvoicesEnabled ? 'text-[var(--status-success)]' : 'text-[var(--text-tertiary)]'}"
-                  >
-                    {formInvoicesEnabled ? $_('common.active') : $_('common.disabled')}
-                  </span>
-                  <Switch bind:checked={formInvoicesEnabled} name="invoices_enabled" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Hidden inputs for feature flag switches (Switch uses button, not input) -->
-    <input type="hidden" name="opportunities_enabled" value={formOpportunitiesEnabled ? 'on' : 'off'} />
-    <input type="hidden" name="invoices_enabled" value={formInvoicesEnabled ? 'on' : 'off'} />
 
     <!-- Quick Stats Footer -->
     <section class="section-reveal delay-3">

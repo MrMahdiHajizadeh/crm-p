@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { untrack } from 'svelte';
   import { page } from '$app/stores';
   import { afterNavigate, goto } from '$app/navigation';
@@ -180,10 +180,9 @@
     }
   });
 
-  // Five-section IA per spec Â§4
+  // Five-section IA per spec §4
   const workspaceItems = [
-    { href: '/', label: 'sidebar.home', icon: Home, type: 'link', preload: 'off', count: undefined },
-    { href: '/leads', label: 'sidebar.pipeline', icon: Activity, type: 'link', preload: 'off', count: undefined }
+    { href: '/', label: 'sidebar.home', icon: Home, type: 'link', preload: 'off', count: undefined }
   ];
 
   const recordsItems = [
@@ -193,21 +192,7 @@
     { href: '/opportunities', label: 'sidebar.deals', icon: Sparkles, type: 'link', preload: 'off', count: undefined, featureFlag: 'opportunities_enabled' }
   ];
 
-  const workItems = [
-    {
-      key: 'tickets',
-      label: 'sidebar.tickets',
-      icon: Briefcase,
-      type: 'dropdown',
-      count: undefined,
-      children: [
-        { href: '/tickets', label: 'sidebar.all_tickets', icon: Briefcase, preload: 'off', count: undefined },
-        { href: '/tickets/approvals', label: 'sidebar.approvals', icon: ShieldCheck, preload: 'off', count: undefined },
-        { href: '/tickets/analytics', label: 'sidebar.analytics', icon: BarChart3, preload: 'off', count: undefined },
-        { href: '/solutions', label: 'sidebar.knowledge_base', icon: BookOpen, preload: 'off', count: undefined }
-      ]
-    },
-  ];
+  const workItems = [];
 
   const managementItems = [
     { href: '/follow-ups', label: 'sidebar.follow_ups', icon: Clock, type: 'link', preload: 'off', count: undefined },
@@ -233,9 +218,7 @@
     }
   ];
 
-  const supportItems = [
-    { href: '/support', label: 'sidebar.help_desk', icon: HelpCircle, type: 'link', preload: 'off', count: undefined }
-  ];
+  const supportItems = [];
 
   // Combine for the auto-open-on-active effect (which scans dropdown items)
   const navigationItems = [...workspaceItems, ...recordsItems, ...workItems, ...managementItems, ...revenueItems, ...supportItems];
@@ -268,20 +251,14 @@
     class="border-b border-[color:var(--sidebar-border)] px-3 py-3 group-data-[collapsible=icon]:px-2"
   >
     <div class="flex items-center gap-2">
-      <a
-        href="/org"
-        data-sveltekit-preload-data="off"
-        class="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-1 py-1 transition-colors hover:bg-[color:var(--sidebar-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-ring)]"
+      <div
+        class="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-1 py-1"
       >
-        <Avatar class="size-[26px] shrink-0 rounded-md">
-          <AvatarFallback workspace class="rounded-md text-[13px] font-semibold">
-            {orgInitial}
-          </AvatarFallback>
-        </Avatar>
+        <img src="/logo.png" alt="Emarat CRM" class="size-[28px] shrink-0 rounded-md object-contain" />
         <div class="flex min-w-0 flex-1 flex-col leading-none group-data-[collapsible=icon]:hidden">
           <div class="flex items-center gap-1.5">
-            <span class="truncate text-[14px] font-semibold text-[color:var(--sidebar-foreground)]">
-              {org_name}
+            <span class="truncate text-[14px] font-bold text-[color:var(--sidebar-foreground)]">
+              {$_('app.name')}
             </span>
             {#if tier}
               <span
@@ -295,7 +272,7 @@
             {user.email ?? ''}
           </span>
         </div>
-      </a>
+      </div>
       <div class="shrink-0 group-data-[collapsible=icon]:hidden">
         <Bell />
       </div>
@@ -303,16 +280,10 @@
   </Sidebar.Header>
 
   <Sidebar.Content class="px-2 py-3">
-    <!-- Workspace Section -->
     <Sidebar.Group>
-      <Sidebar.GroupLabel
-        class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
-      >
-        {$_('sidebar.workspace')}
-      </Sidebar.GroupLabel>
       <Sidebar.GroupContent>
-        <Sidebar.Menu class="space-y-px">
-          {#each workspaceItems as item}
+        <Sidebar.Menu class="space-y-1">
+          {#each navigationItems.filter(item => !item.featureFlag || mergedSettings[item.featureFlag]) as item}
             {#if item.type === 'dropdown' && item.children}
               <Collapsible.Root
                 open={openDropdowns[item.key ?? ''] || false}
@@ -328,7 +299,7 @@
                         {...props}
                         isActive={hasActiveChild(item.children ?? [])}
                         tooltipContent={$_(item.label)}
-                        class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
+                        class="nav-item group/item relative h-[32px] rounded-md ps-[18px] pe-[10px] ltr:pl-[18px] ltr:pr-[10px] rtl:pr-[18px] rtl:pl-[10px] transition-colors duration-150
                           group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                           {hasActiveChild(item.children ?? [])
                           ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
@@ -339,7 +310,7 @@
                             {#if hasActiveChild(item.children ?? [])}
                               <span
                                 aria-hidden="true"
-                                class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
+                                class="absolute ltr:left-[7px] rtl:right-[7px] top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-primary group-data-[collapsible=icon]:hidden"
                               ></span>
                             {/if}
                             <item.icon
@@ -370,7 +341,7 @@
                         <Sidebar.MenuSubItem>
                           <Sidebar.MenuSubButton
                             isActive={currentPath === navChild.href}
-                            class="group/subitem relative h-[26px] rounded-md pl-[38px] pr-[10px] transition-colors duration-150
+                            class="group/subitem relative h-[28px] rounded-md ps-[34px] pe-[10px] ltr:pl-[34px] ltr:pr-[10px] rtl:pr-[34px] rtl:pl-[10px] transition-colors duration-150
                               {currentPath === navChild.href
                               ? 'text-[color:var(--sidebar-foreground)]'
                               : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
@@ -380,7 +351,7 @@
                                 {#if currentPath === navChild.href}
                                   <span
                                     aria-hidden="true"
-                                    class="absolute left-[27px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)]"
+                                    class="absolute ltr:left-[22px] rtl:right-[22px] top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-primary"
                                   ></span>
                                 {/if}
                                 <span
@@ -388,7 +359,7 @@
                                 >{$_(navChild.label)}</span>
                                 {#if navChild.count !== undefined && navChild.count !== null}
                                   <span
-                                    class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
+                                    class="ms-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
                                   >{navChild.count}</span>
                                 {/if}
                               </a>
@@ -405,7 +376,7 @@
                 <Sidebar.MenuButton
                   isActive={currentPath === item.href}
                   tooltipContent={$_(item.label)}
-                  class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
+                  class="nav-item group/item relative h-[32px] rounded-md ps-[18px] pe-[10px] ltr:pl-[18px] ltr:pr-[10px] rtl:pr-[18px] rtl:pl-[10px] transition-colors duration-150
                     group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
                     {currentPath === item.href
                     ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
@@ -416,12 +387,11 @@
                       href={item.href}
                       {...props}
                       data-sveltekit-preload-data={item.preload || 'hover'}
-                     
                     >
                       {#if currentPath === item.href}
                         <span
                           aria-hidden="true"
-                          class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
+                          class="absolute ltr:left-[7px] rtl:right-[7px] top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-primary group-data-[collapsible=icon]:hidden"
                         ></span>
                       {/if}
                       <item.icon
@@ -433,627 +403,7 @@
                       >{$_(item.label)}</span>
                       {#if item.count !== undefined && item.count !== null}
                         <span
-                          class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
-                        >{item.count}</span>
-                      {/if}
-                    </a>
-                  {/snippet}
-                </Sidebar.MenuButton>
-              </Sidebar.MenuItem>
-            {/if}
-          {/each}
-        </Sidebar.Menu>
-      </Sidebar.GroupContent>
-    </Sidebar.Group>
-
-    <!-- Records Section -->
-    <Sidebar.Group class="mt-1.5">
-      <Sidebar.GroupLabel
-        class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
-      >
-        {$_('sidebar.records')}
-      </Sidebar.GroupLabel>
-      <Sidebar.GroupContent>
-        <Sidebar.Menu class="space-y-px">
-          {#each recordsItems.filter(item => !item.featureFlag || mergedSettings[item.featureFlag]) as item}
-            {#if item.type === 'dropdown' && item.children}
-              <Collapsible.Root
-                open={openDropdowns[item.key ?? ''] || false}
-                onOpenChange={(open) => {
-                  if (item.key) openDropdowns[item.key] = open;
-                }}
-                class="group/collapsible"
-              >
-                <Sidebar.MenuItem>
-                  <Collapsible.Trigger>
-                    {#snippet child({ props })}
-                      <Sidebar.MenuButton
-                        {...props}
-                        isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={$_(item.label)}
-                        class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                          group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                          {hasActiveChild(item.children ?? [])
-                          ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                          : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                      >
-                        {#snippet child({ props: btnProps })}
-                          <button {...btnProps}>
-                            {#if hasActiveChild(item.children ?? [])}
-                              <span
-                                aria-hidden="true"
-                                class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                              ></span>
-                            {/if}
-                            <item.icon
-                              class="size-[15px] shrink-0 {hasActiveChild(item.children ?? []) ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                              strokeWidth={1.6}
-                            />
-                            <span
-                              class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{$_(item.label)}</span>
-                            {#if item.count !== undefined && item.count !== null}
-                              <span
-                                class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
-                              >{item.count}</span>
-                            {/if}
-                            <ChevronDown
-                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
-                            />
-                          </button>
-                        {/snippet}
-                      </Sidebar.MenuButton>
-                    {/snippet}
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <Sidebar.MenuSub
-                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
-                    >
-                      {#each item.children as navChild}
-                        <Sidebar.MenuSubItem>
-                          <Sidebar.MenuSubButton
-                            isActive={currentPath === navChild.href}
-                            class="group/subitem relative h-[26px] rounded-md pl-[38px] pr-[10px] transition-colors duration-150
-                              {currentPath === navChild.href
-                              ? 'text-[color:var(--sidebar-foreground)]'
-                              : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                          >
-                            {#snippet child({ props })}
-                              <a href={navChild.href} {...props}>
-                                {#if currentPath === navChild.href}
-                                  <span
-                                    aria-hidden="true"
-                                    class="absolute left-[27px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)]"
-                                  ></span>
-                                {/if}
-                                <span
-                                  class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{$_(navChild.label)}</span>
-                                {#if navChild.count !== undefined && navChild.count !== null}
-                                  <span
-                                    class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
-                                  >{navChild.count}</span>
-                                {/if}
-                              </a>
-                            {/snippet}
-                          </Sidebar.MenuSubButton>
-                        </Sidebar.MenuSubItem>
-                      {/each}
-                    </Sidebar.MenuSub>
-                  </Collapsible.Content>
-                </Sidebar.MenuItem>
-              </Collapsible.Root>
-            {:else}
-              <Sidebar.MenuItem>
-                <Sidebar.MenuButton
-                  isActive={currentPath === item.href}
-                  tooltipContent={$_(item.label)}
-                  class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                    group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                    {currentPath === item.href
-                    ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                    : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                >
-                  {#snippet child({ props })}
-                    <a
-                      href={item.href}
-                      {...props}
-                      data-sveltekit-preload-data={item.preload || 'hover'}
-                     
-                    >
-                      {#if currentPath === item.href}
-                        <span
-                          aria-hidden="true"
-                          class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                        ></span>
-                      {/if}
-                      <item.icon
-                        class="size-[15px] shrink-0 {currentPath === item.href ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                        strokeWidth={1.6}
-                      />
-                      <span
-                        class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{$_(item.label)}</span>
-                      {#if item.count !== undefined && item.count !== null}
-                        <span
-                          class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
-                        >{item.count}</span>
-                      {/if}
-                    </a>
-                  {/snippet}
-                </Sidebar.MenuButton>
-              </Sidebar.MenuItem>
-            {/if}
-          {/each}
-        </Sidebar.Menu>
-      </Sidebar.GroupContent>
-    </Sidebar.Group>
-
-    <!-- Work Section -->
-    <Sidebar.Group class="mt-1.5">
-      <Sidebar.GroupLabel
-        class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
-      >
-        {$_('sidebar.work')}
-      </Sidebar.GroupLabel>
-      <Sidebar.GroupContent>
-        <Sidebar.Menu class="space-y-px">
-          {#each workItems as item}
-            {#if item.type === 'dropdown' && item.children}
-              <Collapsible.Root
-                open={openDropdowns[item.key ?? ''] || false}
-                onOpenChange={(open) => {
-                  if (item.key) openDropdowns[item.key] = open;
-                }}
-                class="group/collapsible"
-              >
-                <Sidebar.MenuItem>
-                  <Collapsible.Trigger>
-                    {#snippet child({ props })}
-                      <Sidebar.MenuButton
-                        {...props}
-                        isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={$_(item.label)}
-                        class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                          group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                          {hasActiveChild(item.children ?? [])
-                          ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                          : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                      >
-                        {#snippet child({ props: btnProps })}
-                          <button {...btnProps}>
-                            {#if hasActiveChild(item.children ?? [])}
-                              <span
-                                aria-hidden="true"
-                                class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                              ></span>
-                            {/if}
-                            <item.icon
-                              class="size-[15px] shrink-0 {hasActiveChild(item.children ?? []) ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                              strokeWidth={1.6}
-                            />
-                            <span
-                              class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{$_(item.label)}</span>
-                            {#if item.count !== undefined && item.count !== null}
-                              <span
-                                class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
-                              >{item.count}</span>
-                            {/if}
-                            <ChevronDown
-                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
-                            />
-                          </button>
-                        {/snippet}
-                      </Sidebar.MenuButton>
-                    {/snippet}
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <Sidebar.MenuSub
-                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
-                    >
-                      {#each item.children as navChild}
-                        <Sidebar.MenuSubItem>
-                          <Sidebar.MenuSubButton
-                            isActive={currentPath === navChild.href}
-                            class="group/subitem relative h-[26px] rounded-md pl-[38px] pr-[10px] transition-colors duration-150
-                              {currentPath === navChild.href
-                              ? 'text-[color:var(--sidebar-foreground)]'
-                              : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                          >
-                            {#snippet child({ props })}
-                              <a href={navChild.href} {...props}>
-                                {#if currentPath === navChild.href}
-                                  <span
-                                    aria-hidden="true"
-                                    class="absolute left-[27px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)]"
-                                  ></span>
-                                {/if}
-                                <span
-                                  class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{$_(navChild.label)}</span>
-                                {#if navChild.count !== undefined && navChild.count !== null}
-                                  <span
-                                    class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
-                                  >{navChild.count}</span>
-                                {/if}
-                              </a>
-                            {/snippet}
-                          </Sidebar.MenuSubButton>
-                        </Sidebar.MenuSubItem>
-                      {/each}
-                    </Sidebar.MenuSub>
-                  </Collapsible.Content>
-                </Sidebar.MenuItem>
-              </Collapsible.Root>
-            {:else}
-              <Sidebar.MenuItem>
-                <Sidebar.MenuButton
-                  isActive={currentPath === item.href}
-                  tooltipContent={$_(item.label)}
-                  class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                    group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                    {currentPath === item.href
-                    ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                    : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                >
-                  {#snippet child({ props })}
-                    <a
-                      href={item.href}
-                      {...props}
-                      data-sveltekit-preload-data={item.preload || 'hover'}
-                     
-                    >
-                      {#if currentPath === item.href}
-                        <span
-                          aria-hidden="true"
-                          class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                        ></span>
-                      {/if}
-                      <item.icon
-                        class="size-[15px] shrink-0 {currentPath === item.href ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                        strokeWidth={1.6}
-                      />
-                      <span
-                        class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{$_(item.label)}</span>
-                      {#if item.count !== undefined && item.count !== null}
-                        <span
-                          class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
-                        >{item.count}</span>
-                      {/if}
-                    </a>
-                  {/snippet}
-                </Sidebar.MenuButton>
-              </Sidebar.MenuItem>
-            {/if}
-          {/each}
-        </Sidebar.Menu>
-      </Sidebar.GroupContent>
-    </Sidebar.Group>
-
-    <!-- Management Section -->
-    <Sidebar.Group class="mt-1.5">
-      <Sidebar.GroupLabel
-        class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
-      >
-        {$_('sidebar.management')}
-      </Sidebar.GroupLabel>
-      <Sidebar.GroupContent>
-        <Sidebar.Menu class="space-y-px">
-          {#each managementItems as item}
-            <Sidebar.MenuItem>
-              <Sidebar.MenuButton
-                isActive={currentPath === item.href}
-                tooltipContent={$_(item.label)}
-                class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                  group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                  {currentPath === item.href
-                  ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                  : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-              >
-                {#snippet child({ props })}
-                  <a
-                    href={item.href}
-                    {...props}
-                    data-sveltekit-preload-data={item.preload || 'hover'}
-                  >
-                    {#if currentPath === item.href}
-                      <span
-                        aria-hidden="true"
-                        class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                      ></span>
-                    {/if}
-                    <item.icon
-                      class="size-[15px] shrink-0 {currentPath === item.href ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                      strokeWidth={1.6}
-                    />
-                    <span
-                      class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                    >{$_(item.label)}</span>
-                  </a>
-                {/snippet}
-              </Sidebar.MenuButton>
-            </Sidebar.MenuItem>
-          {/each}
-        </Sidebar.Menu>
-      </Sidebar.GroupContent>
-    </Sidebar.Group>
-
-    <!-- Revenue Section -->
-    <Sidebar.Group class="mt-1.5">
-      <Sidebar.GroupLabel
-        class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
-      >
-        {$_('sidebar.revenue')}
-      </Sidebar.GroupLabel>
-      <Sidebar.GroupContent>
-        <Sidebar.Menu class="space-y-px">
-          {#each revenueItems.filter(item => !item.featureFlag || mergedSettings[item.featureFlag]) as item}
-            {#if item.type === 'dropdown' && item.children}
-              <Collapsible.Root
-                open={openDropdowns[item.key ?? ''] || false}
-                onOpenChange={(open) => {
-                  if (item.key) openDropdowns[item.key] = open;
-                }}
-                class="group/collapsible"
-              >
-                <Sidebar.MenuItem>
-                  <Collapsible.Trigger>
-                    {#snippet child({ props })}
-                      <Sidebar.MenuButton
-                        {...props}
-                        isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={$_(item.label)}
-                        class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                          group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                          {hasActiveChild(item.children ?? [])
-                          ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                          : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                      >
-                        {#snippet child({ props: btnProps })}
-                          <button {...btnProps}>
-                            {#if hasActiveChild(item.children ?? [])}
-                              <span
-                                aria-hidden="true"
-                                class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                              ></span>
-                            {/if}
-                            <item.icon
-                              class="size-[15px] shrink-0 {hasActiveChild(item.children ?? []) ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                              strokeWidth={1.6}
-                            />
-                            <span
-                              class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{$_(item.label)}</span>
-                            {#if item.count !== undefined && item.count !== null}
-                              <span
-                                class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
-                              >{item.count}</span>
-                            {/if}
-                            <ChevronDown
-                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
-                            />
-                          </button>
-                        {/snippet}
-                      </Sidebar.MenuButton>
-                    {/snippet}
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <Sidebar.MenuSub
-                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
-                    >
-                      {#each item.children as navChild}
-                        <Sidebar.MenuSubItem>
-                          <Sidebar.MenuSubButton
-                            isActive={currentPath === navChild.href}
-                            class="group/subitem relative h-[26px] rounded-md pl-[38px] pr-[10px] transition-colors duration-150
-                              {currentPath === navChild.href
-                              ? 'text-[color:var(--sidebar-foreground)]'
-                              : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                          >
-                            {#snippet child({ props })}
-                              <a href={navChild.href} {...props}>
-                                {#if currentPath === navChild.href}
-                                  <span
-                                    aria-hidden="true"
-                                    class="absolute left-[27px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)]"
-                                  ></span>
-                                {/if}
-                                <span
-                                  class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{$_(navChild.label)}</span>
-                                {#if navChild.count !== undefined && navChild.count !== null}
-                                  <span
-                                    class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
-                                  >{navChild.count}</span>
-                                {/if}
-                              </a>
-                            {/snippet}
-                          </Sidebar.MenuSubButton>
-                        </Sidebar.MenuSubItem>
-                      {/each}
-                    </Sidebar.MenuSub>
-                  </Collapsible.Content>
-                </Sidebar.MenuItem>
-              </Collapsible.Root>
-            {:else}
-              <Sidebar.MenuItem>
-                <Sidebar.MenuButton
-                  isActive={currentPath === item.href}
-                  tooltipContent={$_(item.label)}
-                  class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                    group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                    {currentPath === item.href
-                    ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                    : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                >
-                  {#snippet child({ props })}
-                    <a
-                      href={item.href}
-                      {...props}
-                      data-sveltekit-preload-data={item.preload || 'hover'}
-                     
-                    >
-                      {#if currentPath === item.href}
-                        <span
-                          aria-hidden="true"
-                          class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                        ></span>
-                      {/if}
-                      <item.icon
-                        class="size-[15px] shrink-0 {currentPath === item.href ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                        strokeWidth={1.6}
-                      />
-                      <span
-                        class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{$_(item.label)}</span>
-                      {#if item.count !== undefined && item.count !== null}
-                        <span
-                          class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
-                        >{item.count}</span>
-                      {/if}
-                    </a>
-                  {/snippet}
-                </Sidebar.MenuButton>
-              </Sidebar.MenuItem>
-            {/if}
-          {/each}
-        </Sidebar.Menu>
-      </Sidebar.GroupContent>
-    </Sidebar.Group>
-
-    <!-- Support Section -->
-    <Sidebar.Group class="mt-1.5">
-      <Sidebar.GroupLabel
-        class="mb-1 h-auto px-3 text-[10px] font-semibold leading-none text-[color:var(--sidebar-subtle)] [font-variant:small-caps] [text-transform:lowercase] group-data-[collapsible=icon]:hidden"
-      >
-        {$_('sidebar.support')}
-      </Sidebar.GroupLabel>
-      <Sidebar.GroupContent>
-        <Sidebar.Menu class="space-y-px">
-          {#each supportItems as item}
-            {#if item.type === 'dropdown' && item.children}
-              <Collapsible.Root
-                open={openDropdowns[item.key ?? ''] || false}
-                onOpenChange={(open) => {
-                  if (item.key) openDropdowns[item.key] = open;
-                }}
-                class="group/collapsible"
-              >
-                <Sidebar.MenuItem>
-                  <Collapsible.Trigger>
-                    {#snippet child({ props })}
-                      <Sidebar.MenuButton
-                        {...props}
-                        isActive={hasActiveChild(item.children ?? [])}
-                        tooltipContent={$_(item.label)}
-                        class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                          group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                          {hasActiveChild(item.children ?? [])
-                          ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                          : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                      >
-                        {#snippet child({ props: btnProps })}
-                          <button {...btnProps}>
-                            {#if hasActiveChild(item.children ?? [])}
-                              <span
-                                aria-hidden="true"
-                                class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                              ></span>
-                            {/if}
-                            <item.icon
-                              class="size-[15px] shrink-0 {hasActiveChild(item.children ?? []) ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                              strokeWidth={1.6}
-                            />
-                            <span
-                              class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {hasActiveChild(item.children ?? []) ? 'font-semibold' : 'font-medium'}"
-                            >{$_(item.label)}</span>
-                            {#if item.count !== undefined && item.count !== null}
-                              <span
-                                class="inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
-                              >{item.count}</span>
-                            {/if}
-                            <ChevronDown
-                              class="ms-1 size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] transition-transform duration-150 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-180"
-                            />
-                          </button>
-                        {/snippet}
-                      </Sidebar.MenuButton>
-                    {/snippet}
-                  </Collapsible.Trigger>
-                  <Collapsible.Content>
-                    <Sidebar.MenuSub
-                      class="ms-0 mt-0.5 mb-1 space-y-px border-none p-0"
-                    >
-                      {#each item.children as navChild}
-                        <Sidebar.MenuSubItem>
-                          <Sidebar.MenuSubButton
-                            isActive={currentPath === navChild.href}
-                            class="group/subitem relative h-[26px] rounded-md pl-[38px] pr-[10px] transition-colors duration-150
-                              {currentPath === navChild.href
-                              ? 'text-[color:var(--sidebar-foreground)]'
-                              : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                          >
-                            {#snippet child({ props })}
-                              <a href={navChild.href} {...props}>
-                                {#if currentPath === navChild.href}
-                                  <span
-                                    aria-hidden="true"
-                                    class="absolute left-[27px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)]"
-                                  ></span>
-                                {/if}
-                                <span
-                                  class="flex-1 truncate text-[13px] {currentPath === navChild.href ? 'font-semibold' : 'font-medium'}"
-                                >{$_(navChild.label)}</span>
-                                {#if navChild.count !== undefined && navChild.count !== null}
-                                  <span
-                                    class="ml-auto inline-flex shrink-0 items-center rounded-[4px] bg-[color:var(--sidebar-accent)] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)]"
-                                  >{navChild.count}</span>
-                                {/if}
-                              </a>
-                            {/snippet}
-                          </Sidebar.MenuSubButton>
-                        </Sidebar.MenuSubItem>
-                      {/each}
-                    </Sidebar.MenuSub>
-                  </Collapsible.Content>
-                </Sidebar.MenuItem>
-              </Collapsible.Root>
-            {:else}
-              <Sidebar.MenuItem>
-                <Sidebar.MenuButton
-                  isActive={currentPath === item.href}
-                  tooltipContent={$_(item.label)}
-                  class="nav-item group/item relative h-[30px] rounded-md pl-[18px] pr-[10px] transition-colors duration-150
-                    group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:px-0
-                    {currentPath === item.href
-                    ? 'text-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:bg-[color:var(--sidebar-active-fill)]'
-                    : 'text-[color:var(--sidebar-muted)] hover:bg-[color:var(--sidebar-accent)] hover:text-[color:var(--sidebar-foreground)]'}"
-                >
-                  {#snippet child({ props })}
-                    <a
-                      href={item.href}
-                      {...props}
-                      data-sveltekit-preload-data={item.preload || 'hover'}
-                     
-                    >
-                      {#if currentPath === item.href}
-                        <span
-                          aria-hidden="true"
-                          class="absolute left-[7px] top-1/2 size-1 -translate-y-1/2 rounded-full bg-[color:var(--sidebar-foreground)] group-data-[collapsible=icon]:hidden"
-                        ></span>
-                      {/if}
-                      <item.icon
-                        class="size-[15px] shrink-0 {currentPath === item.href ? 'text-[color:var(--sidebar-foreground)]' : 'text-[color:var(--sidebar-subtle)] group-hover/item:text-[color:var(--sidebar-foreground)]'}"
-                        strokeWidth={1.6}
-                      />
-                      <span
-                        class="flex-1 truncate text-[14px] group-data-[collapsible=icon]:hidden {currentPath === item.href ? 'font-semibold' : 'font-medium'}"
-                      >{$_(item.label)}</span>
-                      {#if item.count !== undefined && item.count !== null}
-                        <span
-                          class="ml-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
+                          class="ms-auto inline-flex shrink-0 items-center rounded-[4px] px-1.5 text-[11px] font-medium tabular-nums text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden"
                         >{item.count}</span>
                       {/if}
                     </a>
@@ -1121,7 +471,7 @@
                   <span class="truncate text-[14px] font-semibold text-[color:var(--sidebar-foreground)]">{user.name || user.email || user.phone || 'User'}</span>
                   <span class="truncate text-[11px] text-[color:var(--sidebar-subtle)]">{user.email || user.phone || ''}</span>
                 </div>
-                <ChevronsUpDown class="ml-auto size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden" strokeWidth={1.6} />
+                <ChevronsUpDown class="ms-auto size-3.5 shrink-0 text-[color:var(--sidebar-subtle)] group-data-[collapsible=icon]:hidden" strokeWidth={1.6} />
               </Sidebar.MenuButton>
             {/snippet}
           </DropdownMenu.Trigger>
@@ -1149,10 +499,6 @@
                 <Users class="size-4" />
                 <span>{$_('sidebar.users_teams')}</span>
               </DropdownMenu.Item>
-              <DropdownMenu.Item inset={false} onclick={() => navigateTo('/org')} class="gap-2.5">
-                <Building class="size-4" />
-                <span>{$_('sidebar.organizations')}</span>
-              </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
                 onclick={() => navigateTo('/settings/organization')}
@@ -1163,83 +509,11 @@
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}
-                onclick={() => navigateTo('/settings/salesforce')}
-                class="gap-2.5"
-              >
-                <Cloud class="size-4" />
-                <span>{$_('sidebar.salesforce')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
                 onclick={() => navigateTo('/settings/tags')}
                 class="gap-2.5"
               >
                 <Tag class="size-4" />
                 <span>{$_('sidebar.tags')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/reopen')}
-                class="gap-2.5"
-              >
-                <RotateCcw class="size-4" />
-                <span>{$_('sidebar.reopen_policy')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/custom-fields')}
-                class="gap-2.5"
-              >
-                <Sliders class="size-4" />
-                <span>{$_('sidebar.custom_fields')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/escalation')}
-                class="gap-2.5"
-              >
-                <Megaphone class="size-4" />
-                <span>{$_('sidebar.escalation')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/ticket-approvals')}
-                class="gap-2.5"
-              >
-                <ShieldCheck class="size-4" />
-                <span>{$_('sidebar.approval_rules')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/inbound-email')}
-                class="gap-2.5"
-              >
-                <Mail class="size-4" />
-                <span>{$_('sidebar.inbound_email')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/business-hours')}
-                class="gap-2.5"
-              >
-                <Clock class="size-4" />
-                <span>{$_('sidebar.business_hours')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/macros')}
-                class="gap-2.5"
-              >
-                <MessageSquareQuote class="size-4" />
-                <span>{$_('sidebar.macros')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/api-tokens')}
-                class="gap-2.5"
-              >
-                <KeyRound class="size-4" />
-                <span>{$_('sidebar.api_tokens')}</span>
               </DropdownMenu.Item>
             </DropdownMenu.Group>
             <DropdownMenu.Separator />
@@ -1299,9 +573,12 @@
 </Sidebar.Root>
 
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
+
   /* Refined sidebar typography */
   :global(.hubspot-sidebar) {
     font-family:
+      'Vazirmatn',
       'Geist',
       -apple-system,
       BlinkMacSystemFont,

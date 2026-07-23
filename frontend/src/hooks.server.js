@@ -351,10 +351,10 @@ async function ensureDefaultOrg(event, accessToken, jwtPayload) {
     return;
   }
 
-  // Multi-org or zero-org: leave locals empty so the caller can redirect appropriately.
-  if (orgs.length !== 1) return;
+  // Single-org system: automatically select the primary organization
+  if (orgs.length < 1) return;
 
-  // Single org: switch to it and persist the new tokens.
+  // Switch to primary org and persist tokens
   const switchResult = await switchOrg(accessToken, orgs[0].id);
   if (!switchResult || !switchResult.access_token) return;
 

@@ -61,10 +61,6 @@ urlpatterns = [
     path("auth/me/", MeView.as_view(), name="me"),
     path("auth/profile/", ProfileDetailView.as_view(), name="profile_detail"),
     path("auth/switch-org/", OrgSwitchView.as_view(), name="switch_org"),
-    # Google OAuth callback with PKCE (secure implementation)
-    path("auth/google/callback/", GoogleOAuthCallbackView.as_view()),
-    # Google ID token auth for mobile apps
-    path("auth/google/", GoogleIdTokenView.as_view(), name="google_id_token"),
     # Magic link (passwordless) authentication
     path("auth/phone-login/", PhonePasswordLoginView.as_view(), name="phone_login"),
     path("auth/magic-link/request/", MagicLinkRequestView.as_view(), name="magic_link_request"),
@@ -79,16 +75,16 @@ urlpatterns = [
     path("org/<str:pk>/", OrgUpdateView.as_view()),
     path("profile/", ProfileView.as_view()),
     # Personal Access Tokens (MCP server) — a user manages ONLY their own
-    path(
-        "profile/tokens/",
-        PersonalAccessTokenListCreateView.as_view(),
-        name="pat_list_create",
-    ),
-    path(
-        "profile/tokens/<uuid:pk>/",
-        PersonalAccessTokenDetailView.as_view(),
-        name="pat_detail",
-    ),
+    # path(
+    #     "profile/tokens/",
+    #     PersonalAccessTokenListCreateView.as_view(),
+    #     name="pat_list_create",
+    # ),
+    # path(
+    #     "profile/tokens/<uuid:pk>/",
+    #     PersonalAccessTokenDetailView.as_view(),
+    #     name="pat_detail",
+    # ),
     # User management
     path("users/get-teams-and-users/", GetTeamsAndUsersView.as_view()),
     path("users/", UsersListView.as_view()),
@@ -96,10 +92,6 @@ urlpatterns = [
     path("user/<str:pk>/status/", UserStatusView.as_view()),
     # Documents
     path("documents/", DocumentListView.as_view()),
-    path("documents/<str:pk>/", DocumentDetailView.as_view()),
-    # API Settings
-    path("api-settings/", DomainList.as_view()),
-    path("api-settings/<str:pk>/", DomainDetailView.as_view()),
     # Activities (for dashboard recent activities)
     path("activities/", ActivityListView.as_view(), name="activities"),
     # Teams (merged from teams app)
@@ -110,16 +102,16 @@ urlpatterns = [
     path("tags/<str:pk>/", TagsDetailView.as_view()),
     path("tags/<str:pk>/restore/", TagsRestoreView.as_view()),
     # Custom fields (per-org schema extension; cross-entity)
-    path(
-        "custom-fields/",
-        CustomFieldDefinitionListCreateView.as_view(),
-        name="custom_fields_list_create",
-    ),
-    path(
-        "custom-fields/<str:pk>/",
-        CustomFieldDefinitionDetailView.as_view(),
-        name="custom_field_detail",
-    ),
+    # path(
+    #     "custom-fields/",
+    #     CustomFieldDefinitionListCreateView.as_view(),
+    #     name="custom_fields_list_create",
+    # ),
+    # path(
+    #     "custom-fields/<str:pk>/",
+    #     CustomFieldDefinitionDetailView.as_view(),
+    #     name="custom_field_detail",
+    # ),
     # In-app notifications (per-recipient feed)
     path("notifications/", NotificationListView.as_view(), name="notifications_list"),
     path(

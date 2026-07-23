@@ -31,28 +31,6 @@ urlpatterns = [
         api_views.InvoiceCancelView.as_view(),
         name="invoice_cancel",
     ),
-    # Invoice Line Items
-    path(
-        "<uuid:invoice_id>/line-items/",
-        api_views.InvoiceLineItemListView.as_view(),
-        name="invoice_line_items",
-    ),
-    path(
-        "<uuid:invoice_id>/line-items/<uuid:pk>/",
-        api_views.InvoiceLineItemDetailView.as_view(),
-        name="invoice_line_item_detail",
-    ),
-    # Invoice Payments
-    path(
-        "<uuid:invoice_id>/payments/",
-        api_views.PaymentListView.as_view(),
-        name="invoice_payments",
-    ),
-    path(
-        "<uuid:invoice_id>/payments/<uuid:pk>/",
-        api_views.PaymentDetailView.as_view(),
-        name="invoice_payment_detail",
-    ),
     # Invoice Comments
     path(
         "<uuid:invoice_id>/comments/",
@@ -164,13 +142,5 @@ urlpatterns = [
         "from-opportunity/<uuid:opportunity_id>/",
         api_views.InvoiceFromOpportunityView.as_view(),
         name="invoice_from_opportunity",
-    ),
-    # ==========================================================================
-    # INVOICE FROM TIME ENTRIES (Tier 3 time-tracking)
-    # ==========================================================================
-    path(
-        "from-time-entries/",
-        api_views.InvoiceFromTimeEntriesView.as_view(),
-        name="invoice_from_time_entries",
     ),
 ]

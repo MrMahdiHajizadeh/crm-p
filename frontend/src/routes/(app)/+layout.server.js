@@ -32,7 +32,7 @@ export async function load({ locals, cookies }) {
   return {
     user: locals.user,
     org_id: locals.org?.id || null,
-    org_name: locals.org_name || 'BottleCRM',
+    org_name: locals.org_name || 'Emarat CRM',
     org_settings: orgSettings,
     jwt_access: jwtAccess
   };

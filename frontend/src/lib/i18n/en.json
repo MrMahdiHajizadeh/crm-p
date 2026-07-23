@@ -1,12 +1,12 @@
 {
   "app": {
-    "name": "BottleCRM",
+    "name": "Emarat CRM",
     "loading": "Loading..."
   },
   "login": {
     "title": "Sign in to your account",
-    "page_title": "Sign in | BottleCRM",
-    "description": "Sign in or sign up for BottleCRM to manage your contacts, deals, and grow your business.",
+    "page_title": "Sign in | Emarat CRM",
+    "description": "Sign in or sign up for Emarat CRM to manage your contacts, deals, and grow your business.",
     "continue_google": "Continue with Google",
     "redirecting": "Redirecting...",
     "or": "or",

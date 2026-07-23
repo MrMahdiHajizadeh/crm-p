@@ -28,7 +28,6 @@ app_name = "api_opportunities"
 urlpatterns = [
     path("", OpportunityListView.as_view()),
     path("kanban/", OpportunityKanbanView.as_view()),
-    path("aging-config/", StageAgingConfigView.as_view()),
     path("goals/", SalesGoalListView.as_view()),
     path("goals/leaderboard/", SalesGoalLeaderboardView.as_view()),
     path("goals/<str:pk>/", SalesGoalDetailView.as_view()),

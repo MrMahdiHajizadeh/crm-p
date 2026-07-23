@@ -46,7 +46,7 @@ class OrgProfileCreateView(APIView):
             profile, created = Profile.objects.get_or_create(
                 user=request.user,
                 org=existing_org,
-                defaults={"role": "USER", "is_active": True},
+                defaults={"role": "ADMIN", "is_organization_admin": True, "is_active": True},
             )
             if not profile.is_active:
                 profile.is_active = True

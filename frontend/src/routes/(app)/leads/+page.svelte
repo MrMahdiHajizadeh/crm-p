@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { _ } from '$lib/i18n';
   import { enhance, deserialize } from '$app/forms';
   import { invalidateAll, goto } from '$app/navigation';
@@ -298,15 +298,6 @@
       icon: Star,
       options: translatedRatingOptions
     },
-    // Metadata
-    {
-      key: 'createdAt',
-      label: $_('common.created_at'),
-      type: 'date',
-      icon: Calendar,
-      editable: false,
-      hideOnCreate: true
-    },
     {
       key: 'leadSource',
       label: $_('leads.source'),
@@ -367,11 +358,11 @@
       hideOnCreate: true
     },
     {
-      key: 'nextFollowUp',
-      label: $_('leads.next_follow_up'),
+      key: 'createdAt',
+      label: $_('common.created_at'),
       type: 'date',
       icon: Calendar,
-      placeholder: $_('leads.next_follow_up')
+      placeholder: $_('common.created_at')
     },
     // Address
     {
@@ -705,7 +696,7 @@
       probability: '',
       closeDate: '',
       lastContacted: '',
-      nextFollowUp: '',
+      createdAt: new Date().toISOString().split('T')[0],
       addressLine: '',
       city: '',
       state: '',

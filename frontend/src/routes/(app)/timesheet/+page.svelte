@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { onDestroy, untrack } from 'svelte';
@@ -273,12 +273,9 @@
                   : 'border-[var(--border-muted)] bg-[var(--surface-muted)]'}"
               >
                 <div class="flex items-baseline justify-between gap-2">
-                  <a
-                    class="truncate font-medium hover:underline"
-                    href={`/tickets/${e.case}`}
-                  >
+                  <span class="truncate font-medium">
                     {e.description || 'Untitled session'}
-                  </a>
+                  </span>
                   <span class="font-mono text-[10px] tabular-nums text-[var(--text-secondary)]">
                     {formatMinutes(minutes)}
                   </span>

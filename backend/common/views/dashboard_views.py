@@ -266,6 +266,9 @@ class ApiHomeView(APIView):
 
             return {
                 "leads_count": user_leads.count(),
+                "leads_today": user_leads.filter(created_at__date=today).count(),
+                "leads_week": user_leads.filter(created_at__date__gte=week_start).count(),
+                "leads_month": user_leads.filter(created_at__date__gte=month_start).count(),
                 "contacts_count": user_contacts.count(),
                 "accounts_count": user_accounts.count(),
                 "followups_today": user_followups.filter(next_follow_up=today).count(),

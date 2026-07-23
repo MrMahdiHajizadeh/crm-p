@@ -39,7 +39,6 @@
     { href: '/', label: 'Dashboard', icon: BarChart3 },
     { href: '/leads', label: 'Leads', icon: Users },
     { href: '/contacts', label: 'Contacts', icon: Users },
-    { href: '/tickets', label: 'Tickets', icon: Ticket },
     { href: '/tasks', label: 'Tasks', icon: FileText }
   ];
 
