@@ -507,7 +507,7 @@
         </div>
 
         <!-- Interactive Timeframe Filter Tabs -->
-        <div class="flex items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-muted)]/60 p-1">
+        <div class="flex flex-wrap items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-muted)]/60 p-1 overflow-x-auto">
           <button
             type="button"
             onclick={() => (selectedTimeframe = 'today')}

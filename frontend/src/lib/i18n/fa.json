@@ -131,7 +131,9 @@
     "user_avatar": "آواتار کاربر",
     "management": "مدیریت",
     "follow_ups": "پیگیری‌ها",
-    "supervision": "نظارت"
+    "supervision": "نظارت",
+    "ai_assistant": "دستیار هوشمند (AI)",
+    "ai_settings": "تنظیمات هوش مصنوعی"
   },
   "focusbar": {
     "focus_title": "تمرکز امروز",

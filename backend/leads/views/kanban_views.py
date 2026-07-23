@@ -104,6 +104,9 @@ class LeadKanbanView(APIView):
                 | Q(company_name__icontains=search)
                 | Q(email__icontains=search)
                 | Q(title__icontains=search)
+                | Q(phone__icontains=search)
+                | Q(description__icontains=search)
+                | Q(city__icontains=search)
             )
         if params.get("source"):
             queryset = queryset.filter(source=params.get("source"))
@@ -115,12 +118,32 @@ class LeadKanbanView(APIView):
 
     def _get_status_kanban(self, queryset):
         """Build kanban data using Lead.status as columns."""
-        # Define column order and colors
+        # Define column order, colors, and status aliases
         status_config = {
-            "assigned": {"order": 1, "color": "#3B82F6", "type": "open"},
-            "in process": {"order": 2, "color": "#F59E0B", "type": "open"},
-            "recycled": {"order": 3, "color": "#F97316", "type": "lost"},
-            "closed": {"order": 4, "color": "#6B7280", "type": "lost"},
+            "assigned": {
+                "order": 1,
+                "color": "#3B82F6",
+                "type": "open",
+                "aliases": ["assigned", "new", "ASSIGNED", "NEW"]
+            },
+            "in process": {
+                "order": 2,
+                "color": "#F59E0B",
+                "type": "open",
+                "aliases": ["in process", "in_process", "IN_PROCESS", "IN PROCESS"]
+            },
+            "recycled": {
+                "order": 3,
+                "color": "#F97316",
+                "type": "lost",
+                "aliases": ["recycled", "RECYCLED"]
+            },
+            "closed": {
+                "order": 4,
+                "color": "#6B7280",
+                "type": "lost",
+                "aliases": ["closed", "CLOSED"]
+            },
         }
 
         columns = []
@@ -129,9 +152,11 @@ class LeadKanbanView(APIView):
                 continue  # Skip converted in kanban view
 
             config = status_config.get(
-                status_value, {"order": 99, "color": "#6B7280", "type": "open"}
+                status_value, {"order": 99, "color": "#6B7280", "type": "open", "aliases": [status_value]}
             )
-            leads = queryset.filter(status=status_value).order_by(
+
+            aliases = config.get("aliases", [status_value])
+            leads = queryset.filter(status__in=aliases).order_by(
                 "kanban_order", "-created_at"
             )
 

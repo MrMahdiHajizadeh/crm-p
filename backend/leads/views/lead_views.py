@@ -61,9 +61,12 @@ class LeadListView(APIView, LimitOffsetPagination):
         ).order_by("-created_at")
         if params:
             if params.get("name"):
+                name_val = params.get("name")
                 queryset = queryset.filter(
-                    Q(first_name__icontains=params.get("name"))
-                    & Q(last_name__icontains=params.get("name"))
+                    Q(title__icontains=name_val)
+                    | Q(first_name__icontains=name_val)
+                    | Q(last_name__icontains=name_val)
+                    | Q(company_name__icontains=name_val)
                 )
             if params.get("salutation"):
                 queryset = queryset.filter(
@@ -90,10 +93,14 @@ class LeadListView(APIView, LimitOffsetPagination):
             if params.get("search"):
                 search = params.get("search")
                 queryset = queryset.filter(
-                    Q(first_name__icontains=search)
+                    Q(title__icontains=search)
+                    | Q(first_name__icontains=search)
                     | Q(last_name__icontains=search)
                     | Q(company_name__icontains=search)
                     | Q(email__icontains=search)
+                    | Q(phone__icontains=search)
+                    | Q(description__icontains=search)
+                    | Q(city__icontains=search)
                 )
             if params.get("created_at__gte"):
                 queryset = queryset.filter(

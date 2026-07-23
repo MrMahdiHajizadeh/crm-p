@@ -38,7 +38,7 @@
   <div
     class="fixed inset-x-0 bottom-0 z-20 border-t border-[color:var(--border-faint)] bg-[color:var(--bg)]/95 backdrop-blur-[1px]"
   >
-    <div class="mx-auto flex max-w-[680px] items-center justify-between gap-3 px-7 py-3 md:px-8">
+    <div class="mx-auto flex max-w-[680px] items-center justify-between gap-3 px-4 py-3 sm:px-7 md:px-8">
       {#if errorMessage}
         <p class="truncate text-[12px] text-[color:var(--red)]">{errorMessage}</p>
       {:else}
@@ -60,7 +60,7 @@
     use:enhance={useEnhance}
     class={cn(
       'mx-auto flex w-full max-w-[680px] flex-col',
-      'px-7 pt-4 pb-[88px] md:px-8',
+      'px-4 pt-4 pb-[88px] sm:px-7 md:px-8',
       className
     )}
   >
@@ -74,7 +74,7 @@
     {onsubmit}
     class={cn(
       'mx-auto flex w-full max-w-[680px] flex-col',
-      'px-7 pt-4 pb-[88px] md:px-8',
+      'px-4 pt-4 pb-[88px] sm:px-7 md:px-8',
       className
     )}
   >

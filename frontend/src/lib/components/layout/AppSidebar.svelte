@@ -197,6 +197,7 @@
   const managementItems = [
     { href: '/follow-ups', label: 'sidebar.follow_ups', icon: Clock, type: 'link', preload: 'off', count: undefined },
     { href: '/supervision', label: 'sidebar.supervision', icon: Activity, type: 'link', preload: 'off', count: undefined },
+    { href: '/ai-assistant', label: 'sidebar.ai_assistant', icon: Sparkles, type: 'link', preload: 'off', count: undefined },
   ];
 
   const revenueItems = [
@@ -506,6 +507,14 @@
               >
                 <Settings class="size-4" />
                 <span>{$_('sidebar.settings')}</span>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                inset={false}
+                onclick={() => navigateTo('/settings/ai')}
+                class="gap-2.5"
+              >
+                <Sparkles class="size-4 text-amber-500" />
+                <span>{$_('sidebar.ai_settings')}</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 inset={false}

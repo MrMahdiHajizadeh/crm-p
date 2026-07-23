@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { _ } from '$lib/i18n';
   import { tick } from 'svelte';
   import { Check, ChevronDown, Building2, User } from '@lucide/svelte';
@@ -237,7 +237,7 @@
           {/if}
           {#each visibleColumnDefs as column, colIndex (column.key)}
             <th
-              class="px-[14px] py-[9px] text-left text-[10px] font-medium uppercase tracking-[0.06em] text-[color:var(--text-subtle)] {colIndex === 0 ? 'ps-7 md:ps-8' : ''} {column.width || ''}"
+              class="px-[14px] py-[9px] text-left text-[10px] font-medium uppercase tracking-[0.06em] text-[color:var(--text-subtle)] {colIndex === 0 ? 'ps-4 sm:ps-7 md:ps-8' : ''} {column.width || ''}"
             >
               {$_(column.label)}
             </th>
@@ -462,7 +462,7 @@
 
 {#if mobileCard && data.length > 0}
   <!-- Desktop: table only on md+ viewports -->
-  <div class="hidden md:block">
+  <div class="hidden md:block table-scroll-container w-full min-w-full">
     {@render tableBody()}
   </div>
   <!-- Mobile: stacked card list -->
@@ -472,5 +472,7 @@
     {/each}
   </div>
 {:else}
-  {@render tableBody()}
+  <div class="table-scroll-container w-full min-w-full">
+    {@render tableBody()}
+  </div>
 {/if}

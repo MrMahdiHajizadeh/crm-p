@@ -86,43 +86,68 @@ class UsersListView(APIView, LimitOffsetPagination):
         params = request.data
         if params:
             phone = params.get("phone", "").strip()
+            email = params.get("email", "").strip()
+            name = params.get("name", "").strip()
             password = params.get("password", "")
+            role = params.get("role", "USER")
 
-            if not phone:
+            if not phone and not email:
                 return Response(
-                    {"error": True, "errors": "Phone number is required"},
+                    {"error": True, "errors": "Phone number or email is required"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Check if user already exists by phone
-            existing_user = User.objects.filter(phone=phone).first()
+            # Check if user already exists by phone or email
+            existing_user = None
+            if phone:
+                existing_user = User.objects.filter(phone=phone).first()
+            if not existing_user and email:
+                existing_user = User.objects.filter(email=email).first()
+
             if existing_user:
                 user = existing_user
+                if name:
+                    user.name = name
+                if email and not user.email:
+                    user.email = email
+                if phone and not user.phone:
+                    user.phone = phone
+                if password:
+                    user.set_password(password)
+                user.save()
             else:
                 user = User.objects.create(
-                    phone=phone,
-                    name=params.get("name", phone),
+                    phone=phone or None,
+                    email=email or "",
+                    name=name or phone or email,
                     is_active=True,
                 )
-
-            # Set password if provided
-            if password:
-                user.set_password(password)
+                if password:
+                    user.set_password(password)
+                else:
+                    user.set_password("test1234")
                 user.save()
 
             profile, created = Profile.objects.get_or_create(
                 user=user,
                 org=request.profile.org,
                 defaults={
-                    "role": params.get("role", "USER"),
+                    "role": role,
+                    "is_active": True,
                     "date_of_joining": timezone.now(),
                 },
             )
+
             if not created:
+                # User already has a profile in this org -> reactivate or update profile
+                profile.is_active = True
+                profile.role = role
+                profile.save()
                 return Response(
-                    {"error": True, "errors": "User already in organization"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"error": False, "message": "User profile updated/reactivated in organization"},
+                    status=status.HTTP_200_OK,
                 )
+
             return Response(
                 {"error": False, "message": "User Created Successfully"},
                 status=status.HTTP_201_CREATED,

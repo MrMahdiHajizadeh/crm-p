@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { _ } from '$lib/i18n';
   import { page } from '$app/stores';
   import { toast } from '$lib/components/ui/toast/index.js';
@@ -75,9 +75,9 @@
   ]}
 />
 
-<div class="px-7 pb-8 md:px-8 space-y-6">
+<div class="px-4 pb-8 sm:px-7 md:px-8 space-y-6">
   <!-- Action buttons -->
-  <div class="flex items-center gap-2">
+  <div class="flex flex-wrap items-center gap-2">
     <Button variant="outline" size="sm" href="/leads">
       <ArrowLeft class="me-1.5 size-4" />
       {$_('common.back')}
@@ -197,10 +197,9 @@
   <!-- Comments -->
   <div class="rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-5">
     <CommentSection
-      comments={comments}
+      initialComments={comments}
       entityType="leads"
       entityId={lead.id}
-      commentPermission={data.commentPermission}
     />
   </div>
 
@@ -283,7 +282,7 @@
 </div>
 
 <InteractionDialog
-  bind:open={interactionDialogOpen}
+  open={interactionDialogOpen}
   entityType="Lead"
   entityId={lead.id}
   entityName={displayName}

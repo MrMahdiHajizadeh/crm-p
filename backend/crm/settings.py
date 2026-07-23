@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "orders",
     "business_hours",
     "macros",
+    "ai_assistant",
     # "teams",  # Merged into common app
 ]
 

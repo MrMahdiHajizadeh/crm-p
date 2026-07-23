@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { _ } from '$lib/i18n';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
@@ -131,7 +131,7 @@
   onSuccess={handleInteractionSuccess}
 />
 
-<div class="px-7 pb-8 md:px-8">
+<div class="px-4 pb-8 sm:px-7 md:px-8">
   <!-- Toggle: All / My Only -->
   <div class="mb-5 flex items-center justify-end">
     <button

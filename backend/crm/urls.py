@@ -19,6 +19,7 @@ urlpatterns = [
         name="healthz",
     ),
     path("api/", include("common.app_urls", namespace="common_urls")),
+    path("api/ai/", include("ai_assistant.urls", namespace="ai_assistant")),
     # Public portal endpoints (no auth required)
     path("api/public/", include("invoices.public_urls", namespace="public_invoices")),
     path(

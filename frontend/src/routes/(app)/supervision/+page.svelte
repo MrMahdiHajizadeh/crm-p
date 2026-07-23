@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { _ } from '$lib/i18n';
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
@@ -246,7 +246,7 @@
   breadcrumb={[{ label: $_('supervision.title') }]}
 />
 
-<div class="px-7 pb-8 md:px-8">
+<div class="px-4 pb-8 sm:px-7 md:px-8">
   <!-- Filters -->
   <div class="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-[var(--border-faint)] bg-[var(--bg-elevated)] p-4">
     <div class="flex flex-col gap-1.5">
