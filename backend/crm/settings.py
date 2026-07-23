@@ -96,10 +96,17 @@ def _build_database_config():
     db_engine = os.environ.get("DBENGINE", "").strip()
     db_host = os.environ.get("DBHOST", "").strip()
 
+    def _get_sqlite_path():
+        if os.environ.get("DBNAME_SQLITE"):
+            return os.environ.get("DBNAME_SQLITE")
+        local_db = os.path.join(BASE_DIR, "db.sqlite3")
+        parent_db = os.path.join(os.path.dirname(BASE_DIR), "db.sqlite3")
+        return local_db if os.path.exists(local_db) else parent_db
+
     if db_engine == "django.db.backends.sqlite3":
         return {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": os.environ.get("DBNAME_SQLITE", os.path.join(os.path.dirname(BASE_DIR), "db.sqlite3")),
+            "NAME": _get_sqlite_path(),
         }
 
     if db_engine == "django.db.backends.postgresql" or db_host:
@@ -117,7 +124,7 @@ def _build_database_config():
 
     return {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(os.path.dirname(BASE_DIR), "db.sqlite3"),
+        "NAME": _get_sqlite_path(),
     }
 
 
