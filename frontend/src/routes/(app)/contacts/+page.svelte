@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
   import { page } from '$app/stores';
@@ -389,14 +389,24 @@
     `${drawerFormData.firstName || ''} ${drawerFormData.lastName || ''}`.trim() || ''
   );
 
-  // URL sync â€” handles client-side navigation changes after first paint.
+  let lastHandledAction = $state(initialAction);
+  let lastHandledViewId = $state(initialViewId);
+
+  // URL sync — handles client-side navigation changes after first paint.
   // Initial deep links are seeded synchronously above.
   $effect(() => {
     const viewId = $page.url.searchParams.get('view');
     const action = $page.url.searchParams.get('action');
     const accountIdParam = $page.url.searchParams.get('accountId');
 
-    if (action === 'create' && !drawerOpen) {
+    if (!action && !viewId) {
+      lastHandledAction = null;
+      lastHandledViewId = null;
+      return;
+    }
+
+    if (action === 'create' && action !== lastHandledAction) {
+      lastHandledAction = action;
       // Handle account pre-fill from URL BEFORE opening drawer
       if (accountIdParam) {
         accountId = accountIdParam;
@@ -407,7 +417,8 @@
       selectedContact = null;
       drawerMode = 'create';
       drawerOpen = true;
-    } else if (viewId && contacts.length > 0 && !drawerOpen) {
+    } else if (viewId && viewId !== lastHandledViewId && contacts.length > 0) {
+      lastHandledViewId = viewId;
       const contact = contacts.find((c) => c.id === viewId);
       if (contact) {
         selectedContact = contact;
@@ -787,16 +798,8 @@
         if (result.type === 'success') {
           toast.success(successMessage);
           if (closeOnSuccess) {
-            // Close drawer state locally
-            drawerOpen = false;
-            selectedContactId = null;
-            drawerContact = null;
-            formError = '';
-            // Update URL and refresh data in one atomic goto
-            const url = new URL($page.url);
-            url.searchParams.delete('view');
-            url.searchParams.delete('action');
-            await goto(url.toString(), { replaceState: true, noScroll: true, invalidateAll: true });
+            await closeDrawer();
+            await invalidateAll();
           } else {
             await invalidateAll();
           }
