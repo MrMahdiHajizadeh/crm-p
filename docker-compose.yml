@@ -1,18 +1,4 @@
 services:
-  db:
-    image: postgres:16-alpine
-    env_file: .env.docker
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init-rls-user.sql:/docker-entrypoint-initdb.d/init-rls-user.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    ports:
-      - "5432:5432"
-
   redis:
     image: redis:7-alpine
     healthcheck:
@@ -34,8 +20,6 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     command: /bin/bash /entrypoint.sh
@@ -45,24 +29,12 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file: .env.docker
+    volumes:
+      - ./backend:/app
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     command: celery -A crm worker --loglevel=info --concurrency=2
-
-  celery-beat:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    env_file: .env.docker
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    command: celery -A crm beat --loglevel=info
 
   frontend:
     build:
@@ -71,9 +43,6 @@ services:
     env_file: .env.docker
     environment:
       - CI=true
-      # Internal Docker hostname for SSR (server-side fetches from inside the container).
-      # The client-side getApiBaseUrl() in api.js/api-helpers.js rewrites "backend" to
-      # window.location.hostname at runtime so browser-originated fetches use localhost:8000.
       - PUBLIC_DJANGO_API_URL=http://backend:8000
     volumes:
       - ./frontend:/app
@@ -84,5 +53,4 @@ services:
       - backend
 
 volumes:
-  postgres_data:
   frontend_node_modules:

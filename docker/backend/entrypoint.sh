@@ -1,10 +1,8 @@
 #!/bin/bash
 set -e
 
-DBHOST="${DBHOST:-db}"
-DBPORT="${DBPORT:-5432}"
-
-if [ -n "${DBHOST:-}" ] || [ -n "${DBNAME:-}" ]; then
+if [ "$DBENGINE" = "django.db.backends.postgresql" ] && [ -n "$DBHOST" ]; then
+  DBPORT="${DBPORT:-5432}"
   echo "Waiting for PostgreSQL at ${DBHOST}:${DBPORT}..."
   retries=0
   max_retries=60
@@ -27,19 +25,16 @@ PY
   done
   echo "PostgreSQL is ready."
 else
-  echo "No database host configured; skipping PostgreSQL wait."
+  echo "Using SQLite database; skipping PostgreSQL connection check."
 fi
 
 echo "Running migrations..."
 python manage.py migrate --noinput
 
-echo "Creating default admin user (if needed)..."
-python manage.py create_default_admin
-
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-echo "Starting production server (Gunicorn)..."
+echo "Starting server (Gunicorn)..."
 exec gunicorn crm.wsgi:application \
     --bind 0.0.0.0:8000 \
     --workers 3 \
