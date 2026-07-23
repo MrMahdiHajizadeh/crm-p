@@ -832,7 +832,7 @@
         {/snippet}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end" class="w-48">
-        <DropdownMenu.Label>Toggle columns</DropdownMenu.Label>
+        <DropdownMenu.Label>{$_('common.toggle_columns') || 'نمایش ستون‌ها'}</DropdownMenu.Label>
         <DropdownMenu.Separator />
         {#each columns as column (column.key)}
           <DropdownMenu.CheckboxItem
@@ -841,7 +841,7 @@
             onCheckedChange={() => toggleColumn(column.key)}
             disabled={column.canHide === false}
           >
-            {column.label}
+            {$_(column.label)}
           </DropdownMenu.CheckboxItem>
         {/each}
       </DropdownMenu.Content>
