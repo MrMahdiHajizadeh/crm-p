@@ -127,28 +127,27 @@
       // Dynamic import to avoid SSR fetch warning
       const { apiRequest } = await import('$lib/api.js');
       const [ownersResponse, tagsResponse] = await Promise.all([
-        apiRequest('/users/'),
+        apiRequest('/users/').catch(() => ({ active_users: { active_users: [] } })),
         apiRequest('/tags/').catch(() => ({ tags: [] }))
       ]);
 
       // Transform owners
-      const activeUsers = ownersResponse.active_users?.active_users || [];
+      const activeUsers = ownersResponse?.active_users?.active_users || [];
       loadedOwners = activeUsers.map((/** @type {any} */ user) => ({
         id: user.id,
-        name: user.user_details?.email || user.email,
+        name: user.user_details?.name || user.user_details?.email || user.email || 'Unknown',
         email: user.user_details?.email || user.email
       }));
 
       // Transform tags
-      loadedTags = (tagsResponse.tags || tagsResponse || []).map((/** @type {any} */ tag) => ({
+      loadedTags = (tagsResponse?.tags || tagsResponse || []).map((/** @type {any} */ tag) => ({
         id: tag.id,
         name: tag.name
       }));
-
-      dropdownOptionsLoaded = true;
     } catch (err) {
       console.error('Failed to load dropdown options:', err);
     } finally {
+      dropdownOptionsLoaded = true;
       dropdownOptionsLoading = false;
     }
   }
