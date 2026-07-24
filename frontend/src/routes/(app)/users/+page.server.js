@@ -51,16 +51,13 @@ export async function load({ locals, cookies }) {
     );
     const isAdmin =
       locals.profile?.role === 'ADMIN' ||
+      Boolean(locals.profile?.is_organization_admin) ||
+      Boolean(locals.profile?.is_admin) ||
       currentUserProfile?.role === 'ADMIN' ||
-      currentUserProfile?.is_organization_admin ||
-      true;
+      Boolean(currentUserProfile?.is_organization_admin);
 
     if (!isAdmin) {
-      return {
-        error: {
-          name: 'You do not have permission to access this page'
-        }
-      };
+      throw error(403, 'Only admins can access Users & Teams');
     }
 
     // Combine active and inactive users, transform to match expected format

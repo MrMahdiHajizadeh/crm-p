@@ -1,4 +1,21 @@
 services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-crm_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d crm_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7-alpine
     healthcheck:
@@ -34,7 +51,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    command: celery -A crm worker --loglevel=info --concurrency=2
+    command: celery -A crm worker --loglevel=info --concurrency=4
 
   frontend:
     build:
@@ -44,13 +61,10 @@ services:
     environment:
       - CI=true
       - PUBLIC_DJANGO_API_URL=http://backend:8000
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
     ports:
       - "5173:5173"
     depends_on:
       - backend
 
 volumes:
-  frontend_node_modules:
+  postgres_data:

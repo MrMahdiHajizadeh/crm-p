@@ -23,7 +23,7 @@
   });
 </script>
 
-<AppShell user={data.user} org_name={data.org_name} org_settings={data.org_settings}>
+<AppShell user={data.user} profile={data.profile} org_name={data.org_name} org_settings={data.org_settings}>
   <main class="relative flex-1">
     <div class="mx-auto w-full max-w-[1600px]">
       {@render children()}

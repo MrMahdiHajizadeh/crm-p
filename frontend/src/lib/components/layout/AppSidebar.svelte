@@ -61,8 +61,15 @@
    * @property {Object} [org_settings] - Org settings (tier, currency, etc.)
    */
 
-  /** @type {Props} */
-  let { user = {}, org_name = 'BottleCRM', org_settings = {} } = $props();
+  /** @type {Props & { profile?: Object }} */
+  let { user = {}, profile = {}, org_name = 'BottleCRM', org_settings = {} } = $props();
+
+  const isAdmin = $derived(
+    profile?.role === 'ADMIN' ||
+    Boolean(profile?.is_organization_admin) ||
+    Boolean(profile?.is_admin) ||
+    Boolean(user?.is_admin)
+  );
 
   // Merge props-based org_settings with the reactive store so live updates
   // from the settings page (e.g. feature flag toggles) take effect without
@@ -496,34 +503,36 @@
                 <User class="size-4" />
                 <span>{$_('sidebar.profile')}</span>
               </DropdownMenu.Item>
-              <DropdownMenu.Item inset={false} onclick={() => navigateTo('/users')} class="gap-2.5">
-                <Users class="size-4" />
-                <span>{$_('sidebar.users_teams')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/organization')}
-                class="gap-2.5"
-              >
-                <Settings class="size-4" />
-                <span>{$_('sidebar.settings')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/ai')}
-                class="gap-2.5"
-              >
-                <Sparkles class="size-4 text-amber-500" />
-                <span>{$_('sidebar.ai_settings')}</span>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                inset={false}
-                onclick={() => navigateTo('/settings/tags')}
-                class="gap-2.5"
-              >
-                <Tag class="size-4" />
-                <span>{$_('sidebar.tags')}</span>
-              </DropdownMenu.Item>
+              {#if isAdmin}
+                <DropdownMenu.Item inset={false} onclick={() => navigateTo('/users')} class="gap-2.5">
+                  <Users class="size-4" />
+                  <span>{$_('sidebar.users_teams')}</span>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  inset={false}
+                  onclick={() => navigateTo('/settings/organization')}
+                  class="gap-2.5"
+                >
+                  <Settings class="size-4" />
+                  <span>{$_('sidebar.settings')}</span>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  inset={false}
+                  onclick={() => navigateTo('/settings/ai')}
+                  class="gap-2.5"
+                >
+                  <Sparkles class="size-4 text-amber-500" />
+                  <span>{$_('sidebar.ai_settings')}</span>
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  inset={false}
+                  onclick={() => navigateTo('/settings/tags')}
+                  class="gap-2.5"
+                >
+                  <Tag class="size-4" />
+                  <span>{$_('sidebar.tags')}</span>
+                </DropdownMenu.Item>
+              {/if}
             </DropdownMenu.Group>
             <DropdownMenu.Separator />
             <DropdownMenu.Label

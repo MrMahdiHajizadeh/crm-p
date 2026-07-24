@@ -210,8 +210,9 @@
   function formatMarkdown(text) {
     if (!text) return '';
 
-    let content = text;
-    const tableRegex = /\|(.+)\|[\r\n]+\|[-:| ]+\|[\r\n]+((?:\|.+\|[\r\n]*)+)/g;
+    let content = text.replace(/\r\n/g, '\n');
+
+    const tableRegex = /\|(.+)\|[\n]+\|[-:| ]+\|[\n]+((?:\|.+\|[\n]*)+)/g;
     content = content.replace(tableRegex, (match, headerRow, bodyRows) => {
       const headers = headerRow.split('|').map(h => h.trim()).filter(Boolean);
       const rows = bodyRows.trim().split('\n').map(r => r.split('|').map(c => c.trim()).filter(Boolean));
@@ -233,12 +234,14 @@
     });
 
     let formatted = content
-      .replace(/### (.*?)\n/g, '<h3 class="text-base font-bold text-amber-400 my-2 flex items-center gap-1.5"><span class="size-2 rounded-full bg-amber-500"></span>$1</h3>')
-      .replace(/#### (.*?)\n/g, '<h4 class="text-sm font-bold text-[var(--text-primary)] my-2 text-amber-300">$1</h4>')
+      .replace(/### (.*?)(?:\n|$)/g, '<h3 class="text-base font-bold text-amber-400 my-2 flex items-center gap-1.5"><span class="size-2 rounded-full bg-amber-500"></span>$1</h3>')
+      .replace(/#### (.*?)(?:\n|$)/g, '<h4 class="text-sm font-bold text-[var(--text-primary)] my-2 text-amber-300">$1</h4>')
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-[var(--text-primary)]">$1</strong>')
+      .replace(/`([^`]+)`/g, '<code class="bg-amber-500/10 text-amber-300 px-1.5 py-0.5 rounded text-xs font-mono">$1</code>')
       .replace(/\*(.*?)\*/g, '<em class="text-amber-200/80">$1</em>')
-      .replace(/> (.*?)\n/g, '<blockquote class="border-r-4 border-amber-500 bg-amber-500/10 px-3.5 py-2 my-2 text-xs rounded-l-lg text-[var(--text-secondary)]">$1</blockquote>')
-      .replace(/- (.*?)\n/g, '<li class="ms-4 list-disc text-xs sm:text-sm text-[var(--text-primary)] my-1">$1</li>');
+      .replace(/> (.*?)(?:\n|$)/g, '<blockquote class="border-r-4 border-amber-500 bg-amber-500/10 px-3.5 py-2 my-2 text-xs rounded-l-lg text-[var(--text-secondary)]">$1</blockquote>')
+      .replace(/- (.*?)(?:\n|$)/g, '<li class="ms-4 list-disc text-xs sm:text-sm text-[var(--text-primary)] my-1">$1</li>')
+      .replace(/\n/g, '<br />');
 
     return formatted;
   }

@@ -605,6 +605,18 @@ class AIEngineService:
             for l in leads.get("recent_sample", []):
                 content.append(f"| **{l['lead_title']}** | **{l['contact_person']}** | `{l['phone'] or '---'}` | `{l['email'] or '---'}` | {l['company'] or '---'} | {l['status']} | {l['assigned_to']} |")
 
+        elif "وظایف" in prompt_lower or "وظیفه" in prompt_lower or "پیگیری" in prompt_lower or "معوق" in prompt_lower or "عقب" in prompt_lower:
+            content.append(f"### 📋 گزارش و تحلیل وظایف و پیگیری‌های معوق ({snapshot['organization_name']})\n")
+            content.append(f"#### ⚠️ آمار پیگیری‌ها و وظایف:")
+            content.append(f"- **کل وظایف ثبت‌شده:** {tasks['total']} مورد")
+            content.append(f"- **وظایف عقب‌افتاده و معوق:** {tasks['overdue']} مورد\n")
+
+            content.append("#### 📝 لیست رکوردهای اخیر وظایف در دیتابیس:")
+            content.append("| عنوان وظیفه / پیگیری | وضعیت | اولویت | تاریخ سررسید |")
+            content.append("| :--- | :--- | :--- | :--- |")
+            for t in Task.objects.filter(org=org).order_by("due_date")[:15]:
+                content.append(f"| **{t.title}** | {t.status or '---'} | {t.priority or '---'} | `{t.due_date or '---'}` |")
+
         elif "اعضا" in prompt_lower or "کارشناس" in prompt_lower or "تیم" in prompt_lower or "عملکرد" in prompt_lower:
             content.append(f"### 👥 گزارش و تحلیل عملکرد تفکیکی اعضا و کارشناسان ({snapshot['organization_name']})\n")
             content.append("| نام کارشناس / عضو | نقش | سرنخ‌های تخصیص‌یافته | ارزش معامله‌ها | وظایف عقب‌افتاده | تعاملات ثبت‌شده |")

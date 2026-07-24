@@ -11,8 +11,8 @@
    * @property {import('svelte').Snippet} [children] - Child content
    */
 
-  /** @type {Props & { children?: import('svelte').Snippet }} */
-  let { user = {}, org_name = 'BottleCRM', org_settings = {}, children } = $props();
+  /** @type {Props & { profile?: Object, children?: import('svelte').Snippet }} */
+  let { user = {}, profile = {}, org_name = 'BottleCRM', org_settings = {}, children } = $props();
 
   // Get initial sidebar state from cookie (set by server or previous session)
   let defaultOpen = $state(true);
@@ -30,7 +30,7 @@
 </script>
 
 <Sidebar.Provider open={defaultOpen} class="" style="">
-  <AppSidebar {user} {org_name} {org_settings} />
+  <AppSidebar {user} {profile} {org_name} {org_settings} />
   <Sidebar.Inset class="">
     <MobileSidebarToggle />
     {@render children?.()}

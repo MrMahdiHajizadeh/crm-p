@@ -2,7 +2,13 @@ import { error, fail } from '@sveltejs/kit';
 import { apiRequest } from '$lib/api-helpers.js';
 
 /** @type {import('./$types').PageServerLoad} */
-export async function load({ cookies }) {
+export async function load({ cookies, locals }) {
+  const profile = locals.profile;
+  const isAdmin = profile?.role === 'ADMIN' || profile?.is_organization_admin || profile?.is_admin;
+  if (!isAdmin) {
+    throw error(403, 'Only admins can access organization settings');
+  }
+
   try {
     const response = await apiRequest('/org/settings/', {}, { cookies });
     return {
@@ -16,7 +22,12 @@ export async function load({ cookies }) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-  update: async ({ request, cookies }) => {
+  update: async ({ request, cookies, locals }) => {
+    const profile = locals.profile;
+    const isAdmin = profile?.role === 'ADMIN' || profile?.is_organization_admin || profile?.is_admin;
+    if (!isAdmin) {
+      return fail(403, { error: 'Only admins can update organization settings' });
+    }
     const formData = await request.formData();
 
     const data = {

@@ -12,6 +12,17 @@ from common.models import Tags
 from common.serializer import TagsSerializer
 
 
+def _is_admin_or_org_admin(request):
+    if not hasattr(request, "profile") or not request.profile:
+        return getattr(request.user, "is_superuser", False)
+    return (
+        request.profile.role == "ADMIN"
+        or getattr(request.profile, "is_organization_admin", False)
+        or getattr(request.profile, "is_admin", False)
+        or getattr(request.user, "is_superuser", False)
+    )
+
+
 class TagsListView(APIView, LimitOffsetPagination):
     model = Tags
     permission_classes = (IsAuthenticated,)
@@ -70,9 +81,9 @@ class TagsListView(APIView, LimitOffsetPagination):
         },
     )
     def post(self, request, *args, **kwargs):
-        """Create a new tag (admin only)."""
-        # Admin only for create
-        if request.profile.role != "ADMIN" and not request.user.is_superuser:
+        """Create a new tag (admin or org admin)."""
+        # Admin or Org Admin for create
+        if not _is_admin_or_org_admin(request):
             return Response(
                 {"error": True, "errors": "Only admins can create tags"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -190,7 +201,7 @@ class TagsDetailView(APIView):
     def put(self, request, pk, *args, **kwargs):
         """Update a tag (admin only)."""
         # Admin only
-        if request.profile.role != "ADMIN" and not request.user.is_superuser:
+        if not _is_admin_or_org_admin(request):
             return Response(
                 {"error": True, "errors": "Only admins can update tags"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -272,7 +283,7 @@ class TagsDetailView(APIView):
     def delete(self, request, pk, **kwargs):
         """Archive a tag - soft delete (admin only)."""
         # Admin only
-        if request.profile.role != "ADMIN" and not request.user.is_superuser:
+        if not _is_admin_or_org_admin(request):
             return Response(
                 {"error": True, "errors": "Only admins can archive tags"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -320,7 +331,7 @@ class TagsRestoreView(APIView):
     def post(self, request, pk, **kwargs):
         """Restore an archived tag (admin only)."""
         # Admin only
-        if request.profile.role != "ADMIN" and not request.user.is_superuser:
+        if not _is_admin_or_org_admin(request):
             return Response(
                 {"error": True, "errors": "Only admins can restore tags"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -346,3 +357,4 @@ class TagsRestoreView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+

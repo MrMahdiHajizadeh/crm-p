@@ -6,6 +6,10 @@ import { defineConfig, loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
+    server: {
+      host: true,
+      allowedHosts: true
+    },
     plugins: [sentrySvelteKit({
       org: "micropyramid-fa",
       project: "bottlecrm-app",

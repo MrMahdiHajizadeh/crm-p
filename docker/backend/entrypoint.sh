@@ -34,10 +34,13 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-echo "Starting server (Gunicorn)..."
+echo "Starting server (Gunicorn with Threaded Workers)..."
 exec gunicorn crm.wsgi:application \
     --bind 0.0.0.0:8000 \
     --workers 3 \
+    --threads 4 \
+    --worker-class gthread \
+    --worker-connections 1000 \
     --timeout 120 \
     --access-logfile - \
     --error-logfile -

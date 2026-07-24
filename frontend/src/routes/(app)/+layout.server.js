@@ -31,6 +31,7 @@ export async function load({ locals, cookies }) {
 
   return {
     user: locals.user,
+    profile: locals.profile || { role: 'USER' },
     org_id: locals.org?.id || null,
     org_name: locals.org_name || 'Emarat CRM',
     org_settings: orgSettings,

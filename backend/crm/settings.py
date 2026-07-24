@@ -51,6 +51,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django.middleware.gzip.GZipMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -107,6 +108,7 @@ def _build_database_config():
         return {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": _get_sqlite_path(),
+            "CONN_MAX_AGE": 600,
         }
 
     if db_engine == "django.db.backends.postgresql" or db_host:
@@ -117,6 +119,7 @@ def _build_database_config():
             "PASSWORD": os.environ.get("DBPASSWORD", "crm_password"),
             "HOST": db_host or "db",
             "PORT": os.environ.get("DBPORT", "5432"),
+            "CONN_MAX_AGE": int(os.environ.get("CONN_MAX_AGE", "600")),
             "OPTIONS": {
                 "sslmode": os.environ.get("DBSSLMODE", "prefer"),
             },
@@ -125,10 +128,30 @@ def _build_database_config():
     return {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": _get_sqlite_path(),
+        "CONN_MAX_AGE": 600,
     }
 
 
 DATABASES = {"default": _build_database_config()}
+
+# Redis Cache configuration
+_redis_url = os.environ.get("REDIS_URL") or os.environ.get("CELERY_BROKER_URL") or ""
+if _redis_url and not _redis_url.startswith("memory://"):
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": _redis_url,
+            "KEY_PREFIX": "bottlecrm",
+        }
+    }
+
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",
+        }
+    }
 
 
 # Password validation
@@ -192,10 +215,16 @@ if "django_ses" in EMAIL_BACKEND:
 # celery Tasks
 # In development, use eager execution so Redis is not required.
 # Set CELERY_BROKER_URL env var (e.g. "redis://localhost:6379/0") in production.
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "memory://")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
-CELERY_TASK_ALWAYS_EAGER = True
-CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
+
+if CELERY_BROKER_URL and not CELERY_BROKER_URL.startswith("memory://"):
+    CELERY_TASK_ALWAYS_EAGER = False
+    CELERY_TASK_EAGER_PROPAGATES = False
+else:
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
+
 
 
 LOGGING = {

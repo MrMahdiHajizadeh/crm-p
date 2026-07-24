@@ -25,8 +25,12 @@ export async function GET({ cookies, request, locals }) {
     });
 
     if (!upstream.ok || !upstream.body) {
-      return new Response(`Upstream error: ${upstream.status}`, {
-        status: upstream.status || 502
+      return new Response(': keepalive\n\n', {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform'
+        }
       });
     }
 
@@ -39,6 +43,15 @@ export async function GET({ cookies, request, locals }) {
       }
     });
   } catch (err) {
-    return new Response('Stream unavailable', { status: 503 });
+    if (err?.name === 'AbortError' || request.signal.aborted) {
+      return new Response(null, { status: 204 });
+    }
+    return new Response(': keepalive\n\n', {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform'
+      }
+    });
   }
 }
