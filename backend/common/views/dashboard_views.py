@@ -77,10 +77,10 @@ class ApiHomeView(APIView):
         context["contacts_count"] = contacts.count()
         context["leads_count"] = leads.count()
         context["opportunities_count"] = opportunities.count()
-        context["accounts"] = AccountSerializer(accounts, many=True).data
-        context["contacts"] = ContactSerializer(contacts, many=True).data
-        context["leads"] = LeadSerializer(leads, many=True).data
-        context["opportunities"] = OpportunitySerializer(opportunities, many=True).data
+        context["accounts"] = AccountSerializer(accounts[:10], many=True).data
+        context["contacts"] = ContactSerializer(contacts[:10], many=True).data
+        context["leads"] = LeadSerializer(leads[:50], many=True).data
+        context["opportunities"] = OpportunitySerializer(opportunities[:10], many=True).data
 
         # NEW: Urgent counts for Focus Bar
         overdue_tasks = tasks.filter(
@@ -287,7 +287,7 @@ class ApiHomeView(APIView):
         if is_admin:
             profiles_qs = Profile.objects.filter(
                 org=org, is_active=True
-            ).select_related("user")
+            ).select_related("user")[:10]
             for p in profiles_qs:
                 user_stats = compute_user_stats(p.user)
                 team_members.append({

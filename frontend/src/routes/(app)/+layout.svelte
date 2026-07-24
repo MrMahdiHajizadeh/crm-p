@@ -1,5 +1,6 @@
 <script>
   import '../../app.css';
+  import { navigating } from '$app/stores';
   import { AppShell } from '$lib/components/layout/index.js';
   import Toast from '$lib/components/ui/toast/toast.svelte';
   import { initOrgSettings } from '$lib/stores/org.js';
@@ -22,6 +23,10 @@
     }
   });
 </script>
+
+{#if $navigating}
+  <div class="fixed top-0 left-0 right-0 z-[9999] h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-300 animate-pulse shadow-md"></div>
+{/if}
 
 <AppShell user={data.user} profile={data.profile} org_name={data.org_name} org_settings={data.org_settings}>
   <main class="relative flex-1">

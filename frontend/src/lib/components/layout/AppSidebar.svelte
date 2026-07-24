@@ -189,22 +189,22 @@
 
   // Five-section IA per spec §4
   const workspaceItems = [
-    { href: '/', label: 'sidebar.home', icon: Home, type: 'link', preload: 'off', count: undefined }
+    { href: '/', label: 'sidebar.home', icon: Home, type: 'link', preload: 'hover', count: undefined }
   ];
 
   const recordsItems = [
-    { href: '/leads', label: 'sidebar.leads', icon: Target, type: 'link', preload: 'off', count: undefined },
-    { href: '/contacts', label: 'sidebar.contacts', icon: Users, type: 'link', preload: 'off', count: undefined },
-    { href: '/accounts', label: 'sidebar.accounts', icon: Building, type: 'link', preload: 'off', count: undefined },
-    { href: '/opportunities', label: 'sidebar.deals', icon: Sparkles, type: 'link', preload: 'off', count: undefined, featureFlag: 'opportunities_enabled' }
+    { href: '/leads', label: 'sidebar.leads', icon: Target, type: 'link', preload: 'hover', count: undefined },
+    { href: '/contacts', label: 'sidebar.contacts', icon: Users, type: 'link', preload: 'hover', count: undefined },
+    { href: '/accounts', label: 'sidebar.accounts', icon: Building, type: 'link', preload: 'hover', count: undefined },
+    { href: '/opportunities', label: 'sidebar.deals', icon: Sparkles, type: 'link', preload: 'hover', count: undefined, featureFlag: 'opportunities_enabled' }
   ];
 
   const workItems = [];
 
   const managementItems = [
-    { href: '/follow-ups', label: 'sidebar.follow_ups', icon: Clock, type: 'link', preload: 'off', count: undefined },
-    { href: '/supervision', label: 'sidebar.supervision', icon: Activity, type: 'link', preload: 'off', count: undefined },
-    { href: '/ai-assistant', label: 'sidebar.ai_assistant', icon: Sparkles, type: 'link', preload: 'off', count: undefined },
+    { href: '/follow-ups', label: 'sidebar.follow_ups', icon: Clock, type: 'link', preload: 'hover', count: undefined },
+    { href: '/supervision', label: 'sidebar.supervision', icon: Activity, type: 'link', preload: 'hover', count: undefined },
+    { href: '/ai-assistant', label: 'sidebar.ai_assistant', icon: Sparkles, type: 'link', preload: 'hover', count: undefined },
   ];
 
   const revenueItems = [
@@ -216,12 +216,12 @@
       count: undefined,
       featureFlag: 'invoices_enabled',
       children: [
-        { href: '/invoices', label: 'sidebar.all_invoices', icon: FileText, preload: 'off', count: undefined },
-        { href: '/invoices/estimates', label: 'sidebar.estimates', icon: FileEdit, preload: 'off', count: undefined },
-        { href: '/invoices/products', label: 'sidebar.products', icon: Package, preload: 'off', count: undefined },
-        { href: '/invoices/recurring', label: 'sidebar.recurring', icon: RefreshCw, preload: 'off', count: undefined },
-        { href: '/invoices/templates', label: 'sidebar.templates', icon: FileCode, preload: 'off', count: undefined },
-        { href: '/invoices/reports', label: 'sidebar.reports', icon: BarChart3, preload: 'off', count: undefined }
+        { href: '/invoices', label: 'sidebar.all_invoices', icon: FileText, preload: 'hover', count: undefined },
+        { href: '/invoices/estimates', label: 'sidebar.estimates', icon: FileEdit, preload: 'hover', count: undefined },
+        { href: '/invoices/products', label: 'sidebar.products', icon: Package, preload: 'hover', count: undefined },
+        { href: '/invoices/recurring', label: 'sidebar.recurring', icon: RefreshCw, preload: 'hover', count: undefined },
+        { href: '/invoices/templates', label: 'sidebar.templates', icon: FileCode, preload: 'hover', count: undefined },
+        { href: '/invoices/reports', label: 'sidebar.reports', icon: BarChart3, preload: 'hover', count: undefined }
       ]
     }
   ];
