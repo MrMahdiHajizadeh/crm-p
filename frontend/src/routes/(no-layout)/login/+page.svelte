@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation';
   import { _ } from '$lib/i18n';
   import imgLogo from '$lib/assets/images/logo.png';
-  import { ArrowRight, Smartphone, Lock, AlertCircle, MessageSquareText } from '@lucide/svelte';
+  import { ArrowRight, Smartphone, Lock, AlertCircle, MessageSquareText, Loader2 } from '@lucide/svelte';
 
   let { form, data } = $props();
 
@@ -46,11 +46,6 @@
   function switchToPassword() {
     loginMode = 'password';
     otpSent = false;
-  }
-
-  function handleOtpRequest() {
-    isSubmitting = true;
-    // The form submission is handled by use:enhance
   }
 </script>
 
@@ -94,7 +89,18 @@
       </div>
 
       {#if loginMode === 'password'}
-        <form method="POST" action="?/password" use:enhance class="login-form">
+        <form
+          method="POST"
+          action="?/password"
+          use:enhance={() => {
+            isSubmitting = true;
+            return async ({ update }) => {
+              isSubmitting = false;
+              await update();
+            };
+          }}
+          class="login-form"
+        >
           <div class="input-group">
             <label for="phone" class="input-label">{$_('login.phone_label')}</label>
             <div class="input-wrapper">
@@ -138,7 +144,7 @@
 
           <button type="submit" class="submit-btn" disabled={isSubmitting}>
             {#if isSubmitting}
-              <span class="spinner"></span>
+              <Loader2 class="spinner animate-spin" size={18} />
               <span>{$_('login.submitting_login')}</span>
             {:else}
               <span>{$_('login.submit_login')}</span>
@@ -147,7 +153,18 @@
           </button>
         </form>
       {:else if loginMode === 'otp'}
-        <form method="POST" action="?/requestOTP" use:enhance class="login-form">
+        <form
+          method="POST"
+          action="?/requestOTP"
+          use:enhance={() => {
+            isSubmitting = true;
+            return async ({ update }) => {
+              isSubmitting = false;
+              await update();
+            };
+          }}
+          class="login-form"
+        >
           <div class="input-group">
             <label for="otp-phone" class="input-label">{$_('login.phone_label')}</label>
             <div class="input-wrapper">
@@ -181,9 +198,9 @@
               <p class="hint-text">{$_('login.otp_code_hint', { phone: otpPhone })}</p>
             {/if}
           {:else}
-            <button type="submit" class="submit-btn" onclick={handleOtpRequest} disabled={isSubmitting}>
+            <button type="submit" class="submit-btn" disabled={isSubmitting}>
               {#if isSubmitting}
-                <span class="spinner"></span>
+                <Loader2 class="spinner animate-spin" size={18} />
                 <span>{$_('login.sending_code')}</span>
               {:else}
                 <span>{$_('login.submit_send_code')}</span>
@@ -194,7 +211,19 @@
         </form>
 
         {#if otpSent}
-          <form method="POST" action="?/verifyOTP" use:enhance class="login-form" style="margin-top: 1rem">
+          <form
+            method="POST"
+            action="?/verifyOTP"
+            use:enhance={() => {
+              isSubmitting = true;
+              return async ({ update }) => {
+                isSubmitting = false;
+                await update();
+              };
+            }}
+            class="login-form"
+            style="margin-top: 1rem"
+          >
             <input type="hidden" name="phone" value={otpPhone} />
             <div class="input-group">
               <label for="otp-code" class="input-label">{$_('login.otp_code_label')}</label>
@@ -216,7 +245,7 @@
             </div>
             <button type="submit" class="submit-btn" disabled={isSubmitting}>
               {#if isSubmitting}
-                <span class="spinner"></span>
+                <Loader2 class="spinner animate-spin" size={18} />
                 <span>{$_('login.submitting_login')}</span>
               {:else}
                 <span>{$_('login.submit_login')}</span>

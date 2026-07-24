@@ -28,6 +28,14 @@
   let { data } = $props();
 
   const user = $derived(data.user || {});
+  const profile = $derived(data.profile || {});
+  const isAdmin = $derived(
+    profile?.role === 'ADMIN' ||
+    Boolean(profile?.is_organization_admin) ||
+    Boolean(profile?.is_admin) ||
+    Boolean(user?.is_admin)
+  );
+
   const metrics = $derived(data.metrics || {});
   const recentData = $derived(data.recentData || {});
   const urgentCounts = $derived(data.urgentCounts || {});
@@ -494,309 +502,311 @@
     </div>
 
     <!-- ADMIN EXCLUSIVE: Interactive Timeframe & Pie Chart Visualizer -->
-    <div class="rounded-2xl border border-amber-500/20 bg-[var(--bg-subtle)] p-6 shadow-sm">
-      <div class="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-        <div class="flex items-center gap-3">
-          <div class="flex size-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
-            <PieChart class="size-5" />
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-[var(--text-primary)]">نمودارهای دایره‌ای (Pie Chart) سهم کارشناسان</h2>
-            <p class="text-xs text-[var(--text-secondary)]">تحلیل بصری سهم سرنخ‌ها و پیگیری‌ها به تفکیک امروز، این هفته، این ماه و کل</p>
-          </div>
-        </div>
-
-        <!-- Interactive Timeframe Filter Tabs -->
-        <div class="flex flex-wrap items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-muted)]/60 p-1 overflow-x-auto">
-          <button
-            type="button"
-            onclick={() => (selectedTimeframe = 'today')}
-            class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all {selectedTimeframe === 'today' ? 'bg-amber-500 font-bold text-black shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
-          >
-            امروز
-          </button>
-          <button
-            type="button"
-            onclick={() => (selectedTimeframe = 'week')}
-            class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all {selectedTimeframe === 'week' ? 'bg-amber-500 font-bold text-black shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
-          >
-            این هفته
-          </button>
-          <button
-            type="button"
-            onclick={() => (selectedTimeframe = 'month')}
-            class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all {selectedTimeframe === 'month' ? 'bg-amber-500 font-bold text-black shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
-          >
-            این ماه
-          </button>
-          <button
-            type="button"
-            onclick={() => (selectedTimeframe = 'total')}
-            class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all {selectedTimeframe === 'total' ? 'bg-amber-500 font-bold text-black shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
-          >
-            کل (تجمعی)
-          </button>
-        </div>
-      </div>
-
-      <!-- Donut / Pie Charts Grid (Side by Side) -->
-      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-        <!-- Lead Share Pie Chart Card -->
-        <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-muted)]/40 p-5">
-          <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-[var(--text-primary)]">
-              سهم از کل سرنخ‌ها
-              <span class="text-amber-400">({selectedTimeframe === 'today' ? 'امروز' : selectedTimeframe === 'week' ? 'این هفته' : selectedTimeframe === 'month' ? 'این ماه' : 'کل'})</span>
-            </h3>
-            <span class="text-xs font-bold text-[var(--text-secondary)]">{totalPieLeads} سرنخ</span>
-          </div>
-
-          <div class="flex flex-col items-center justify-center gap-6 sm:flex-row">
-            <!-- SVG Donut Chart for Leads -->
-            <div class="relative flex size-44 shrink-0 items-center justify-center">
-              <svg viewBox="0 0 100 100" class="size-full -rotate-90">
-                {#each leadPieSegments as seg}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="transparent"
-                    stroke={seg.color}
-                    stroke-width="12"
-                    stroke-dasharray="{seg.dashLength} {C}"
-                    stroke-dashoffset={-seg.offset}
-                    class="transition-all duration-500 hover:opacity-80"
-                  />
-                {/each}
-              </svg>
-              <div class="absolute flex flex-col items-center text-center">
-                <span class="text-2xl font-bold text-[var(--text-primary)]">{totalPieLeads}</span>
-                <span class="text-[10px] text-[var(--text-tertiary)]">سرنخ</span>
-              </div>
-            </div>
-
-            <!-- Pie Chart Legend List -->
-            <div class="w-full space-y-2 text-xs">
-              {#each leadPieSegments as item}
-                <div class="flex items-center justify-between border-b border-[var(--border-subtle)]/40 pb-1.5">
-                  <div class="flex items-center gap-2">
-                    <span class="size-2.5 rounded-full" style="background-color: {item.color}"></span>
-                    <span class="font-medium text-[var(--text-primary)]">{item.name}</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="font-bold text-[var(--text-primary)]">{item.count}</span>
-                    <span class="text-[10px] font-semibold text-amber-400">({item.share}%)</span>
-                  </div>
-                </div>
-              {:else}
-                <p class="py-4 text-center text-[11px] text-[var(--text-tertiary)]">سرنخی در این بازه ثبت نشده است.</p>
-              {/each}
-            </div>
-          </div>
-        </div>
-
-        <!-- Follow-up Share Pie Chart Card -->
-        <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-muted)]/40 p-5">
-          <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-[var(--text-primary)]">
-              سهم از کل پیگیری‌ها
-              <span class="text-emerald-400">({selectedTimeframe === 'today' ? 'امروز' : selectedTimeframe === 'week' ? 'این هفته' : selectedTimeframe === 'month' ? 'این ماه' : 'کل'})</span>
-            </h3>
-            <span class="text-xs font-bold text-[var(--text-secondary)]">{totalPieFollowups} پیگیری</span>
-          </div>
-
-          <div class="flex flex-col items-center justify-center gap-6 sm:flex-row">
-            <!-- SVG Donut Chart for Followups -->
-            <div class="relative flex size-44 shrink-0 items-center justify-center">
-              <svg viewBox="0 0 100 100" class="size-full -rotate-90">
-                {#each followupPieSegments as seg}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="transparent"
-                    stroke={seg.color}
-                    stroke-width="12"
-                    stroke-dasharray="{seg.dashLength} {C}"
-                    stroke-dashoffset={-seg.offset}
-                    class="transition-all duration-500 hover:opacity-80"
-                  />
-                {/each}
-              </svg>
-              <div class="absolute flex flex-col items-center text-center">
-                <span class="text-2xl font-bold text-[var(--text-primary)]">{totalPieFollowups}</span>
-                <span class="text-[10px] text-[var(--text-tertiary)]">پیگیری</span>
-              </div>
-            </div>
-
-            <!-- Pie Chart Legend List -->
-            <div class="w-full space-y-2 text-xs">
-              {#each followupPieSegments as item}
-                <div class="flex items-center justify-between border-b border-[var(--border-subtle)]/40 pb-1.5">
-                  <div class="flex items-center gap-2">
-                    <span class="size-2.5 rounded-full" style="background-color: {item.color}"></span>
-                    <span class="font-medium text-[var(--text-primary)]">{item.name}</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="font-bold text-[var(--text-primary)]">{item.count}</span>
-                    <span class="text-[10px] font-semibold text-emerald-400">({item.share}%)</span>
-                  </div>
-                </div>
-              {:else}
-                <p class="py-4 text-center text-[11px] text-[var(--text-tertiary)]">پیگیری در این بازه ثبت نشده است.</p>
-              {/each}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Top Performer Highlight -->
-      {#if topPerformer}
-        <div class="mb-6 flex items-center justify-between rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4">
+    {#if isAdmin}
+      <div class="rounded-2xl border border-amber-500/20 bg-[var(--bg-subtle)] p-6 shadow-sm">
+        <div class="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-full bg-amber-500 text-black">
-              <Trophy class="size-5" />
+            <div class="flex size-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400">
+              <PieChart class="size-5" />
             </div>
             <div>
-              <span class="text-[11px] font-semibold uppercase text-amber-400">کارشناس برتر</span>
-              <h3 class="text-base font-bold text-[var(--text-primary)]">{topPerformer.user_name}</h3>
-              <p class="text-xs text-[var(--text-tertiary)]">
-                {topPerformer.leads?.total || 0} سرنخ تحت مدیریت • {topPerformer.followups?.total || 0} پیگیری ثبت‌شده
-              </p>
+              <h2 class="text-lg font-bold text-[var(--text-primary)]">نمودارهای دایره‌ای (Pie Chart) سهم کارشناسان</h2>
+              <p class="text-xs text-[var(--text-secondary)]">تحلیل بصری سهم سرنخ‌ها و پیگیری‌ها به تفکیک امروز، این هفته، این ماه و کل</p>
             </div>
           </div>
-          <Badge class="border-amber-500/30 bg-amber-500/20 text-amber-300">
-            امتیاز فعالیت: {topPerformer.totalActivityScore}
-          </Badge>
+
+          <!-- Interactive Timeframe Filter Tabs -->
+          <div class="flex flex-wrap items-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-muted)]/60 p-1 overflow-x-auto">
+            <button
+              type="button"
+              onclick={() => (selectedTimeframe = 'today')}
+              class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all {selectedTimeframe === 'today' ? 'bg-amber-500 font-bold text-black shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
+            >
+              امروز
+            </button>
+            <button
+              type="button"
+              onclick={() => (selectedTimeframe = 'week')}
+              class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all {selectedTimeframe === 'week' ? 'bg-amber-500 font-bold text-black shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
+            >
+              این هفته
+            </button>
+            <button
+              type="button"
+              onclick={() => (selectedTimeframe = 'month')}
+              class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all {selectedTimeframe === 'month' ? 'bg-amber-500 font-bold text-black shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
+            >
+              این ماه
+            </button>
+            <button
+              type="button"
+              onclick={() => (selectedTimeframe = 'total')}
+              class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all {selectedTimeframe === 'total' ? 'bg-amber-500 font-bold text-black shadow-sm' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}"
+            >
+              کل (تجمعی)
+            </button>
+          </div>
         </div>
-      {/if}
 
-      <!-- Visualized Team Members Table with Individual Multivariate Sparkline Chart Column -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-right text-xs">
-          <thead>
-            <tr class="border-b border-[var(--border-subtle)] text-[var(--text-tertiary)]">
-              <th class="pb-3 pt-2 font-semibold">نام کارشناس</th>
-              <th class="pb-3 pt-2 font-semibold">نقش</th>
-              <th class="pb-3 pt-2 font-semibold">وضعیت فعالیت</th>
-              <!-- Multivariate Trend Line Column -->
-              <th class="pb-3 pt-2 font-semibold">
-                روند کارکرد در طول زمان
-                <div class="flex items-center gap-2 text-[9px] font-normal text-[var(--text-tertiary)]">
-                  <span class="flex items-center gap-1 text-amber-400"><span class="size-1.5 rounded-full bg-amber-500"></span> سرنخ‌ها</span>
-                  <span class="flex items-center gap-1 text-emerald-400"><span class="size-1.5 rounded-full bg-emerald-500"></span> پیگیری‌ها</span>
-                  <span class="flex items-center gap-1 text-blue-400"><span class="size-1.5 rounded-full bg-blue-500"></span> مخاطبان</span>
+        <!-- Donut / Pie Charts Grid (Side by Side) -->
+        <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+          <!-- Lead Share Pie Chart Card -->
+          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-muted)]/40 p-5">
+            <div class="mb-4 flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-[var(--text-primary)]">
+                سهم از کل سرنخ‌ها
+                <span class="text-amber-400">({selectedTimeframe === 'today' ? 'امروز' : selectedTimeframe === 'week' ? 'این هفته' : selectedTimeframe === 'month' ? 'این ماه' : 'کل'})</span>
+              </h3>
+              <span class="text-xs font-bold text-[var(--text-secondary)]">{totalPieLeads} سرنخ</span>
+            </div>
+
+            <div class="flex flex-col items-center justify-center gap-6 sm:flex-row">
+              <!-- SVG Donut Chart for Leads -->
+              <div class="relative flex size-44 shrink-0 items-center justify-center">
+                <svg viewBox="0 0 100 100" class="size-full -rotate-90">
+                  {#each leadPieSegments as seg}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="transparent"
+                      stroke={seg.color}
+                      stroke-width="12"
+                      stroke-dasharray="{seg.dashLength} {C}"
+                      stroke-dashoffset={-seg.offset}
+                      class="transition-all duration-500 hover:opacity-80"
+                    />
+                  {/each}
+                </svg>
+                <div class="absolute flex flex-col items-center text-center">
+                  <span class="text-2xl font-bold text-[var(--text-primary)]">{totalPieLeads}</span>
+                  <span class="text-[10px] text-[var(--text-tertiary)]">سرنخ</span>
                 </div>
-              </th>
-              <!-- Equal Share Column 1: Lead Share -->
-              <th class="pb-3 pt-2 font-semibold">
-                سهم سرنخ‌ها
-                <span class="text-[10px] text-amber-400">
-                  ({selectedTimeframe === 'today' ? 'امروز' : selectedTimeframe === 'week' ? 'این هفته' : selectedTimeframe === 'month' ? 'این ماه' : 'کل'})
-                </span>
-              </th>
-              <!-- Equal Share Column 2: Followup Share -->
-              <th class="pb-3 pt-2 font-semibold">
-                سهم پیگیری‌ها
-                <span class="text-[10px] text-emerald-400">
-                  ({selectedTimeframe === 'today' ? 'امروز' : selectedTimeframe === 'week' ? 'این هفته' : selectedTimeframe === 'month' ? 'این ماه' : 'کل'})
-                </span>
-              </th>
-              <th class="pb-3 pt-2 font-semibold">مخاطبین</th>
-              <th class="pb-3 pt-2 font-semibold">شرکت‌ها</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-[var(--border-subtle)] text-[var(--text-secondary)]">
-            {#each teamMembers as member}
-              {@const maxVal = getMemberMaxVal(member)}
-              {@const leadsPath = buildSparklinePath(member.trends?.leads || [], 120, 36, maxVal)}
-              {@const followupsPath = buildSparklinePath(member.trends?.followups || [], 120, 36, maxVal)}
-              {@const contactsPath = buildSparklinePath(member.trends?.contacts || [], 120, 36, maxVal)}
+              </div>
 
-              {@const leadCount = selectedTimeframe === 'today' ? member.leads.today : selectedTimeframe === 'week' ? member.leads.week : selectedTimeframe === 'month' ? member.leads.month : member.leads.total}
-              {@const leadShare = selectedTimeframe === 'today' ? member.leads.shareToday : selectedTimeframe === 'week' ? member.leads.shareWeek : selectedTimeframe === 'month' ? member.leads.shareMonth : member.leads.shareTotal}
-
-              {@const followupCount = selectedTimeframe === 'today' ? member.followups.today : selectedTimeframe === 'week' ? member.followups.week : selectedTimeframe === 'month' ? member.followups.shareMonth : member.followups.shareTotal}
-              {@const followupShare = selectedTimeframe === 'today' ? member.followups.shareToday : selectedTimeframe === 'week' ? member.followups.shareWeek : selectedTimeframe === 'month' ? member.followups.shareMonth : member.followups.shareTotal}
-
-              <tr class="transition-colors hover:bg-[var(--bg-muted)]/40">
-                <td class="py-3.5">
-                  <div class="flex items-center gap-2.5">
-                    <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15 font-bold text-amber-400">
-                      {(member.user_name || 'U').charAt(0).toUpperCase()}
+              <!-- Pie Chart Legend List -->
+              <div class="w-full space-y-2 text-xs">
+                {#each leadPieSegments as item}
+                  <div class="flex items-center justify-between border-b border-[var(--border-subtle)]/40 pb-1.5">
+                    <div class="flex items-center gap-2">
+                      <span class="size-2.5 rounded-full" style="background-color: {item.color}"></span>
+                      <span class="font-medium text-[var(--text-primary)]">{item.name}</span>
                     </div>
-                    <div>
-                      <p class="font-semibold text-[var(--text-primary)]">{member.user_name}</p>
-                      <p class="text-[11px] text-[var(--text-tertiary)]">{member.user_email}</p>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-[var(--text-primary)]">{item.count}</span>
+                      <span class="text-[10px] font-semibold text-amber-400">({item.share}%)</span>
                     </div>
                   </div>
-                </td>
-                <td class="py-3.5">
-                  <span class="inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium {member.role === 'ADMIN' ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : 'bg-blue-500/15 text-blue-400 border-blue-500/30'}">
-                    {member.role === 'ADMIN' ? 'مدیر' : 'کارشناس'}
+                {:else}
+                  <p class="py-4 text-center text-[11px] text-[var(--text-tertiary)]">سرنخی در این بازه ثبت نشده است.</p>
+                {/each}
+              </div>
+            </div>
+          </div>
+
+          <!-- Follow-up Share Pie Chart Card -->
+          <div class="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-muted)]/40 p-5">
+            <div class="mb-4 flex items-center justify-between">
+              <h3 class="text-sm font-semibold text-[var(--text-primary)]">
+                سهم از کل پیگیری‌ها
+                <span class="text-emerald-400">({selectedTimeframe === 'today' ? 'امروز' : selectedTimeframe === 'week' ? 'این هفته' : selectedTimeframe === 'month' ? 'این ماه' : 'کل'})</span>
+              </h3>
+              <span class="text-xs font-bold text-[var(--text-secondary)]">{totalPieFollowups} پیگیری</span>
+            </div>
+
+            <div class="flex flex-col items-center justify-center gap-6 sm:flex-row">
+              <!-- SVG Donut Chart for Followups -->
+              <div class="relative flex size-44 shrink-0 items-center justify-center">
+                <svg viewBox="0 0 100 100" class="size-full -rotate-90">
+                  {#each followupPieSegments as seg}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      fill="transparent"
+                      stroke={seg.color}
+                      stroke-width="12"
+                      stroke-dasharray="{seg.dashLength} {C}"
+                      stroke-dashoffset={-seg.offset}
+                      class="transition-all duration-500 hover:opacity-80"
+                    />
+                  {/each}
+                </svg>
+                <div class="absolute flex flex-col items-center text-center">
+                  <span class="text-2xl font-bold text-[var(--text-primary)]">{totalPieFollowups}</span>
+                  <span class="text-[10px] text-[var(--text-tertiary)]">پیگیری</span>
+                </div>
+              </div>
+
+              <!-- Pie Chart Legend List -->
+              <div class="w-full space-y-2 text-xs">
+                {#each followupPieSegments as item}
+                  <div class="flex items-center justify-between border-b border-[var(--border-subtle)]/40 pb-1.5">
+                    <div class="flex items-center gap-2">
+                      <span class="size-2.5 rounded-full" style="background-color: {item.color}"></span>
+                      <span class="font-medium text-[var(--text-primary)]">{item.name}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-[var(--text-primary)]">{item.count}</span>
+                      <span class="text-[10px] font-semibold text-emerald-400">({item.share}%)</span>
+                    </div>
+                  </div>
+                {:else}
+                  <p class="py-4 text-center text-[11px] text-[var(--text-tertiary)]">پیگیری در این بازه ثبت نشده است.</p>
+                {/each}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Performer Highlight -->
+        {#if topPerformer}
+          <div class="mb-6 flex items-center justify-between rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4">
+            <div class="flex items-center gap-3">
+              <div class="flex size-10 items-center justify-center rounded-full bg-amber-500 text-black">
+                <Trophy class="size-5" />
+              </div>
+              <div>
+                <span class="text-[11px] font-semibold uppercase text-amber-400">کارشناس برتر</span>
+                <h3 class="text-base font-bold text-[var(--text-primary)]">{topPerformer.user_name}</h3>
+                <p class="text-xs text-[var(--text-tertiary)]">
+                  {topPerformer.leads?.total || 0} سرنخ تحت مدیریت • {topPerformer.followups?.total || 0} پیگیری ثبت‌شده
+                </p>
+              </div>
+            </div>
+            <Badge class="border-amber-500/30 bg-amber-500/20 text-amber-300">
+              امتیاز فعالیت: {topPerformer.totalActivityScore}
+            </Badge>
+          </div>
+        {/if}
+
+        <!-- Visualized Team Members Table with Individual Multivariate Sparkline Chart Column -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-right text-xs">
+            <thead>
+              <tr class="border-b border-[var(--border-subtle)] text-[var(--text-tertiary)]">
+                <th class="pb-3 pt-2 font-semibold">نام کارشناس</th>
+                <th class="pb-3 pt-2 font-semibold">نقش</th>
+                <th class="pb-3 pt-2 font-semibold">وضعیت فعالیت</th>
+                <!-- Multivariate Trend Line Column -->
+                <th class="pb-3 pt-2 font-semibold">
+                  روند کارکرد در طول زمان
+                  <div class="flex items-center gap-2 text-[9px] font-normal text-[var(--text-tertiary)]">
+                    <span class="flex items-center gap-1 text-amber-400"><span class="size-1.5 rounded-full bg-amber-500"></span> سرنخ‌ها</span>
+                    <span class="flex items-center gap-1 text-emerald-400"><span class="size-1.5 rounded-full bg-emerald-500"></span> پیگیری‌ها</span>
+                    <span class="flex items-center gap-1 text-blue-400"><span class="size-1.5 rounded-full bg-blue-500"></span> مخاطبان</span>
+                  </div>
+                </th>
+                <!-- Equal Share Column 1: Lead Share -->
+                <th class="pb-3 pt-2 font-semibold">
+                  سهم سرنخ‌ها
+                  <span class="text-[10px] text-amber-400">
+                    ({selectedTimeframe === 'today' ? 'امروز' : selectedTimeframe === 'week' ? 'این هفته' : selectedTimeframe === 'month' ? 'این ماه' : 'کل'})
                   </span>
-                </td>
-                <td class="py-3.5">
-                  <span class="inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium {member.activityBadgeClass}">
-                    {member.activityLevel}
+                </th>
+                <!-- Equal Share Column 2: Followup Share -->
+                <th class="pb-3 pt-2 font-semibold">
+                  سهم پیگیری‌ها
+                  <span class="text-[10px] text-emerald-400">
+                    ({selectedTimeframe === 'today' ? 'امروز' : selectedTimeframe === 'week' ? 'این هفته' : selectedTimeframe === 'month' ? 'این ماه' : 'کل'})
                   </span>
-                </td>
-
-                <!-- INDIVIDUAL MULTIVARIATE TREND SVG SPARKLINE COLUMN -->
-                <td class="py-3.5 min-w-[130px]">
-                  <button
-                    type="button"
-                    onclick={() => (activeTrendModalMember = member)}
-                    class="group relative flex items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-muted)]/50 p-1.5 transition-colors hover:border-amber-500/50 hover:bg-[var(--bg-muted)]"
-                    title="برای مشاهده جزئیات نمودار تفکیکی کلیک کنید"
-                  >
-                    <svg viewBox="0 0 120 36" style="direction: ltr;" class="h-9 w-28 overflow-visible">
-                      <!-- Leads Trend Line (Amber) -->
-                      <path d={leadsPath} fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                      <!-- Followups Trend Line (Emerald) -->
-                      <path d={followupsPath} fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 1" />
-                      <!-- Contacts Trend Line (Blue) -->
-                      <path d={contactsPath} fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </button>
-                </td>
-
-                <!-- Equal Share Visual Bar 1: Lead Share -->
-                <td class="py-3.5 min-w-[140px]">
-                  <div class="flex items-center gap-2">
-                    <div class="h-2 w-16 overflow-hidden rounded-full bg-[var(--bg-muted)]">
-                      <div class="h-full bg-amber-500" style="width: {Math.max(4, leadShare)}%"></div>
-                    </div>
-                    <span class="font-bold text-[var(--text-primary)]">{leadCount}</span>
-                    <span class="text-[10px] text-amber-400">({leadShare}%)</span>
-                  </div>
-                </td>
-
-                <!-- Equal Share Visual Bar 2: Followup Share -->
-                <td class="py-3.5 min-w-[140px]">
-                  <div class="flex items-center gap-2">
-                    <div class="h-2 w-16 overflow-hidden rounded-full bg-[var(--bg-muted)]">
-                      <div class="h-full bg-emerald-500" style="width: {Math.max(4, followupShare)}%"></div>
-                    </div>
-                    <span class="font-bold text-[var(--text-primary)]">{followupCount}</span>
-                    <span class="text-[10px] text-emerald-400">({followupShare}%)</span>
-                  </div>
-                </td>
-
-                <td class="py-3.5 font-medium">{member.stats?.contacts_count || 0}</td>
-                <td class="py-3.5 font-medium">{member.stats?.accounts_count || 0}</td>
+                </th>
+                <th class="pb-3 pt-2 font-semibold">مخاطبین</th>
+                <th class="pb-3 pt-2 font-semibold">شرکت‌ها</th>
               </tr>
-            {:else}
-              <tr>
-                <td colspan="8" class="py-6 text-center text-[var(--text-tertiary)]">
-                  اطلاعات کارکرد اعضای تیم در دسترس نیست.
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
+            </thead>
+            <tbody class="divide-y divide-[var(--border-subtle)] text-[var(--text-secondary)]">
+              {#each teamMembers as member}
+                {@const maxVal = getMemberMaxVal(member)}
+                {@const leadsPath = buildSparklinePath(member.trends?.leads || [], 120, 36, maxVal)}
+                {@const followupsPath = buildSparklinePath(member.trends?.followups || [], 120, 36, maxVal)}
+                {@const contactsPath = buildSparklinePath(member.trends?.contacts || [], 120, 36, maxVal)}
+
+                {@const leadCount = selectedTimeframe === 'today' ? member.leads.today : selectedTimeframe === 'week' ? member.leads.week : selectedTimeframe === 'month' ? member.leads.month : member.leads.total}
+                {@const leadShare = selectedTimeframe === 'today' ? member.leads.shareToday : selectedTimeframe === 'week' ? member.leads.shareWeek : selectedTimeframe === 'month' ? member.leads.shareMonth : member.leads.shareTotal}
+
+                {@const followupCount = selectedTimeframe === 'today' ? member.followups.today : selectedTimeframe === 'week' ? member.followups.week : selectedTimeframe === 'month' ? member.followups.shareMonth : member.followups.shareTotal}
+                {@const followupShare = selectedTimeframe === 'today' ? member.followups.shareToday : selectedTimeframe === 'week' ? member.followups.shareWeek : selectedTimeframe === 'month' ? member.followups.shareMonth : member.followups.shareTotal}
+
+                <tr class="transition-colors hover:bg-[var(--bg-muted)]/40">
+                  <td class="py-3.5">
+                    <div class="flex items-center gap-2.5">
+                      <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-500/15 font-bold text-amber-400">
+                        {(member.user_name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p class="font-semibold text-[var(--text-primary)]">{member.user_name}</p>
+                        <p class="text-[11px] text-[var(--text-tertiary)]">{member.user_email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="py-3.5">
+                    <span class="inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium {member.role === 'ADMIN' ? 'bg-amber-500/15 text-amber-400 border-amber-500/30' : 'bg-blue-500/15 text-blue-400 border-blue-500/30'}">
+                      {member.role === 'ADMIN' ? 'مدیر' : 'کارشناس'}
+                    </span>
+                  </td>
+                  <td class="py-3.5">
+                    <span class="inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium {member.activityBadgeClass}">
+                      {member.activityLevel}
+                    </span>
+                  </td>
+
+                  <!-- INDIVIDUAL MULTIVARIATE TREND SVG SPARKLINE COLUMN -->
+                  <td class="py-3.5 min-w-[130px]">
+                    <button
+                      type="button"
+                      onclick={() => (activeTrendModalMember = member)}
+                      class="group relative flex items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-muted)]/50 p-1.5 transition-colors hover:border-amber-500/50 hover:bg-[var(--bg-muted)]"
+                      title="برای مشاهده جزئیات نمودار تفکیکی کلیک کنید"
+                    >
+                      <svg viewBox="0 0 120 36" style="direction: ltr;" class="h-9 w-28 overflow-visible">
+                        <!-- Leads Trend Line (Amber) -->
+                        <path d={leadsPath} fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <!-- Followups Trend Line (Emerald) -->
+                        <path d={followupsPath} fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3 1" />
+                        <!-- Contacts Trend Line (Blue) -->
+                        <path d={contactsPath} fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                  </td>
+
+                  <!-- Equal Share Visual Bar 1: Lead Share -->
+                  <td class="py-3.5 min-w-[140px]">
+                    <div class="flex items-center gap-2">
+                      <div class="h-2 w-16 overflow-hidden rounded-full bg-[var(--bg-muted)]">
+                        <div class="h-full bg-amber-500" style="width: {Math.max(4, leadShare)}%"></div>
+                      </div>
+                      <span class="font-bold text-[var(--text-primary)]">{leadCount}</span>
+                      <span class="text-[10px] text-amber-400">({leadShare}%)</span>
+                    </div>
+                  </td>
+
+                  <!-- Equal Share Visual Bar 2: Followup Share -->
+                  <td class="py-3.5 min-w-[140px]">
+                    <div class="flex items-center gap-2">
+                      <div class="h-2 w-16 overflow-hidden rounded-full bg-[var(--bg-muted)]">
+                        <div class="h-full bg-emerald-500" style="width: {Math.max(4, followupShare)}%"></div>
+                      </div>
+                      <span class="font-bold text-[var(--text-primary)]">{followupCount}</span>
+                      <span class="text-[10px] text-emerald-400">({followupShare}%)</span>
+                    </div>
+                  </td>
+
+                  <td class="py-3.5 font-medium">{member.stats?.contacts_count || 0}</td>
+                  <td class="py-3.5 font-medium">{member.stats?.accounts_count || 0}</td>
+                </tr>
+              {:else}
+                <tr>
+                  <td colspan="8" class="py-6 text-center text-[var(--text-tertiary)]">
+                    اطلاعات کارکرد اعضای تیم در دسترس نیست.
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    {/if}
 
     <!-- DETAILED INDIVIDUAL MULTIVARIATE TREND MODAL / DRAWER -->
     {#if activeTrendModalMember}
