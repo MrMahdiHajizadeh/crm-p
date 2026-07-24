@@ -18,6 +18,7 @@ from common.views.custom_field_views import (
     CustomFieldDefinitionListCreateView,
 )
 from common.views.dashboard_views import ActivityListView, ApiHomeView
+from common.views.export_views import ExcelExportView
 from common.views.notification_views import (
     NotificationDetailView,
     NotificationListView,
@@ -52,6 +53,7 @@ app_name = "api_common"
 
 urlpatterns = [
     path("dashboard/", ApiHomeView.as_view()),
+    path("export/excel/", ExcelExportView.as_view(), name="export_excel"),
     # JWT Authentication endpoints for SvelteKit integration
     path(
         "auth/refresh-token/",
