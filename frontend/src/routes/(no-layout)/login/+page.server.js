@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { getApiBaseUrl } from '$lib/api-helpers.js';
+import { env as publicEnv } from '$env/dynamic/public';
 
 /** @type {import('@sveltejs/kit').ServerLoad} */
 export async function load({ url, cookies }) {
@@ -24,9 +24,9 @@ export const actions = {
     }
 
     try {
-      const baseUrl = getApiBaseUrl();
+      const apiUrl = publicEnv.PUBLIC_DJANGO_API_URL;
       const response = await axios.post(
-        `${baseUrl}/auth/phone-login/`,
+        `${apiUrl}/api/auth/phone-login/`,
         { phone, password },
         { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
       );
@@ -59,9 +59,9 @@ export const actions = {
     }
 
     try {
-      const baseUrl = getApiBaseUrl();
+      const apiUrl = publicEnv.PUBLIC_DJANGO_API_URL;
       await axios.post(
-        `${baseUrl}/auth/request-phone-code/`,
+        `${apiUrl}/api/auth/request-phone-code/`,
         { phone },
         { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
       );
@@ -81,9 +81,9 @@ export const actions = {
     }
 
     try {
-      const baseUrl = getApiBaseUrl();
+      const apiUrl = publicEnv.PUBLIC_DJANGO_API_URL;
       const response = await axios.post(
-        `${baseUrl}/auth/verify-phone-code/`,
+        `${apiUrl}/api/auth/verify-phone-code/`,
         { phone, code },
         { headers: { 'Content-Type': 'application/json' }, timeout: 15000 }
       );

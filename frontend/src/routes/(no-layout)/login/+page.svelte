@@ -13,19 +13,6 @@
   let otpPhone = $state('');
   let otpSent = $state(false);
 
-  let phoneVal = $state('09120000000');
-  let passVal = $state('admin123');
-
-  function fillDemoAdmin() {
-    phoneVal = '09120000000';
-    passVal = 'admin123';
-  }
-
-  function fillDemoUser() {
-    phoneVal = '09136603902';
-    passVal = 'admin123';
-  }
-
   $effect(() => {
     if (form?.success && !form?.otpRequired) {
       // Sync tokens to localStorage for client-side api.js compatibility
@@ -127,7 +114,6 @@
                 required
                 autocomplete="username"
                 disabled={isSubmitting}
-                bind:value={phoneVal}
               />
             </div>
           </div>
@@ -145,7 +131,6 @@
                 required
                 autocomplete="current-password"
                 disabled={isSubmitting}
-                bind:value={passVal}
               />
             </div>
           </div>
@@ -166,29 +151,6 @@
               <ArrowRight size={18} />
             {/if}
           </button>
-
-          <!-- DEMO QUICK LOGIN BUTTONS -->
-          <div class="mt-4 flex flex-col gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs">
-            <div class="flex items-center justify-between font-bold text-amber-400">
-              <span>ورود سریع به حساب‌های آزمایشی</span>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mt-1">
-              <button
-                type="button"
-                onclick={fillDemoAdmin}
-                class="rounded-lg bg-amber-500/20 py-2 px-2 font-medium text-amber-300 hover:bg-amber-500/30 transition-all text-center border border-amber-500/30"
-              >
-                👑 حساب مدیر
-              </button>
-              <button
-                type="button"
-                onclick={fillDemoUser}
-                class="rounded-lg bg-blue-500/20 py-2 px-2 font-medium text-blue-300 hover:bg-blue-500/30 transition-all text-center border border-blue-500/30"
-              >
-                👤 حساب کاربر
-              </button>
-            </div>
-          </div>
         </form>
       {:else if loginMode === 'otp'}
         <form

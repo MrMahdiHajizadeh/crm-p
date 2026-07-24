@@ -20,9 +20,7 @@
     PieChart,
     TrendingUp,
     X,
-    LineChart,
-    FileSpreadsheet,
-    Download
+    LineChart
   } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button/index.js';
   import { Badge } from '$lib/components/ui/badge/index.js';
@@ -505,93 +503,6 @@
 
     <!-- ADMIN EXCLUSIVE: Interactive Timeframe & Pie Chart Visualizer -->
     {#if isAdmin}
-      <!-- EXCEL EXPORT PANEL FOR ADMIN -->
-      <div class="rounded-2xl border border-emerald-500/25 bg-[var(--bg-subtle)] p-6 shadow-sm">
-        <div class="mb-5 flex items-center gap-3">
-          <div class="flex size-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
-            <FileSpreadsheet class="size-5" />
-          </div>
-          <div>
-            <h2 class="text-lg font-bold text-[var(--text-primary)]">دریافت خروجی اکسل (Excel Export)</h2>
-            <p class="text-xs text-[var(--text-secondary)]">خروجی کامل دیتابیس با فرمت Excel (.xlsx) به همراه تمامی شماره‌ها، مشخصات و تاریخ‌ها</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <!-- Leads Export -->
-          <a
-            href="/api/export/excel?type=leads"
-            download="crm_export_leads.xlsx"
-            class="group flex items-center justify-between rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 transition-all hover:bg-amber-500/20 hover:border-amber-500/50 shadow-sm"
-          >
-            <div class="flex items-center gap-3">
-              <div class="flex size-9 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400">
-                <Target class="size-5" />
-              </div>
-              <div class="text-right">
-                <span class="block text-sm font-bold text-[var(--text-primary)]">خروجی سرنخ‌ها</span>
-                <span class="text-[11px] text-[var(--text-secondary)]">نام، شماره، وضعیت و تاریخ</span>
-              </div>
-            </div>
-            <Download class="size-4 text-amber-400 transition-transform group-hover:translate-y-0.5" />
-          </a>
-
-          <!-- Contacts Export -->
-          <a
-            href="/api/export/excel?type=contacts"
-            download="crm_export_contacts.xlsx"
-            class="group flex items-center justify-between rounded-xl border border-blue-500/30 bg-blue-500/10 p-4 transition-all hover:bg-blue-500/20 hover:border-blue-500/50 shadow-sm"
-          >
-            <div class="flex items-center gap-3">
-              <div class="flex size-9 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400">
-                <Users class="size-5" />
-              </div>
-              <div class="text-right">
-                <span class="block text-sm font-bold text-[var(--text-primary)]">خروجی مخاطبین و شماره‌ها</span>
-                <span class="text-[11px] text-[var(--text-secondary)]">شماره تماس، ایمیل و شرکت</span>
-              </div>
-            </div>
-            <Download class="size-4 text-blue-400 transition-transform group-hover:translate-y-0.5" />
-          </a>
-
-          <!-- Accounts Export -->
-          <a
-            href="/api/export/excel?type=accounts"
-            download="crm_export_accounts.xlsx"
-            class="group flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 transition-all hover:bg-emerald-500/20 hover:border-emerald-500/50 shadow-sm"
-          >
-            <div class="flex items-center gap-3">
-              <div class="flex size-9 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
-                <Building class="size-5" />
-              </div>
-              <div class="text-right">
-                <span class="block text-sm font-bold text-[var(--text-primary)]">خروجی شرکت‌ها</span>
-                <span class="text-[11px] text-[var(--text-secondary)]">نام، شماره، صنعت و آدرس</span>
-              </div>
-            </div>
-            <Download class="size-4 text-emerald-400 transition-transform group-hover:translate-y-0.5" />
-          </a>
-
-          <!-- Users Export -->
-          <a
-            href="/api/export/excel?type=users"
-            download="crm_export_users.xlsx"
-            class="group flex items-center justify-between rounded-xl border border-purple-500/30 bg-purple-500/10 p-4 transition-all hover:bg-purple-500/20 hover:border-purple-500/50 shadow-sm"
-          >
-            <div class="flex items-center gap-3">
-              <div class="flex size-9 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400">
-                <Shield class="size-5" />
-              </div>
-              <div class="text-right">
-                <span class="block text-sm font-bold text-[var(--text-primary)]">خروجی کاربران و تیم</span>
-                <span class="text-[11px] text-[var(--text-secondary)]">شماره‌ها، ایمیل، نقش و عضویت</span>
-              </div>
-            </div>
-            <Download class="size-4 text-purple-400 transition-transform group-hover:translate-y-0.5" />
-          </a>
-        </div>
-      </div>
-
       <div class="rounded-2xl border border-amber-500/20 bg-[var(--bg-subtle)] p-6 shadow-sm">
         <div class="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <div class="flex items-center gap-3">
